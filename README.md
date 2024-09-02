@@ -5,7 +5,7 @@ This might be an approach to our fullstack project where we can containerize the
 
 ## Docker Compose Files and Commands
 
-To start if you do not have Docker Desktop then you are going to need it to run the stuff I have below. You can find it at [Docker's(https://www.docker.com/products/docker-desktop/)] website.
+To start if you do not have Docker Desktop then you are going to need it to run the stuff I have below. You can find it at [Docker's](https://www.docker.com/products/docker-desktop/) website.
 
 So far I have gotten the docker compose file setup so that we can containerize everything without having to install all the dependencies locally. It still is pretty bare bones but it should work, I will be making adjustments to help get it working a little bit better. 
 
