@@ -23,11 +23,15 @@ Once it is completed you will see
 
 That means it has created/started some containers for you. This issue I am having thus far is where the container is loaded up to and all that. But I have been able to get things to work it just takes a little finessing to do it. That is what I will try and get working next.
 
+One thing to mention is that when this stack is created by docker compose you have to run the frontend or backend individually through the Remote window (the thing in the bottom right corner) and connect it to a running docker container. It will load up a separate window and all the dependencies will be loaded in as well.
+
+Loading the remote connection will allow you to connect to the local server hosted from your computer and you can see updates live as you work, making development more seamless.
+
 
 I have also been working extensively on understanding the file structure for the backend portion of this program as well as some ideas about defining the structure of the database.
 
 
-for the file structure we have this layout where I will explain in more detail in the backend [readme](/backend/app/README.md)
+For the file structure we have this layout where I will explain in more detail in the backend [readme](/backend/app/README.md)
 
 ```
 📦backend
