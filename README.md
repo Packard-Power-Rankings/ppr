@@ -55,6 +55,8 @@ When you are finished working on something related to the project and want to tu
 
 This command turns off all the active containers that are attached to this stack and removes any images that are still there, so docker is not just continuously running in the background.
 
+Sometimes docker desktop needs to be refreshed and restarted to build the images. I noticed it will lag in the terminal and not do anything so if you try one of those things it will help get it going again.
+
 
 ## FastAPI File Structure
 
@@ -85,4 +87,39 @@ For the file structure we have this layout where I will explain in more detail i
  ┃ ┗ 📜__init__.py
  ┣ 📜Dockerfile
  ┗ 📜requirements.txt
+```
+
+## MongoDB Information
+
+For each of us I decided instead of using just one username and password for connecting to the Mongo client I have created a username and password for each person to be able to connect to that specific cluster.
+
+The username and password needs to be stored in a .env file that is ignored from being pushed into github (if you do not have one please create one and set the variables to be used). 
+
+Here is how I will have mine setup and so lets try and keep this the same with the variables throughout everyone's .env file so when we set the Mongo uri it won't cause issues on someone elses uri structure. 
+
+```
+MONGO_DB_NAME = "<mongo db name>"
+MONGO_PASS = "<mongo pass>"
+MONGO_USER = "<mongo username>"
+MONGO_PORT = "<mongo port>"
+```
+
+For the Mongo URI it should be setup already through the docker-compose file which the docker-compose file should show this
+
+```
+db:
+.
+.
+environment:
+      - MONGO_INITDB_DATABASE=${MONGO_DB_NAME}
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASS}
+    ports:
+      - "${MONGO_PORT}:${MONGO_PORT}"
+
+backend:
+.
+.
+environment:
+      - MONGO_URI=mongodb://${MONGO_USER}:${MONGO_PASS}@db:${MONGO_PORT}/${MONGO_DB_NAME}
 ```
