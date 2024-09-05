@@ -1,0 +1,387 @@
+2023-10-21 @Ball St                  24  C Michigan               17            
+2023-10-21 @Bowling Green            41  Akron                    14            
+2023-10-21  Baylor                   32 @Cincinnati               29            
+2023-10-21  South Florida            24 @Connecticut              21            
+2023-10-21  Charlotte                10 @East Carolina             7            
+2023-10-21  UT San Antonio           36 @FL Atlantic              10            
+2023-10-21 @Florida St               38  Duke                     20            
+2023-10-21 @Ga Southern              38  ULM                      28            
+2023-10-21  Boston College           38 @Georgia Tech             23            
+2023-10-21  Rutgers                  31 @Indiana                  14            
+2023-10-21  Buffalo                  24 @Kent                      6            
+2023-10-21 @Miami FL                 28  Clemson                  20 O2         
+2023-10-21  Toledo                   21 @Miami OH                 17            
+2023-10-21  Michigan                 49 @Michigan St               0            
+2023-10-21  Air Force                17 @Navy                      6            
+2023-10-21  Virginia                 31 @North Carolina           27            
+2023-10-21 @Ohio                     20  W Michigan               17            
+2023-10-21 @Ohio St                  20  Penn St                  12            
+2023-10-21 @Old Dominion             28  Appalachian St           21            
+2023-10-21 @Wake Forest              21  Pittsburgh               17            
+2023-10-21  Oklahoma St              48 @West Virginia            34            
+2023-10-21 @Alabama                  34  Tennessee                20            
+2023-10-21  Mississippi St            7 @Arkansas                  3            
+2023-10-21  Coastal Car              27 @Arkansas St              17            
+2023-10-21  Mississippi              28 @Auburn                   21            
+2023-10-21  Texas                    31 @Houston                  24            
+2023-10-21  Wisconsin                25 @Illinois                 21            
+2023-10-21  Minnesota                12 @Iowa                     10            
+2023-10-21 @Kansas St                41  TCU                       3            
+2023-10-21 @LSU                      62  Army                      0            
+2023-10-21  Georgia St               20 @Louisiana                17            
+2023-10-21 @Missouri                 34  South Carolina           12            
+2023-10-21 @Nebraska                 17  Northwestern              9            
+2023-10-21 @N Illinois               20  E Michigan               13            
+2023-10-21 @Oklahoma                 31  UCF                      29            
+2023-10-21 @Tulane                   35  North Texas              28            
+2023-10-21  Memphis                  45 @UAB                      21            
+2023-10-21 @BYU                      27  Texas Tech               14            
+2023-10-21 @New Mexico               42  Hawaii                   21            
+2023-10-21 @Oregon                   38  Washington St            24            
+2023-10-21  Nevada                    6 @San Diego St              0            
+2023-10-21 @San Jose St              42  Utah St                  21            
+2023-10-21  UCLA                     42 @Stanford                  7            
+2023-10-21 @UNLV                     25  Colorado St              23            
+2023-10-21  Utah                     34 @USC                      32            
+2023-10-21 @Washington               15  Arizona St                7            
+2023-10-21  Southern Univ            28 @Bethune-Cookman          18           Jacksonville FL 
+2023-10-21  Lehigh                   27 @Bucknell                 18            
+2023-10-21 @Cornell                  36  Brown                    14            
+2023-10-21  S Carolina St            35 @Delaware St               7            
+2023-10-21 @Duquesne                 38  St Francis PA            35            
+2023-10-21 @Gardner Webb             35  E Kentucky               32            
+2023-10-21  Lafayette                38 @Holy Cross               35            
+2023-10-21 @Howard                   27  Norfolk St               23            
+2023-10-21  South Dakota             17 @Indiana St                3            
+2023-10-21  Merrimack                39 @LIU Post                  0            
+2023-10-21  Marist                   19 @Presbyterian             10            
+2023-10-21 @Princeton                21  Harvard                  14            
+2023-10-21  Samford                  27 @VMI                      14            
+2023-10-21  Central Conn             17 @Wagner                    3            
+2023-10-21  Furman                   29 @W Carolina               17            
+2023-10-21  Penn                     27 @Yale                     17            
+2023-10-21 @Davidson                 42  Valparaiso               21            
+2023-10-21  Butler                   37 @Dayton                   10            
+2023-10-21  Jackson St               21 @MS Valley St              6            
+2023-10-21  Richmond                 33 @NC A&T                   10            
+2023-10-21  Abilene Chr              34 @SF Austin                27            
+2023-10-21  St Thomas MN             38 @Stetson                   6            
+2023-10-21 @Stonehill                22  Sacred Heart             19 O2         
+2023-10-21 @Tarleton St              42  Morehead St               0            
+2023-10-21  Nicholls St              27 @TX A&M Commerce           7            
+2023-10-21  Florida A&M              31 @TX Southern              21            
+2023-10-21 @Chattanooga              34  ETSU                      3            
+2023-10-21 @Dartmouth                20  Columbia                  9            
+2023-10-21 @Elon                     28  Monmouth NJ              26            
+2023-10-21  Delaware                 47 @Hampton                   3            
+2023-10-21  Austin Peay              48 @Southern Utah            45 O2         
+2023-10-21 @Youngstown St            41  Illinois St              38            
+2023-10-21  SE Missouri St           28 @Tennessee Tech            3            
+2023-10-21  Alcorn St                31 @Ark Pine Bluff            7            
+2023-10-21 @Cal Poly                 24  N Colorado               17            
+2023-10-21 @E Illinois               25  Bryant                   24 O1         
+2023-10-21 @E Washington             31  Weber St                 23            
+2023-10-21  Colgate                  28 @Georgetown               18            
+2023-10-21 @Missouri St              28  Murray St                24            
+2023-10-21  Idaho St                 38 @Portland St              24            
+2023-10-21  Montana St               42 @CS Sacramento            30            
+2023-10-21  Drake                    25 @San Diego                20            
+2023-10-21  S Dakota St              17 @S Illinois               10            
+2023-10-21 @TN Martin                17  Charleston So             0            
+2023-10-21 @SUNY Albany              35  Rhode Island             10            
+2023-10-21 @N Dakota St              52  W Illinois                7            
+2023-10-21  New Hampshire            45 @Stony Brook              14            
+2023-10-21  Towson                   34 @William & Mary           24            
+2023-10-21 @Campbell                 34  Maine                    28            
+2023-10-21 @Mercer                   31  Wofford                  17            
+2023-10-21 @Northern Iowa            27  North Dakota              0            
+2023-10-21 @North Alabama            31  Utah Tech                30            
+2023-10-21  Incarnate Word           35 @McNeese St               24            
+2023-10-21 @Slippery Rock            42  California PA            21            
+2023-10-21  VA-Lynchburg             45 @Lane                     42            
+2023-10-21 @Edward Waters            31  Albany GA                27            
+2023-10-21  John Carroll             63 @Capital                  17            
+2023-10-21 @Carnegie Mellon          35  Wash & Jeff              14            
+2023-10-21  Wheaton IL               52 @Carroll WI                6            
+2023-10-21  Mars Hill                21 @Carson-Newman            17            
+2023-10-21 @Case Western             35  Waynesburg                0            
+2023-10-21 @Mid Am Nazarene          59  Cent Methodist           12            
+2023-10-21 @C Missouri               77  Emporia St               27            
+2023-10-21  C Oklahoma               37 @NE Oklahoma              21            
+2023-10-21  Central St OH            48 @Clark Atlanta            21            
+2023-10-21 @C Washington             30  W Texas A&M              14            
+2023-10-21  Centre                   59 @Millsaps                 20            
+2023-10-21 @Chapman                  38  Cal Lutheran             10            
+2023-10-21  Trine                    35 @Albion                   28            
+2023-10-21 @Cornell IA               47  Chicago                  34            
+2023-10-21 @Mississippi Col          38  Chowan                   21            
+2023-10-21 @Claremont M.S.           31  Redlands                 17            
+2023-10-21  Clarion                  34 @Edinboro                 20            
+2023-10-21  Colorado Mines           42 @Black Hills St           17            
+2023-10-21  CSU-Pueblo               28 @Chadron St                3            
+2023-10-21 @Concordia IL             28  Eureka                   27            
+2023-10-21  Siena Hts                24 @Concordia MI             21            
+2023-10-21 @Concordia Mhd            49  Macalester                8            
+2023-10-21 @Bemidji St               38  Concordia SP              3            
+2023-10-21 @Miles                    28  Allen                    21            
+2023-10-21  Cortland St              42 @St John Fisher           14            
+2023-10-21 @Valley City St           21  Dakota St                14            
+2023-10-21 @Briar Cliff              21  Dakota Wesleyan          17            
+2023-10-21  West Florida             24 @Delta St                 21            
+2023-10-21  DePauw                   41 @Wittenberg               35 O1         
+2023-10-21 @Emory & Henry            27  Tusculum                 24 O1         
+2023-10-21 @UVA-Wise                 34  Erskine                  23            
+2023-10-21  Georgetown KY            27 @Faulkner                  3            
+2023-10-21 @Fayetteville St          14  JC Smith                  7            
+2023-10-21 @FDU Madison              41  Alvernia                 16            
+2023-10-21 @Ferrum                   28  Guilford                  0            
+2023-10-21  Permian Basin            28 @Angelo St                23            
+2023-10-21  Fort Hays St             31 @Washburn                 28            
+2023-10-21 @S Dakota Tech            48  Ft Lewis                 10            
+2023-10-21 @Fort Valley St           31  Morehouse                 3            
+2023-10-21  Rose-Hulman              50 @Franklin                 35            
+2023-10-21  Gannon                   31 @Mercyhurst               28            
+2023-10-21 @George Fox               63  Willamette               10            
+2023-10-21 @Glenville St             44  Concord                   7            
+2023-10-21  Grand Valley St          73 @N Michigan               14            
+2023-10-21  Northwestern MN          32 @Greenville               12            
+2023-10-21 @CO Mesa                  42  Adams St                  7            
+2023-10-21 @Mt St Joseph             52  Hanover                  27            
+2023-10-21  Harding                  54 @S Arkansas               20           El Dorado AR 
+2023-10-21  Henderson St             42 @Ark Monticello           14            
+2023-10-21 @Hendrix                  50  Rhodes                   49            
+2023-10-21 @Hiram                    27  Oberlin                  19            
+2023-10-21  Huntingdon               56 @Greensboro                8            
+2023-10-21 @Ouachita                 31  Arkansas Tech            24            
+2023-10-21 @W New England            10  Husson                    9            
+2023-10-21  IL Wesleyan              34 @Carthage                  7            
+2023-10-21 @Seton Hill               35  Indiana PA               28            
+2023-10-21  Indianapolis             24 @Quincy                   14            
+2023-10-21  Ithaca                   24 @Rochester NY             10            
+2023-10-21 @Johns Hopkins            42  Ursinus                  14            
+2023-10-21 @Alma                     43  Kalamazoo                10            
+2023-10-21 @Tiffin                   37  KY Wesleyan              12            
+2023-10-21  Knox                     14 @Grinnell                  7            
+2023-10-21 @Ashland                  31  Lake Erie                19            
+2023-10-21  Illinois Col             72 @Lawrence                  0            
+2023-10-21 @Delaware Val             21  Lebanon Val              17            
+2023-10-21  Lenoir-Rhyne             24 @Newberry                 10            
+2023-10-21  MO Southern              63 @Lincoln MO                5            
+2023-10-21  Linfield                 55 @Puget Sound               6            
+2023-10-21  Augsburg                 56 @St Olaf                  36            
+2023-10-21  Kutztown                  7 @Lock Haven                3            
+2023-10-21  Wartburg                 62 @Loras                     7            
+2023-10-21 @Augustana IL             42  North Park               28            
+2023-10-21 @Taylor IN                54  Madonna                  14            
+2023-10-21 @Aurora                   70  WI Lutheran               7            
+2023-10-21  M Hardin-Baylor          49 @Austin Col               14            
+2023-10-21  Martin Luther            13 @Crown MN                  3            
+2023-10-21 @Maryville TN             26  LaGrange                  6            
+2023-10-21  Mayville St              20 @Waldorf                   7            
+2023-10-21  Bridgewater VA           53 @Averett                  24            
+2023-10-21 @McMurry                  45  Howard Payne             21            
+2023-10-21  Ferris St                35 @Michigan Tech            21            
+2023-10-21  Midwest TX St            33 @W Oregon                  6            
+2023-10-21 @Shippensburg             13  Millersville              7            
+2023-10-21 @Elmhurst                 29  Millikin                 27            
+2023-10-21  MN Duluth                42 @Minot St                  7            
+2023-10-21  Baldwin-Wallace          24 @Otterbein                 0            
+2023-10-21 @McKendree                20  Missouri S&T             17            
+2023-10-21  Southern Oregon          42 @MT St Northern           13            
+2023-10-21  MT Western               34 @Arizona Chr              30            
+2023-10-21  Moorhead St              34 @SW Minnesota             17            
+2023-10-21  Moravian                 44 @Juniata                  13            
+2023-10-21  Hastings                 45 @Mt Marty                 42            
+2023-10-21  Mt Union                 69 @Wilmington OH             0            
+2023-10-21  Ohio Northern            27 @Muskingum                17            
+2023-10-21  NC Pembroke              56 @WV Wesleyan               0            
+2023-10-21  MO Western               20 @NE Kearney               17            
+2023-10-21  Wingate                  38 @Barton                   24            
+2023-10-21 @N Central IL             49  Washington StL            3            
+2023-10-21 @West Georgia             38  North Greenville         14            
+2023-10-21  Pittsburg St             28 @NW Missouri               7            
+2023-10-21 @OK Baptist               28  NW Oklahoma St            7            
+2023-10-21 @Northwestern IA          35  Dordt                    14            
+2023-10-21 @Coast Guard              52  Norwich                  17            
+2023-10-21 @Belhaven MS              45  Methodist                10            
+2023-10-21  Notre Dame OH            40 @West Liberty             35            
+2023-10-21  Peru St                  24 @William Penn             13            
+2023-10-21 @Randolph-Macon           48  Shenandoah               13            
+2023-10-21  Berry                    61 @Sewanee                  23            
+2023-10-21  Reinhardt                44 @Point                    17            
+2023-10-21 @Ripon                    12  Lake Forest               0            
+2023-10-21  Salisbury                35 @Rowan                    20            
+2023-10-21  St Anselm                14 @Assumption                0            
+2023-10-21 @Bethel MN                49  Hamline                   7            
+2023-10-21  Tuskegee                 21 @Savannah St              14            
+2023-10-21 @Livingstone              27  Shaw NC                  26            
+2023-10-21  Winona St                42 @Sioux Falls              35            
+2023-10-21 @SE Oklahoma              32  SW Oklahoma              13            
+2023-10-21 @Springfield              31  Salve Regina             21            
+2023-10-21 @E Stroudsburg            21  Bloomsburg               16            
+2023-10-21  Pikeville                51 @Bluefield Univ           42            
+2023-10-21 @Bluffton                 50  Manchester               12            
+2023-10-21 @Susquehanna              34  Wilkes                    7            
+2023-10-21  TX A&M K'ville           35 @E New Mexico             14            
+2023-10-21  Bowie St                 40 @Bluefield St             11            
+2023-10-21 @Union NY                 27  Hobart & Smith           10            
+2023-10-21  U New England            19 @Curry                    13            
+2023-10-21  Utica                    28 @Alfred                    0            
+2023-10-21 @Valdosta St              42  Shorter                  14            
+2023-10-21 @Virginia Union           57  Lincoln PA                0            
+2023-10-21  Wabash                   67 @Kenyon                   18            
+2023-10-21 @Saginaw Val              17  Wayne St MI              10 O1         
+2023-10-21 @Northern St SD           28  Wayne St NE              26            
+2023-10-21 @Westminster PA           27  Allegheny                17            
+2023-10-21 @Whitworth                42  Pacific OR               20            
+2023-10-21 @Truman St                31  Wm Jewell                10            
+2023-10-21 @WI LaCrosse              31  WI Oshkosh               28            
+2023-10-21  WI River Falls           75 @WI Stevens Pt            14            
+2023-10-21 @WI Whitewater            37  WI Stout                 20            
+2023-10-21 @Dubuque                  41  Buena Vista               0            
+2023-10-21 @Chris Newport            34  Kean                     10            
+2023-10-21  Tyler JC                 38 @Cisco JC                 28            
+2023-10-21 @College of NJ            30  Gettysburg               13            
+2023-10-21  Davenport                44 @Mary ND                  34            
+2023-10-21  Defiance                 36 @Anderson IN               6            
+2023-10-21 @Denison                  35  Wooster                  31            
+2023-10-21  Southern Nazarene        27 @East Central OK          13            
+2023-10-21 @Grove City               49  St Vincent                0            
+2023-10-21  Hamilton                 17 @Colby                     6            
+2023-10-21 @Marietta                 37  Heidelberg               14            
+2023-10-21 @Benedict                 63  Kentucky St              14            
+2023-10-21  Lycoming                 34 @Keystone                  7            
+2023-10-21 @Pac Lutheran             49  Lewis & Clark            14            
+2023-10-21 @Limestone                27  Catawba                  16            
+2023-10-21 @Ottawa AZ                27  Louisiana Chr            24            
+2023-10-21 @Merchant Marine          40  Worcester Tech           28            
+2023-10-21  MN Morris                34 @Westminster MO           13            
+2023-10-21  Muhlenberg               42 @Dickinson                21            
+2023-10-21 @Central IA               72  NE Wesleyan               0            
+2023-10-21 @Western St CO            62  NM Highlands              0            
+2023-10-21  Endicott                 48 @Nichols                   0            
+2023-10-21 @Panhandle St             44  Texas Col                32            
+2023-10-21  Rensselaer               37 @St Lawrence               7            
+2023-10-21 @Upper Iowa               35  SW Baptist               13            
+2023-10-21 @TX Wesleyan              24  Wayland                  13            
+2023-10-21 @Wesleyan CT              35  Bowdoin                  30            
+2023-10-21 @Bridgewater MA           21  Westfield St              0            
+2023-10-21  Trinity CT               41 @Williams                 14            
+2023-10-21  Widener                  48 @Albright                  3            
+2023-10-21 @Lindsey Wilson           48  Cumberlands KY           14            
+2023-10-21  Post                     16 @Franklin Pierce          13            
+2023-10-21  Frank & Marsh            27 @McDaniel                 17            
+2023-10-21 @Middlebury               48  Bates                     7            
+2023-10-21 @Stevenson                33  Misericordia             21            
+2023-10-21 @NC Wesleyan              34  S Virginia                7            
+2023-10-21 @Rocky Mtn                28  MT Tech                  21            
+2023-10-21 @W Salem St               24  St Augustine's           17            
+2023-10-21 @Shepherd                 59  West Chester             21            
+2023-10-21  Tufts                    34 @Amherst                  14            
+2023-10-21  Washington & Lee         21 @Hampden-Sydney           17            
+2023-10-21  Montclair St             14 @Wm Paterson              13            
+2023-10-21  Brockport St             49 @Morrisville St            0            
+2023-10-21 @Buffalo St               44  Hilbert                  12            
+2023-10-21  Iowa Western CC          28 @Butler Co-KS             21            
+2023-10-21 @Dodge City CC            34  Iowa Cent                30            
+2023-10-21 @E Mississippi CC         38  NE MS CC                 31            
+2023-10-21 @Hutchinson CC            27  Garden City CC           18            
+2023-10-21  Jones Col                27 @SW Mississippi           21            
+2023-10-21 @Kilgore                  37  Trinity Valley CC        17            
+2023-10-21  Hudson Val                7 @Erie CC                   6            
+2023-10-21 @Tennessee St             54  Lincoln CA                0            
+2023-10-21  Col of Dupage            39 @Hocking                   6            
+2023-10-21  Anna Maria               52 @Dean                     20            
+2023-10-21  E Texas Bap              16 @TX Lutheran               6            
+2023-10-21  Findlay                  23 @Walsh                     0            
+2023-10-21  Grand View               52 @Graceland                13            
+2023-10-21 @Langston                 51  Ark Baptist              20            
+2023-10-21 @OH Dominican             15  Northwood MI              0            
+2023-10-21  Hope                     45 @Olivet MI                 7            
+2023-10-21  NM Military              28 @NE OK A&M                16            
+2023-10-21 @MA Dartmouth             42  Fitchburg St              7            
+2023-10-21  Monmouth IL              59 @Beloit                    3            
+2023-10-21 @Benedictine IL           31  Lakeland                  6            
+2023-10-21 @Plymouth St              35  Worcester St              0            
+2023-10-21 @Carleton MN              42  St Scholastica           21            
+2023-10-21  Bentley                  62 @American Intl            12            
+2023-10-21 @Augustana SD             28  MN Mankato               10            
+2023-10-21 @Benedictine KS           31  Missouri Val              7            
+2023-10-21 @Bethel TN                24  Cumberland TN             7            
+2023-10-21  Col of Idaho             35 @Carroll MT               21            
+2023-10-21 @Clarke                   14  Culver-Stockton           7            
+2023-10-21  St Norbert               13 @Concordia WI              7 O1         
+2023-10-21 @Evangel                  20  Friends                  11            
+2023-10-21 @FL Memorial              34  Webber                   29            
+2023-10-21 @Gallaudet                38  Alfred St                24            
+2023-10-21 @Geneva                   45  Bethany WV               20            
+2023-10-21 @Gust Adolphus            38  St John's MN             35            
+2023-10-21 @KS Wesleyan              17  St Mary KS               14            
+2023-10-21 @Keiser                   51  Southeastern FL          21            
+2023-10-21  Simpson IA               56 @Luther IA                14            
+2023-10-21 @Marian IN                24  St Francis IN            14            
+2023-10-21 @McPherson                28  Bethany KS                0            
+2023-10-21 @Midland NE               27  Doane                    10            
+2023-10-21  Baker KS                 41 @MO Baptist               17            
+2023-10-21 @Morningside              39  Jamestown                29            
+2023-10-21  Roosevelt                48 @Olivet Naz               24            
+2023-10-21 @Ottawa KS                55  Sterling                 17            
+2023-10-21  S Connecticut            25 @Pace                     23 O5         
+2023-10-21 @Pomona-Pitzer            20  La Verne                  7            
+2023-10-21  Bethel KS                20 @Southwestern KS          13            
+2023-10-21  Trinity TX               57 @SW Univ TX                7            
+2023-10-21  St Francis IL            55 @St Ambrose                0            
+2023-10-21  Kentucky Chr             18 @St Andrew's              15            
+2023-10-21 @St Thomas FL             73  Ave Maria                10            
+2023-10-21  Hardin-Simmons           55 @Sul Ross                  7            
+2023-10-21  MIT                      35 @SUNY Maritime            28            
+2023-10-21 @SW Assemb God            15  North American            6            
+2023-10-21  Avila                    35 @Tabor                    17            
+2023-10-21  Hillsdale                35 @Thomas More              33            
+2023-10-21  WI Platteville           47 @WI Eau Claire            14            
+2023-10-21  Eliz. City St            17 @Virginia St              16            
+2023-10-21 @King's PA                28  Eastern Univ             18            
+2023-10-21 @Thomas GA                38  Warner                   26            
+2023-10-21 @Fairmont St              33  Charleston WV            30            
+2023-10-21 @Mt Allison               13  St Mary's NS             11            
+2023-10-21  Waterloo                 26 @Toronto                  21            
+2023-10-21 @Windsor                  69  York ON                   0            
+2023-10-21 @Queen's ON               12  Ottawa ON                 8            
+2023-10-21 @Western ON               33  Laurier                  30            
+2023-10-21 @Carleton ON              29  Guelph                   27            
+2023-10-21  Bishop's                 22 @Acadia                   10            
+2023-10-21 @Brit Columbia            31  Regina                   20            
+2023-10-21  Calgary                  13 @Saskatchewan             12            
+2023-10-21  Central Lakes            26 @MN St CTC                12            
+2023-10-21  Allan Hancock            49 @Col of the Canyons       45            
+2023-10-21  American River           40 @Butte Col                12            
+2023-10-21  Ventura Col              35 @Antelope Val CC          16            
+2023-10-21 @Bakersfield Col          25  Moorpark                 17            
+2023-10-21  Cabrillo                 24 @West Hills                0            
+2023-10-21  Citrus Col               31 @Cerritos Col             26            
+2023-10-21  San Joaquin Delta        45  Chabot                   28            
+2023-10-21  Chaffey                  41 @Col of the Desert        27            
+2023-10-21 @Santa Ana Col            57  Compton CC                0            
+2023-10-21 @Modesto JC               49  Contra Costa             28            
+2023-10-21 @Merced Col               25  De Anza Col               7            
+2023-10-21 @Col San Mateo            56  Diablo Val                7            
+2023-10-21  Mt San Antonio           48 @East LA Col              17            
+2023-10-21  El Camino Col            45 @Santa Barbara City       20            
+2023-10-21 @Feather River            28  Santa Rosa JC            26            
+2023-10-21 @Foothill Col             48  Los Medanos              14            
+2023-10-21 @Fresno City Col          28  Sacramento City          10            
+2023-10-21 @Fullerton Col            48  Palomar Col              19            
+2023-10-21  San Jose City Col        61 @Gavilan                  10            
+2023-10-21  Glendale CA              31 @LA Valley Col            18            
+2023-10-21  Golden West              20 @San Bernardino Val       17            
+2023-10-21  Saddleback               62 @Grossmont                21            
+2023-10-21 @Monterey Peninsula       40  Hartnell                 20            
+2023-10-21  Pasadena City Col        20 @LA Pierce                17            
+2023-10-21 @Santa Monica Col         35  LA Southwest             34            
+2023-10-21  Long Beach City Col      79 @Orange Coast             17            
+2023-10-21 @San Diego Mesa           46  Mt San Jacinto           27            
+2023-10-21 @Col of the Redwoods      50  Yuba                      7            
+2023-10-21 @Reedley                  24  Col of the Sequoias      17            
+2023-10-21  Riverside CC             61 @Southwestern CA           0            
+2023-10-21  Sierra Col               45 @Shasta Col                0            
+2023-10-21 @West LA Col              16  Victor Valley            14  
