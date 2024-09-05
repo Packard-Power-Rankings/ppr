@@ -1,7 +1,5 @@
 import unittest
 
-# commit test on main
-
 
 def add(x, y):
     return x + y
