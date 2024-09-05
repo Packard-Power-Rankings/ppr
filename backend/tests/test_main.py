@@ -6,7 +6,7 @@ def add(x, y):
 
 
 class TestFunctions(unittest.TestCase):
-    def sample_test(self):
+    def test_add(self):
         self.assertEqual(add(3, 3), 6)
 
 
