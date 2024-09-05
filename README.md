@@ -123,3 +123,7 @@ backend:
 environment:
       - MONGO_URI=mongodb://${MONGO_USER}:${MONGO_PASS}@db:${MONGO_PORT}/${MONGO_DB_NAME}
 ```
+
+## Git Branch Management and Best Practices
+
+(adapted from https://github.com/rambasnet/course-container)
