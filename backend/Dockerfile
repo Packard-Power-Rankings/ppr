@@ -2,7 +2,7 @@
 FROM python:3-slim
 
 # Set the working directory
-WORKDIR /app/api
+WORKDIR /app
 
 RUN python -m pip install --upgrade pip
 
