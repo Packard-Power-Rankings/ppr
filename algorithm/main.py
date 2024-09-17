@@ -1,24 +1,31 @@
-import database
-import csv
-import sys
+from utils import load_game_data_from_csv, calculate_performance, calculate_ranking, save_to_json, save_to_csv
 
 
-def main(csv_file):
-    db_conn = database.connect_db()
-    database.init_db(db_conn)
+def run_algorithm(games_csv, output_format='json'):
+    # Load the data
+    games_data = load_game_data_from_csv(games_csv)
 
-    # Load CSV data into the database
-    database.import_csv_to_db(db_conn, csv_file)
+    # Step 1: Extract unique teams from the games data
+    teams = pd.DataFrame({'Team_Name': pd.concat(
+        [games_data['Home_Team'], games_data['Visitor_Team']]).unique()})
 
-    # Run the algorithm
-    # Example: update_record(db_conn, 1, 2, 3)
+    # Step 2: Calculate performance for each team
+    performance_data = calculate_performance(teams, games_data)
 
-    db_conn.close()
+    # Step 3: Calculate rankings based on performance
+    ranking_data = calculate_ranking(performance_data)
+
+    # Output the result in the desired format
+    if output_format == 'json':
+        save_to_json(ranking_data.to_dict(orient='records'), 'output.json')
+        print("Output saved to 'output.json'")
+    else:
+        save_to_csv(ranking_data, 'output.csv')
+        print("Output saved to 'output.csv'")
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python main.py <path_to_csv_file>")
-        sys.exit(1)
+    games_csv = 'CFootballEx.csv'      # Update with actual file path
+    output_format = 'json'               # Can be 'json' or 'csv'
 
-    main(sys.argv[1])
+    run_algorithm(games_csv, output_format)
