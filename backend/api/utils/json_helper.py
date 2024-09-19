@@ -3,8 +3,10 @@
     :store in mongodb
 """
 
+from typing import Dict
 
-def json_file_builder(sport_type: str, gender: str, level: str):
+
+def json_file_builder(sport_type: str, gender: str, level: str) -> Dict:
     """Function that defines the structure for
     json file for mongodb
 
@@ -21,24 +23,25 @@ def json_file_builder(sport_type: str, gender: str, level: str):
             sport_type: {
                 gender: {
                     level: {
-                        "k_value": float,
-                        "home_advantage": int,
-                        "average_game_score": int,
-                        "game_set_len": int,
+                        "k_value": 0.0,
+                        "home_advantage": 0,
+                        "average_game_score": 0,
+                        "game_set_len": 0,
                         "team": [
                             {
-                                "id": int,
-                                "city": str,
-                                "state": str,
-                                "conference": str,
-                                "division": str,
-                                "score": int,
-                                "z-score": float,
-                                "power_ranking": float,
+                                "id": 0,
+                                "team_name": "",
+                                "city": "",
+                                "state": "",
+                                "conference": "",
+                                "division": "",
+                                "score": 0,
+                                "z_score": 0.0,
+                                "power_ranking": 0.0,
                                 "season_opp": [
                                     {
-                                        "opp_id": int,
-                                        "date": str
+                                        "opp_id": 0,
+                                        "date": ""
                                     }
                                 ]
                             }
