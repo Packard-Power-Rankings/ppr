@@ -35,7 +35,8 @@ def json_file_builder(sport_type: str, gender: str, level: str) -> Dict:
                                 "state": "",
                                 "conference": "",
                                 "division": "",
-                                "score": 0,
+                                "wins": 0,
+                                "losses": 0,
                                 "z_score": 0.0,
                                 "power_ranking": 0.0,
                                 "season_opp": [
