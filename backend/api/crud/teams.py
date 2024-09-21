@@ -32,3 +32,6 @@ async def create_sport(
             sport_json_doc=sport_json_doc,
             algo_vals=algo_vals
         )
+
+    for team in team_data:
+        pass
