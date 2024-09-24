@@ -1,31 +1,85 @@
-from utils import load_game_data_from_csv, calculate_performance, calculate_ranking, save_to_json, save_to_csv
+import numpy as np  # For numerical operations
 
 
-def run_algorithm(games_csv, output_format='json'):
-    # Load the data
-    games_data = load_game_data_from_csv(games_csv)
-
-    # Step 1: Extract unique teams from the games data
-    teams = pd.DataFrame({'Team_Name': pd.concat(
-        [games_data['Home_Team'], games_data['Visitor_Team']]).unique()})
-
-    # Step 2: Calculate performance for each team
-    performance_data = calculate_performance(teams, games_data)
-
-    # Step 3: Calculate rankings based on performance
-    ranking_data = calculate_ranking(performance_data)
-
-    # Output the result in the desired format
-    if output_format == 'json':
-        save_to_json(ranking_data.to_dict(orient='records'), 'output.json')
-        print("Output saved to 'output.json'")
-    else:
-        save_to_csv(ranking_data, 'output.csv')
-        print("Output saved to 'output.csv'")
+def calculate_power_difference(df):
+    """
+    Calculate the power difference between home and away teams.
+    :param df: DataFrame containing enriched data.
+    :return: DataFrame with power difference added.
+    """
+    df['power_difference'] = abs(
+        df['home_team_power_ranking'] - df['away_team_power_ranking'])
+    return df
 
 
-if __name__ == "__main__":
-    games_csv = 'CFootballEx.csv'      # Update with actual file path
-    output_format = 'json'               # Can be 'json' or 'csv'
+def calculate_z_scores(df):
+    """
+    Calculate Z-scores for the home and away teams based on their scores.
+    :param df: DataFrame containing enriched data.
+    :return: DataFrame with Z-scores for home and away teams.
+    """
+    all_scores = df['home_score'].tolist() + df['away_score'].tolist()
+    mean_score = np.mean(all_scores)
+    std_dev_score = np.std(all_scores)
 
-    run_algorithm(games_csv, output_format)
+    df['home_z_score'] = (df['home_score'] - mean_score) / \
+        std_dev_score if std_dev_score != 0 else 0
+    df['away_z_score'] = (df['away_score'] - mean_score) / \
+        std_dev_score if std_dev_score != 0 else 0
+
+    return df
+
+
+def calculate_expected_performance(df):
+    """
+    Calculate expected performance based on win/loss ratios.
+    :param df: DataFrame containing enriched data.
+    :return: DataFrame with expected performance added.
+    """
+    df['expected_performance_home'] = df['home_team_win_ratio'] * \
+        df['home_team_power_ranking']
+    df['expected_performance_away'] = df['away_team_win_ratio'] * \
+        df['away_team_power_ranking']
+    return df
+
+
+def calculate_actual_performance(df):
+    """
+    Compare the actual game result with the expected performance.
+    :param df: DataFrame containing enriched data.
+    :return: DataFrame with actual performance metrics.
+    """
+    df['actual_performance_home'] = np.where(
+        df['home_score'] > df['away_score'], 1, 0)  # 1 for win, 0 for loss
+    df['actual_performance_away'] = np.where(
+        df['away_score'] > df['home_score'], 1, 0)
+    return df
+
+
+def predict_scores(df):
+    """
+    Predict the final scores based on power difference, home field advantage, 
+    and other factors.
+    :param df: DataFrame containing enriched data.
+    :return: DataFrame with predicted scores added.
+    """
+    df['predicted_home_score'] = df['home_team_power_ranking'] + \
+        df['home_field_advantage']
+    # No home field advantage for away team
+    df['predicted_away_score'] = df['away_team_power_ranking']
+    return df
+
+
+def run_calculations(df):
+    """
+    Run all the calculations for the algorithm.
+    :param df: DataFrame containing enriched data.
+    :return: Final DataFrame with all calculations done.
+    """
+    df = calculate_power_difference(df)
+    df = calculate_z_scores(df)
+    df = calculate_expected_performance(df)
+    df = calculate_actual_performance(df)
+    df = predict_scores(df)
+
+    return df
