@@ -4,41 +4,31 @@
 """
 
 
-def json_file_builder(sport_type: str, gender: str, level: str):
-    """Function that defines the structure for
-    json file for mongodb
-
-    Args:
-        sport_type (str): Type Of Sport
-        gender (str): Men's/Women's
-        level (str): College/High School
-
-    Returns:
-        dict: A dictionary structured for json conversion
-    """
+def json_file_builder(sport_type: str, gender: str, level: str) -> dict:
+    # Here you can define actual values for k_value, home_advantage, etc.
     return {
         "sports": {
             sport_type: {
                 gender: {
                     level: {
-                        "k_value": float,
-                        "home_advantage": int,
-                        "average_game_score": int,
-                        "game_set_len": int,
+                        "k_value": 0.0,  # Replace with actual logic to compute this value
+                        "home_advantage": 0,  # Replace with actual logic
+                        "average_game_score": 0,  # Replace with actual logic
+                        "game_set_len": 0,  # Replace with actual logic
                         "team": [
                             {
-                                "id": int,
-                                "city": str,
-                                "state": str,
-                                "conference": str,
-                                "division": str,
-                                "score": int,
-                                "z-score": float,
-                                "power_ranking": float,
+                                "id": 1,  # Replace with actual ID or logic
+                                "city": "Sample City",  # Replace with actual data
+                                "state": "Sample State",  # Replace with actual data
+                                "conference": "Sample Conference",  # Replace with actual data
+                                "division": "Sample Division",  # Replace with actual data
+                                "score": 0,  # Replace with actual logic
+                                "z-score": 0.0,  # Replace with actual logic
+                                "power_ranking": 0.0,  # Replace with actual logic
                                 "season_opp": [
                                     {
-                                        "opp_id": int,
-                                        "date": str
+                                        "opp_id": 2,  # Replace with actual opponent ID
+                                        "date": "2024-01-01"  # Replace with actual date
                                     }
                                 ]
                             }

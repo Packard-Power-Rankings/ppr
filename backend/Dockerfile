@@ -4,6 +4,7 @@ FROM python:3-slim
 # Set the working directory
 WORKDIR /app
 
+# Upgrade pip
 RUN python -m pip install --upgrade pip
 
 # Copy the requirements file into the container
@@ -19,4 +20,4 @@ COPY . .
 EXPOSE 8000
 
 # Run the FastAPI application
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
