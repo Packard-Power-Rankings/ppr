@@ -1,4 +1,5 @@
 fastapi
-bson
 uvicorn
-psycopg2-binary
+pydantic
+pymongo
+motor

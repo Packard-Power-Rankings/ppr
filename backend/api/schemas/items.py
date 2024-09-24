@@ -1,5 +1,16 @@
-"""File to define the structure of the JSON format for storing
-and retrieving data
+"""Defines the Pydantic data model schema for items in the MongoDB database.
+
+This file outlines the structure and validation rules for JSON data used
+to store and retrieve items. It includes:
+
+- Data field definitions and types.
+- Default values and validation constraints.
+- Handling of MongoDB-specific types (e.g., ObjectId).
+- Serialization and deserialization logic for integration with MongoDB.
+
+The schema ensures that all data adheres to the specified format and
+constraints, enabling consistent and reliable data handling
+within the application.
 """
 
 from typing import List, Optional, Any, Generator, Dict, Tuple
@@ -9,22 +20,34 @@ from bson import ObjectId
 from pydantic import BaseModel, Field
 from api.config import LEVEL_CONSTANTS
 
+class SeasonOpponent(BaseModel):
+    opp_id: int = Field(..., description="Opponent ID")
+    date: str = Field(..., description="Game date")
 
-class PydanticObjectId(ObjectId):
-    @classmethod
-    def __get_validator__(cls) -> Generator:
-        yield cls.validate
+class Team(BaseModel):
+    id: int = Field(..., description="Team ID")
+    city: str = Field(..., description="Team's city")
+    state: str = Field(..., description="Team's state")
+    conference: str = Field(..., description="Team's conference")
+    division: str = Field(..., description="Team's division")
+    score: int = Field(..., description="Team's score")
+    z_score: float = Field(..., description="Z-score for the team")
+    power_ranking: float = Field(..., description="Power ranking for the team")
+    season_opp: List[SeasonOpponent] = Field(..., description="List of team opponents")
 
-    @classmethod
-    def validate(cls, v) -> ObjectId:
-        if not ObjectId.is_valid(v):
-            raise ValueError("Invalid ObjectId")
-        return ObjectId(v)
+class LevelData(BaseModel):
+    k_value: float = Field(..., description="K-factor used in rankings")
+    home_advantage: int = Field(..., description="Home advantage points")
+    average_game_score: int = Field(..., description="Average game score")
+    game_set_len: int = Field(..., description="Length of the game set")
+    team: List[Team] = Field(..., description="Team information")
 
-    @classmethod
-    def __modify_schema__(cls, field_schema) -> None:
-        field_schema.update(type='string')
+class GenderData(BaseModel):
+    men: LevelData = Field(..., description="Men's sports data")
+    women: LevelData = Field(..., description="Women's sports data")
 
+class Sport(BaseModel):
+    gender: GenderData = Field(..., description="Sports data for gender")
 
 class SportType(str, Enum):
     FOOTBALL = "football"
