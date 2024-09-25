@@ -1,3 +1,10 @@
+#
+# teams.py
+#
+# Location for database CRUD operations
+# from JSON file.
+#
+
 # from bson.objectid import ObjectId
 # from backend.api.utils.dependencies import get_database
 

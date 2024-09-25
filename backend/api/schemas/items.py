@@ -8,37 +8,22 @@ It includes:
 
 - Data field definitions and types.
 - Default values and validation constraints.
-- Handling of MongoDB-specific types (e.g., ObjectId).
 - Serialization and deserialization logic for integration with MongoDB. 
 """
 
 from typing import List, Optional, Dict
 from enum import Enum
-from bson import ObjectId
 from pydantic import BaseModel, Field
 from api.config import LEVEL_CONSTANTS
 
 
-# Custom handling for MongoDB's ObjectId
-class PyObjectId(ObjectId):
-    @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
-
-    @classmethod
-    def validate(cls, v):
-        if not ObjectId.is_valid(v):
-            raise ValueError('Invalid ObjectId')
-        return ObjectId(v)
-
-
 class SeasonOpponent(BaseModel):
-    #opp_id: int = Field(..., description="Opponent ID")
+    opp_id: int = Field(..., description="Opponent ID")
     date: str = Field(..., description="Game date")
 
 
 class Team(BaseModel):
-    #id: int = Field(..., description="Team ID")
+    id: int = Field(..., description="Team ID")
     city: str = Field(..., description="Team's city")
     state: str = Field(..., description="Team's state")
     conference: str = Field(..., description="Team's conference")
@@ -47,7 +32,7 @@ class Team(BaseModel):
     z_score: float = Field(..., description="Z-score for the team")
     power_ranking: float = Field(..., description="Power ranking for the team")
     season_opp: List[SeasonOpponent] = Field(..., description="List of team opponents")
-    date: str = Field(..., regex=r'^\d{2}/\d{2}/\d{4}$', description="Team creation or match date in mm/dd/yyyy format")
+    date: str = Field(..., regex=r'^\d{2}/\d{2}/\d{4}$', description="Match date in mm/dd/yyyy format")
 
 
 class LevelData(BaseModel):
@@ -113,7 +98,7 @@ class AlgoValues(BaseModel):
 
 
 class TeamData(BaseModel):
-    #id: int
+    id: int
     team: str
     city: Optional[str]
     state: Optional[str]
@@ -127,5 +112,5 @@ class TeamData(BaseModel):
 
 
 class OpponentData(BaseModel):
-    #id: int
+    id: int
     date: Optional[int]

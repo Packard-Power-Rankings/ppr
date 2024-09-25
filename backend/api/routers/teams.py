@@ -1,9 +1,18 @@
+#
+# teams.py
+#
+# Location for processing .csv file
+# via Packard algorithm (utils).
+#
+# Returns JSON formatted info.
+#
+
 import hashlib
 from datetime import datetime
 from typing import List, Any
-from backend.api.utils.json_helper import json_file_builder
-from backend.api.utils.update_algo_vals import update_values
-from backend.api.schemas import items
+from utils.json_helper import json_file_builder
+from utils.update_algo_vals import update_values
+from schemas import items
 
 
 def str_to_enum(enum_class, value: str) -> Any:
