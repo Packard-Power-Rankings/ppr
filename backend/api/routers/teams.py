@@ -1,25 +1,34 @@
 import hashlib
-from typing import List, Any, Dict
-from bson.objectid import ObjectId
-from api.utils.dependencies import get_database
-from api.utils.json_helper import json_file_builder
-from api.utils.update_algo_vals import update_values
-
-db = get_database()
-teams_collection = db.get_collection("sports")
+from datetime import datetime
+from typing import List, Any
+from backend.api.utils.json_helper import json_file_builder
+from backend.api.utils.update_algo_vals import update_values
+from backend.api.schemas import items
 
 
-async def create_sport(
+def str_to_enum(enum_class, value: str) -> Any:
+    try:
+        return enum_class[value.upper()]
+    except KeyError as exc:
+        raise exc
+
+
+
+async def add_sports(
         sport_type: str,
         gender: str,
         level: str,
         team_data: List[List],
-        **algo_vals
-):
+        **algo_vals) -> Any:
+
+    sport_type_enum = str_to_enum(items.SportType, sport_type)
+    gender_enum = str_to_enum(items.Gender, gender)
+    level_enum = str_to_enum(items.Level, level)
+
     sport_doc = json_file_builder(
-        sport_type=sport_type,
-        gender=gender,
-        level=level
+        sport_type=sport_type_enum,
+        gender=gender_enum,
+        level=level_enum
     )
 
     if algo_vals:
@@ -33,7 +42,12 @@ async def create_sport(
             algo_vals=algo_vals
         )
 
-    teams = sport_doc['sports'][sport_type][gender][level]['teams']
+    # teams = sport_doc['sports'][sport_type][gender][level]['teams']
+    lvl_data = \
+        sport_doc.sports.root[sport_type_enum].root[gender_enum] \
+        .root[level_enum]
+
+    teams = []
 
     for team in team_data:
         team_one, team_two, team_one_score, team_two_score = \
@@ -90,38 +104,27 @@ async def create_sport(
                     team_two_score,
                 )
                 ]:
-            team_info = {
-                team_id: {
-                    "team_name": team_name,
-                    "city": "",
-                    "state": "",
-                    "conference": conf,
-                    "division": division,
-                    "wins": wins,
-                    "losses": loss,
-                    "z_score": z_score,
-                    "power_ranking": pr_val,
-                    "season_opp": [
-                        {
-                            "opp_id": opp_id,
-                            "match_score": team_score,
-                            "date": ""
-                        }
+            team_info = {team_id: items.TeamData(
+                    team_name=team_name,
+                    city="",
+                    state="",
+                    conference=conf,
+                    division=division,
+                    wins=wins,
+                    losses=loss,
+                    z_score=z_score,
+                    power_ranking=pr_val,
+                    season_opp=[
+                        items.OpponentData(
+                            opp_id=opp_id,
+                            match_score=team_score,
+                            date=int(datetime.now().timestamp())
+                        )
                     ]
-                }
+                )
             }
-            teams.append(team_info)
+            teams.append(items.Team(**team_info))
 
-    sport_doc['sports'][sport_type][gender][level]['teams'] = teams
+    lvl_data.team = teams
 
-    query = {
-        f"sports.{sport_type}.{gender}.{level}": {"$exists": True}
-    }
-
-    result = await teams_collection.updateMany(
-        query,
-        {"$set": sport_doc},
-        upsert=True
-    )
-
-    return result
+    return sport_doc
