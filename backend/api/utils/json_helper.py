@@ -29,7 +29,7 @@ def json_file_builder(sport_type: str, gender: str, level: str) -> Dict:
                         "game_set_len": 0,
                         "team": [
                             {
-                                "id": 0,
+                                #"id": 0,
                                 "team_name": "",
                                 "city": "",
                                 "state": "",
@@ -42,9 +42,10 @@ def json_file_builder(sport_type: str, gender: str, level: str) -> Dict:
                                 "season_opp": [
                                     {
                                         "opp_id": 0,
-                                        "date": ""
+                                        "date": "1/15/2024"
                                     }
-                                ]
+                                ],
+                                "date": "12/01/2024"
                             }
                         ]
                     }
