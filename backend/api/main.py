@@ -2,14 +2,14 @@
 # main.py
 #
 # The base route for the FastAPI application.
-# Takes in a .csv file and sends the information
-# to routers/teams.py
+#
+# Takes in a .csv file and sends it to routers/teams.py
+# that parses it to JSON.
 #
 
 import uvicorn
 from typing import Dict
-from fastapi import FastAPI, Query, UploadFile, File, Depends, Body
-from utils.json_helper import json_file_builder
+from fastapi import FastAPI, UploadFile, File, Body
 from dependencies import lifespan
 from routers.teams import (
     add_sports
@@ -18,26 +18,34 @@ from routers.teams import (
 
 app = FastAPI(lifespan=lifespan)
 
+# Browsers only allow GET requests when you navigate to a URL.
+# This GET route will handle requests made to the root URL.
+@app.get("/")
+async def read_root():
+    return {"message": "Welcome to the Sports API!"}
 
 # Changed to app.post because this is typically used for
 # sending data to the backend, in our case to store the
 # data.
 @app.post("/")
 async def root(
-        sport_type: str = Query(...),
-        gender: str = Query(...),
-        level: str = Query(...),
+        sport_type: str = Body(...),
+        gender: str = Body(...),
+        level: str = Body(...),
         csv_file: UploadFile = File(...),
-        **algo_values: Dict = Body(...)):
-    # Accessing routes via routers/teams.py
+        **algo_values: Dict):
     try:
-        # This will be going to routers instead
+        # Ensure the file type is correct
+        if not csv_file.filename.endswith('.csv'):
+            return {"error": "File must be a CSV."}
 
-        # # Call the json_file_builder with the query parameters
-        # json_structure = json_file_builder(sport_type, gender, level)
-        # return json_structure  # Return the structured JSON
+        # Calls to various functions from routers/teams.py
+        # to validate and process CSV data.
+        response = await add_sports(csv_file, sport_type, gender, level, **algo_values)
+
+        return response
     except Exception as e:
-        return {"error": str(e)}  # JSON formatted error message
+        return {"error": f"An error occurred: {str(e)}"}
 
 
 if __name__ == "__main__":

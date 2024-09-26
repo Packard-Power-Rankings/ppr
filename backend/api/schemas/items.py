@@ -14,7 +14,7 @@ It includes:
 from typing import List, Optional, Dict
 from enum import Enum
 from pydantic import BaseModel, Field
-from api.config import LEVEL_CONSTANTS
+from config import LEVEL_CONSTANTS
 
 
 class SeasonOpponent(BaseModel):
@@ -31,8 +31,10 @@ class Team(BaseModel):
     score: int = Field(..., description="Team's score")
     z_score: float = Field(..., description="Z-score for the team")
     power_ranking: float = Field(..., description="Power ranking for the team")
-    season_opp: List[SeasonOpponent] = Field(..., description="List of team opponents")
-    date: str = Field(..., regex=r'^\d{2}/\d{2}/\d{4}$', description="Match date in mm/dd/yyyy format")
+    season_opp: List[SeasonOpponent] = Field(...,
+                                             description="List of team opponents")
+    date: str = Field(..., pattern=r'^\d{2}/\d{2}/\d{4}$',
+                      description="Match date in mm/dd/yyyy format")
 
 
 class LevelData(BaseModel):
