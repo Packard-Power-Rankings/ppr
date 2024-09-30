@@ -5,3 +5,5 @@ motor               # Asynchronous Python driver for MongoDB
 uvicorn             # FastAPI & MongoDB local test server
 python-multipart    # Python HTTP request handling (file uploads)
 httpx               # Python HTTP request testing
+numpy               # For algorithm processing
+pandas              # For file processing
