@@ -11,10 +11,35 @@ It includes:
 - Serialization and deserialization logic for integration with MongoDB. 
 """
 
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any
 from enum import Enum
 from pydantic import BaseModel, Field
 from config import LEVEL_CONSTANTS
+
+
+class SportType(str, Enum):
+    FOOTBALL = "football"
+    BASKETBALL = "basketball"
+
+
+class Gender(str, Enum):
+    MENS = "mens"
+    WOMENS = "womens"
+
+
+class Level(str, Enum):
+    HIGH_SCHOOL = "high_school"
+    COLLEGE = "college"
+
+
+class InputMethod(BaseModel):
+    sport_type: SportType = Field(..., description="Sport Type")
+    gender: Gender = Field(..., description="Gender Of Sport")
+    level: Level = Field(..., description="Sport Level")
+    k_value: Optional[float] = 0.0
+    home_advantage: Optional[int] = 0
+    average_game_score: Optional[int] = 0
+    game_set_len: Optional[int] = 0
 
 
 class SeasonOpponent(BaseModel):
@@ -50,69 +75,62 @@ class GenderData(BaseModel):
     women: LevelData = Field(..., description="Women's sports data")
 
 
+def ResponseModel(data, message):
+    return {
+        'data': [data],
+        'code': 200,
+        'message': message,
+    }
+
+
 # class Sport(BaseModel):
 #     gender: GenderData = Field(..., description="Sports data for gender")
 
 
-class SportType(str, Enum):
-    FOOTBALL = "football"
-    BASKETBALL = "basketball"
+# class Sport(BaseModel):
+#     sport_type: SportType
 
 
-class Gender(str, Enum):
-    MENS = "mens"
-    WOMENS = "womens"
+# class GenderType(BaseModel):
+#     gender: Gender
 
 
-class Level(str, Enum):
-    HIGH_SCHOOL = "high_school"
-    COLLEGE = "college"
+# class LevelType(BaseModel):
+#     level: Level
 
 
-class Sport(BaseModel):
-    sport_type: SportType
+# class AlgoValues(BaseModel):
+#     k_value: float = Field(0.0)
+#     home_advantage: int = Field(0)
+#     average_game_score: int = Field(0)
+#     game_set_len: int = Field(0)
+
+#     @classmethod
+#     def constant_finder(
+#             cls,
+#             sport_type: SportType,
+#             gender: Gender,
+#             level: Level):
+#         lvl_key = (sport_type.value, gender.value, level.value)
+#         if lvl_key in LEVEL_CONSTANTS[lvl_key]:
+#             return cls(**LEVEL_CONSTANTS[lvl_key])
+#         return cls()
 
 
-class GenderType(BaseModel):
-    gender: Gender
+# class TeamData(BaseModel):
+#     id: int
+#     team: str
+#     city: Optional[str]
+#     state: Optional[str]
+#     conference: str
+#     division: str
+#     wins: int
+#     losses: int
+#     z_score: float
+#     power_ranking: float
+#     season_opp: List[Dict]
 
 
-class LevelType(BaseModel):
-    level: Level
-
-
-class AlgoValues(BaseModel):
-    k_value: float = Field(0.0)
-    home_advantage: int = Field(0)
-    average_game_score: int = Field(0)
-    game_set_len: int = Field(0)
-
-    @classmethod
-    def constant_finder(
-            cls,
-            sport_type: SportType,
-            gender: Gender,
-            level: Level):
-        lvl_key = (sport_type.value, gender.value, level.value)
-        if lvl_key in LEVEL_CONSTANTS[lvl_key]:
-            return cls(**LEVEL_CONSTANTS[lvl_key])
-        return cls()
-
-
-class TeamData(BaseModel):
-    id: int
-    team: str
-    city: Optional[str]
-    state: Optional[str]
-    conference: str
-    division: str
-    wins: int
-    losses: int
-    z_score: float
-    power_ranking: float
-    season_opp: List[Dict]
-
-
-class OpponentData(BaseModel):
-    id: int
-    date: Optional[int]
+# class OpponentData(BaseModel):
+#     id: int
+#     date: Optional[int]
