@@ -16,4 +16,3 @@ async def lifespan(app: FastAPI):
     app.mongodb = app.mongodb_client["PPR-DB"]
     yield
     app.mongodb_client.close()
-        
