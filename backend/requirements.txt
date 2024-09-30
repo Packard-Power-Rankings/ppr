@@ -2,10 +2,7 @@ fastapi             # Python Web framework (dependency: pydantic)
 pydantic            # Python JSON model schema
 pymongo             # Synchronous Python driver for MongoDB
 motor               # Asynchronous Python driver for MongoDB
-
 uvicorn             # FastAPI & MongoDB local test server
-# python-multipart    # Python HTTP request handling (file uploads)
-# httpx               # Python HTTP request testing
-
+python-multipart    # Python HTTP request handling (file uploads)
 numpy               # For algorithm processing
 pandas              # For file processing
