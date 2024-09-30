@@ -17,12 +17,8 @@ from pydantic import BaseModel, Field
 from config import LEVEL_CONSTANTS
 
 
-<<<<<<< HEAD
-class SportType(str, Enum):
-=======
 # Enum Definitions (fixed set of values)
 class Sport(str, Enum):
->>>>>>> 7c3a1423bd65c399701f1f8a63afcd78eb061414
     FOOTBALL = "football"
     BASKETBALL = "basketball"
 
@@ -37,9 +33,8 @@ class Level(str, Enum):
     COLLEGE = "college"
 
 
-<<<<<<< HEAD
 class InputMethod(BaseModel):
-    sport_type: SportType = Field(..., description="Sport Type")
+    sport_type: Sport = Field(..., description="Sport Type")
     gender: Gender = Field(..., description="Gender Of Sport")
     level: Level = Field(..., description="Sport Level")
     k_value: Optional[float] = 0.0
@@ -48,9 +43,6 @@ class InputMethod(BaseModel):
     game_set_len: Optional[int] = 0
 
 
-=======
-# Model Definitions
->>>>>>> 7c3a1423bd65c399701f1f8a63afcd78eb061414
 class SeasonOpponent(BaseModel):
     id: int = Field(..., description="Opponent ID")
     home_game_bool: bool = Field(..., description="Is the game a home game")
@@ -95,67 +87,6 @@ class GenderData(BaseModel):
     women: LevelData = Field(..., description="Women's sports data")
 
 
-<<<<<<< HEAD
-def ResponseModel(data, message):
-    return {
-        'data': [data],
-        'code': 200,
-        'message': message,
-    }
-
-
-# class Sport(BaseModel):
-#     gender: GenderData = Field(..., description="Sports data for gender")
-
-
-# class Sport(BaseModel):
-#     sport_type: SportType
-
-
-# class GenderType(BaseModel):
-#     gender: Gender
-
-
-# class LevelType(BaseModel):
-#     level: Level
-
-
-# class AlgoValues(BaseModel):
-#     k_value: float = Field(0.0)
-#     home_advantage: int = Field(0)
-#     average_game_score: int = Field(0)
-#     game_set_len: int = Field(0)
-
-#     @classmethod
-#     def constant_finder(
-#             cls,
-#             sport_type: SportType,
-#             gender: Gender,
-#             level: Level):
-#         lvl_key = (sport_type.value, gender.value, level.value)
-#         if lvl_key in LEVEL_CONSTANTS[lvl_key]:
-#             return cls(**LEVEL_CONSTANTS[lvl_key])
-#         return cls()
-
-
-# class TeamData(BaseModel):
-#     id: int
-#     team: str
-#     city: Optional[str]
-#     state: Optional[str]
-#     conference: str
-#     division: str
-#     wins: int
-#     losses: int
-#     z_score: float
-#     power_ranking: float
-#     season_opp: List[Dict]
-
-
-# class OpponentData(BaseModel):
-#     id: int
-#     date: Optional[int]
-=======
 class TeamData(BaseModel):
     id: int
     team_name: str
@@ -178,4 +109,11 @@ class OpponentData(BaseModel):
     home_zscore: float
     away_zscore: float
     date: Optional[int]
->>>>>>> 7c3a1423bd65c399701f1f8a63afcd78eb061414
+
+
+def ResponseModel(data, message):
+    return {
+        'data': [data],
+        'code': 200,
+        'message': message,
+    }

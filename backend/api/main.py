@@ -9,7 +9,7 @@
 
 import uvicorn
 from typing import Dict
-from fastapi import FastAPI, UploadFile, File, Body, Depends
+from fastapi import FastAPI, UploadFile, File, Depends
 from dependencies import lifespan
 from schemas.items import InputMethod
 from routers.teams import (
