@@ -17,7 +17,12 @@ from pydantic import BaseModel, Field
 from config import LEVEL_CONSTANTS
 
 
+<<<<<<< HEAD
 class SportType(str, Enum):
+=======
+# Enum Definitions (fixed set of values)
+class Sport(str, Enum):
+>>>>>>> 7c3a1423bd65c399701f1f8a63afcd78eb061414
     FOOTBALL = "football"
     BASKETBALL = "basketball"
 
@@ -32,6 +37,7 @@ class Level(str, Enum):
     COLLEGE = "college"
 
 
+<<<<<<< HEAD
 class InputMethod(BaseModel):
     sport_type: SportType = Field(..., description="Sport Type")
     gender: Gender = Field(..., description="Gender Of Sport")
@@ -42,24 +48,38 @@ class InputMethod(BaseModel):
     game_set_len: Optional[int] = 0
 
 
+=======
+# Model Definitions
+>>>>>>> 7c3a1423bd65c399701f1f8a63afcd78eb061414
 class SeasonOpponent(BaseModel):
-    opp_id: int = Field(..., description="Opponent ID")
-    date: str = Field(..., description="Game date")
+    id: int = Field(..., description="Opponent ID")
+    home_game_bool: bool = Field(..., description="Is the game a home game")
+    home_score: int = Field(..., description="Home team score")
+    away_score: int = Field(..., description="Away team score")
+    power_difference: float = Field(..., description="Difference in team power rankings")
+    home_zscore: float = Field(..., description="Home team Z-score")
+    away_zscore: float = Field(..., description="Away team Z-score")
+    date: str = Field(..., pattern=r'^\d{2}/\d{2}/\d{4}$',
+                description="Match date in mm/dd/yyyy format")
+    
+
+class PredictionInfo(BaseModel):
+    expected_performance: float = Field(..., description="Expected performance metrics")
+    actual_performance: float = Field(..., description="Actual performance metrics")
+    predicted_score: float = Field(..., description="Predicted score for the game")
 
 
 class Team(BaseModel):
     id: int = Field(..., description="Team ID")
-    city: str = Field(..., description="Team's city")
-    state: str = Field(..., description="Team's state")
-    conference: str = Field(..., description="Team's conference")
-    division: str = Field(..., description="Team's division")
-    score: int = Field(..., description="Team's score")
-    z_score: float = Field(..., description="Z-score for the team")
+    team_name: str = Field(..., description="Name of the team")
+    city: Optional[str] = Field(None, description="Team's city")
+    state: Optional[str] = Field(None, description="Team's state")
     power_ranking: float = Field(..., description="Power ranking for the team")
-    season_opp: List[SeasonOpponent] = Field(...,
-                                             description="List of team opponents")
+    win_ratio: float = Field(..., description="Win ratio for the team")
     date: str = Field(..., pattern=r'^\d{2}/\d{2}/\d{4}$',
-                      description="Match date in mm/dd/yyyy format")
+            description="Match date in mm/dd/yyyy format")
+    season_opp: List[SeasonOpponent] = Field(..., description="List of team opponents")
+    prediction_info: List[PredictionInfo] = Field(..., description="List of predicted and actual performance metrics")
 
 
 class LevelData(BaseModel):
@@ -75,6 +95,7 @@ class GenderData(BaseModel):
     women: LevelData = Field(..., description="Women's sports data")
 
 
+<<<<<<< HEAD
 def ResponseModel(data, message):
     return {
         'data': [data],
@@ -134,3 +155,27 @@ def ResponseModel(data, message):
 # class OpponentData(BaseModel):
 #     id: int
 #     date: Optional[int]
+=======
+class TeamData(BaseModel):
+    id: int
+    team_name: str
+    city: Optional[str]
+    state: Optional[str]
+    wins: int
+    losses: int
+    z_score: float
+    power_ranking: float
+    season_opp: List[Dict]
+    prediction_info: List[Dict[str, float]]
+
+
+class OpponentData(BaseModel):
+    id: int
+    home_game_bool: bool
+    home_score: int
+    away_score: int
+    power_difference: float
+    home_zscore: float
+    away_zscore: float
+    date: Optional[int]
+>>>>>>> 7c3a1423bd65c399701f1f8a63afcd78eb061414
