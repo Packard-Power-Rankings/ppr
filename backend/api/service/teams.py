@@ -30,10 +30,15 @@ async def retrieve_sports(query: Dict):
     return sports_teams
 
 
+
+# Function to retrieve sports data from MongoDB
 async def retrieve_sports(query: Dict, id: int):
-    sport = await sports_collection.find_one(query, id)
+    # MongoDB lookup based on query
+    sport = await sports_collection.find_one(query)
     if sport:
         return json_file_builder(sport)
+    else:
+        return None
 
 
 async def update_sport():

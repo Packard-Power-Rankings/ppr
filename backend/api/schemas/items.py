@@ -43,6 +43,13 @@ class InputMethod(BaseModel):
     game_set_len: Optional[int] = 0
 
 
+class GeneralInputMethod(BaseModel):
+    sport_type: Sport = Field(..., description="Sport Type")
+    gender: Gender = Field(..., description="Gender Of Sport")
+    level: Level = Field(..., description="Sport Level")
+
+
+
 class SeasonOpponent(BaseModel):
     id: int = Field(..., description="Opponent ID")
     home_game_bool: bool = Field(..., description="Is the game a home game")
@@ -62,7 +69,7 @@ class PredictionInfo(BaseModel):
 
 
 class Team(BaseModel):
-    id: int = Field(..., description="Team ID")
+    id: int = Field(..., description="Team ID") # class-ified
     team_name: str = Field(..., description="Name of the team")
     city: Optional[str] = Field(None, description="Team's city")
     state: Optional[str] = Field(None, description="Team's state")
