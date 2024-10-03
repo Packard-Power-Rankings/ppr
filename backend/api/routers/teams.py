@@ -22,7 +22,7 @@ from schemas import items
 router = APIRouter()
 
 
-@router.post("/", response_description="Added sports data into database")
+@router.post("/admin/", response_description="Added sports data into database")
 async def add_sports(
         sport_type: str,
         gender: str,
@@ -41,7 +41,10 @@ async def add_sports(
         sport_doc['sports'][sport_type][gender][level].update(algo_update)
 
     team_info: List = sport_doc['sports'][sport_type][gender][level]['team']
-    teams_data = await main(csv_file, 'example.json')
+    teams_data: List = await main(
+        csv_file,
+        (sport_type, gender, level)
+    )
     for team_data in teams_data:
         team_info.append(team_data)
 
