@@ -1,9 +1,9 @@
 # Import the necessary functions from each module
-from upload import upload_csv
-from data_cleaning import clean_data
-from data_enrichment import enrich_data
-from main import run_calculations
-from output import output_to_json
+from .upload import upload_csv
+from .data_cleaning import clean_data
+from .data_enrichment import enrich_data
+from .main import run_calculations
+from .output import output_to_json
 
 
 def main(file_path, output_file):

@@ -1,0 +1,12 @@
+In this file I have downloaded the old databases for each sport from the old site as of 10/03/2024. This is the most recent information for each of the sports. Each file has a ending that correlates to a specific sport here is the key:
+
+*.cf = College Football
+*.hsf = High School Football
+*.mcb = Mens College Basketball
+*.mhsb = Mens High School Basketball
+*.wcb = Women's College Basketball
+*.whsb = Women's High School Basketball
+
+The one thing to mention about how I extracted the team information from the old databases, was I only did team name, team num, division id, conference id (for college sports), and state id. Where I am mapping all of that using the constants from config to access that information.
+
+So I don't know what issues that will entail because if you look at the table sport_information_teamweeklydata, the power rankings are in there and those are associated to a team id instead of a team num. To see the team num and team id, look in the table sport_information_team, there you can find all the information for linking team id to team num.
