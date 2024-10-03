@@ -30,8 +30,8 @@ async def retrieve_sports(query: Dict):
     return sports_teams
 
 
-async def retrieve_sports(query: Dict, id: int):
-    sport = await sports_collection.find_one(query, id)
+async def retrieve_sports(query: Dict, team_id: int):
+    sport = await sports_collection.find_one(query, team_id)
     if sport:
         return json_file_builder(sport)
 
