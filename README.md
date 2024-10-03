@@ -62,7 +62,7 @@ Sometimes docker desktop needs to be refreshed and restarted to build the images
 I have also been working extensively on understanding the file structure for the backend portion of this program as well as some ideas about defining the structure of the database.
 
 
-For the file structure we have this layout where I will explain in more detail in the backend [readme](https://github.com/Packard-Power-Rankings/ppr/blob/main/README.md).
+For the file structure we have this layout where I will explain in more detail in the backend [readme](https://github.com/Packard-Power-Rankings/ppr/blob/main/backend/api/README.md).
 
 ```
 📦backend
