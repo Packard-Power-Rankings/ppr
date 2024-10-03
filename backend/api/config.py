@@ -4734,7 +4734,7 @@ HS_WBB_IDS = {
     'Aurora Science & Tech': 12113,
 }
 
-CONFERENCE_WCB = {
+CONFERENCE_CB = {
     1: 'Big 12',
     2: 'Big 10',
     3: 'Big East',
@@ -11540,4 +11540,13 @@ MHS_BB_IDS = {
     'Monument Academy': 1093,
     'Ascent Classical Northern': 1252,
     'Crescent View Academy': 1256,
+}
+
+CONSTANTS_MAP = {
+    ("football", "mens", "high_school"): (FOOTBALL_TEAMS_HS, FOOTBALL_TEAMS_IDS_HS, DIVISION_FOOTBALL),
+    ("football", "mens", "college"): (FOOTBALL_TEAMS_COLLEGE, FOOTBALL_TEAMS_IDS_COLLEGE, DIVISION_FOOTBALL, FOOTBALL_COLLEGE_CONF),
+    ("basketball", "mens", "high_school"): (MHS_BB_TEAM_INFO, MHS_BB_IDS, DIVISION_BASKETBALL),
+    ("basketball", "mens", "college"): (MC_BB_TEAM_INFO, MC_BB_IDS, DIVISION_BASKETBALL, CONFERENCE_CB),
+    ("basketball", "womens", "high_school"): (HS_WBB_TEAM_INFO, HS_WBB_IDS, DIVISION_BASKETBALL),
+    ("basketball", "womens", "college"): (C_WBB_TEAM_INFO, C_WBB_IDS, DIVISION_BASKETBALL, CONFERENCE_CB)
 }
