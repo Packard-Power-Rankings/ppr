@@ -48,17 +48,27 @@ class SeasonOpponent(BaseModel):
     home_game_bool: bool = Field(..., description="Is the game a home game")
     home_score: int = Field(..., description="Home team score")
     away_score: int = Field(..., description="Away team score")
-    power_difference: float = Field(..., description="Difference in team power rankings")
+    power_difference: float = Field(
+        ..., description="Difference in team power rankings"
+    )
     home_zscore: float = Field(..., description="Home team Z-score")
     away_zscore: float = Field(..., description="Away team Z-score")
-    date: str = Field(..., pattern=r'^\d{2}/\d{2}/\d{4}$',
-                description="Match date in mm/dd/yyyy format")
+    date: str = Field(
+        ..., pattern=r'^\d{2}/\d{2}/\d{4}$',
+        description="Match date in mm/dd/yyyy format"
+    )
     
 
 class PredictionInfo(BaseModel):
-    expected_performance: float = Field(..., description="Expected performance metrics")
-    actual_performance: float = Field(..., description="Actual performance metrics")
-    predicted_score: float = Field(..., description="Predicted score for the game")
+    expected_performance: float = Field(
+        ..., description="Expected performance metrics"
+    )
+    actual_performance: float = Field(
+        ..., description="Actual performance metrics"
+    )
+    predicted_score: float = Field(
+        ..., description="Predicted score for the game"
+    )
 
 
 class Team(BaseModel):
@@ -68,10 +78,15 @@ class Team(BaseModel):
     state: Optional[str] = Field(None, description="Team's state")
     power_ranking: float = Field(..., description="Power ranking for the team")
     win_ratio: float = Field(..., description="Win ratio for the team")
-    date: str = Field(..., pattern=r'^\d{2}/\d{2}/\d{4}$',
-            description="Match date in mm/dd/yyyy format")
-    season_opp: List[SeasonOpponent] = Field(..., description="List of team opponents")
-    prediction_info: List[PredictionInfo] = Field(..., description="List of predicted and actual performance metrics")
+    date: str = Field(
+        ..., pattern=r'^\d{2}/\d{2}/\d{4}$',
+        description="Match date in mm/dd/yyyy format"
+    )
+    season_opp: List[SeasonOpponent] = Field(
+        ..., description="List of team opponents"
+    )
+    prediction_info: List[PredictionInfo] = Field(
+        ..., description="List of predicted and actual performance metrics")
 
 
 class LevelData(BaseModel):
