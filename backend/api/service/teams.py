@@ -20,25 +20,24 @@ sports_collection = database.get_collection('sports_cluster')
 
 
 async def add_sports_data(sport_doc: Dict):
-    sport = await sports_collection.update_one(sport_doc, upsert=True)
+    sport = await sports_collection.insert_one(sport_doc, upsert=True)
     new_sport = await sports_collection.find_one({'_id': sport.updated_id})
     return json_file_builder(new_sport)
 
 
-async def retrieve_sports(query: Dict):
-    sports_teams: List = sports_collection.find(query)
-    return sports_teams
-
+# async def retrieve_sports(query: Dict):
+#     sports_teams: List = sports_collection.find(query)
+#     return sports_teams
 
 
 # Function to retrieve sports data from MongoDB
-async def retrieve_sports(query: Dict, id: int):
+# Changed id to mongo_id because it is overriding a builtin function
+async def retrieve_sports(query: Dict, mongo_id: int):
     # MongoDB lookup based on query
     sport = await sports_collection.find_one(query)
     if sport:
         return json_file_builder(sport)
-    else:
-        return None
+    return None
 
 
 async def update_sport():
