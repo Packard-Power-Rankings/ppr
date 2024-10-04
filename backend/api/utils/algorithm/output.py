@@ -4,7 +4,53 @@ from ...config import (
     CONSTANTS_MAP,
     STATES
 )
-from ...service.teams import retrieve_sports
+from ...service.teams import (
+    retrieve_sports
+)
+
+
+def update_or_add_teams(home_team: Dict, away_team: Dict, level_key: Tuple):
+    query_home = {
+        "sport_type": level_key[0],
+        "gender": level_key[1],
+        "level": level_key[2],
+        "team": [
+            {
+                "team_name": home_team.get('team_name')
+            }
+        ]
+    }
+    query_away = {
+        "sport_type": level_key[0],
+        "gender": level_key[1],
+        "level": level_key[2],
+        "team": [
+            {
+                "team_name": away_team.get('team_name')
+            }
+        ]
+    }
+    home_team_info = retrieve_sports(query_home, 0)
+    away_team_info = retrieve_sports(query_away, 0)
+
+    if home_team_info and away_team_info:
+        update_home = {
+            "power_ranking": home_team.get('power_ranking'),
+            "win_ratio": home_team.get('win_ratio'),
+            "prediction_info": home_team.get('prediction_info')
+        }
+        home_season_opp = {
+            "$push": {"season_opp": {"$each": home_team.get("season_opp")}}
+        }
+        update_away = {
+            "power_ranking": away_team.get('power_ranking'),
+            "win_ratio": away_team.get('win_ratio'),
+            "prediction_info": away_team.get('prediction_info')
+        }
+        away_season_opp = {
+            "$push": {"season_opp": {"$each": away_team.get("season_opp")}}
+        }
+    return None
 
 
 def output_to_json(df, level_key: Tuple):
@@ -15,9 +61,9 @@ def output_to_json(df, level_key: Tuple):
     :param output_file_path: The file path where the JSON will be saved.
     :return: None
     """
-    sport_type, gender, level = level_key
-    
-    if level == "college":
+    # sport_type, gender, level = level_key
+
+    if level_key[2] == "college":
         team_name_map, team_id_map, team_division, team_conf = \
             CONSTANTS_MAP.get(level_key)
     else:
@@ -105,13 +151,6 @@ def output_to_json(df, level_key: Tuple):
                 "predicted_score": row['predicted_home_score']
             }
         }
-        query_home_team = {
-            "sport_type": sport_type,
-            "gender": gender,
-            "level": level,
-            "team_name": home_team_data.get('home_team')
-        }
-        home_team = retrieve_sports(query_home_team, 0)
         # output_data.append(home_team_data)
 
         # Create a section for the away team
@@ -154,7 +193,8 @@ def output_to_json(df, level_key: Tuple):
                 "predicted_score": row['predicted_away_score']
             }
         }
-        output_data.append(away_team_data)
+        # output_data.append(away_team_data)
+        update_or_add_teams(home_team_data, away_team_data, level_key)
 
     # Write the JSON data to a file
     # with open(output_file_path, 'w') as json_file:
