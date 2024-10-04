@@ -20,7 +20,7 @@ sports_collection = database.get_collection('sports_cluster')
 
 
 async def add_sports_data(sport_doc: Dict):
-    sport = await sports_collection.insert_one(sport_doc, upsert=True)
+    sport = await sports_collection.insert_one(sport_doc)
     new_sport = await sports_collection.find_one({'_id': sport.updated_id})
     return json_file_builder(new_sport)
 
