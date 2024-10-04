@@ -1,8 +1,10 @@
+from typing import Tuple
 import random
 import pandas as pd
+from ...config import LEVEL_CONSTANTS
 
 
-def enrich_data(df):
+def enrich_data(df, level_key: Tuple):
     """
     Adds dummy values for R-value, home field advantage, power rankings, 
     and win/loss ratios.
@@ -11,10 +13,10 @@ def enrich_data(df):
     """
 
     # R-value (constant for all teams)
-    R_value = 1.0
+    R_value = LEVEL_CONSTANTS[level_key]['k_value']
 
     # Home field advantage (constant for all home games)
-    home_advantage = 5.0
+    home_advantage = LEVEL_CONSTANTS[level_key]['home_advantage']
 
     # Generate power rankings and win/loss ratios for each team
     team_data = {}
