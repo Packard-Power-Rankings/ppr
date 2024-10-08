@@ -31,30 +31,31 @@ async def add_sports(
         level: str,
         csv_file: Any,
         **algo_vals) -> Any:
+    # Going to be updating this function as I have changed
+    # how the output function call does in the background
 
     sport_doc: Dict = json_file_builder(sport_type, gender, level)
 
     if algo_vals:
-        algo_update = update_values(
+        update_values(
             (sport_type, gender, level),
             sport_doc,
             algo_vals
         )
-        sport_doc['sports'][sport_type][gender][level].update(algo_update)
 
-    team_info: List = sport_doc['sports'][sport_type][gender][level]['team']
-    teams_data: List = await main(
+    # team_info: List = sport_doc['sports'][sport_type][gender][level]['team']
+    await main(
         csv_file,
         (sport_type, gender, level)
     )
-    for team_data in teams_data:
-        team_info.append(team_data)
+    # for team_data in teams_data:
+    #     team_info.append(team_data)
 
-    sport_doc['sports'][sport_type][gender][level].update(team=team_info)
-    sport_doc = jsonable_encoder(sport_doc)
+    # sport_doc['sports'][sport_type][gender][level].update(team=team_info)
+    # sport_doc = jsonable_encoder(sport_doc)
     # Below I need the service connection for the database
-    new_sports = await add_sports_data(sport_doc)
-    return items.ResponseModel(new_sports, "Successfully added new sports")
+    # new_sports = await add_sports_data(sport_doc)
+    # return items.ResponseModel(new_sports, "Successfully added new sports")
 
 
 # READ routes:
