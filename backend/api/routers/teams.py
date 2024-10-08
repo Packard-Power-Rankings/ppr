@@ -8,14 +8,13 @@
 #
 
 from fastapi import APIRouter
-from fastapi.encoders import jsonable_encoder
-from datetime import datetime
+# from fastapi.encoders import jsonable_encoder
+# from datetime import datetime
 from typing import List, Any, Dict
 from utils.json_helper import json_file_builder
 from utils.update_algo_vals import update_values
 from utils.algorithm.run import main
 from service.teams import (
-    add_sports_data,
     retrieve_sports
 )
 from schemas import items
@@ -34,12 +33,11 @@ async def add_sports(
     # Going to be updating this function as I have changed
     # how the output function call does in the background
 
-    sport_doc: Dict = json_file_builder(sport_type, gender, level)
+    # sport_doc: Dict = json_file_builder(sport_type, gender, level)
 
     if algo_vals:
         update_values(
             (sport_type, gender, level),
-            sport_doc,
             algo_vals
         )
 
