@@ -2,55 +2,77 @@ from typing import Tuple, Dict
 import json
 from config.config import (
     CONSTANTS_MAP,
-    STATES
+    STATES,
+    LEVEL_CONSTANTS
 )
 from service.teams import (
     retrieve_sports
 )
 
 
-def update_or_add_teams(home_team: Dict, away_team: Dict, level_key: Tuple):
-    query_home = {
+async def update_or_add_teams(
+    home_team: Dict,
+    away_team: Dict,
+    level_key: Tuple
+):
+    """Updates or adds teams to database
+
+    Args:
+        home_team (Dict): Home Team Data
+        away_team (Dict): Away Team Data
+        level_key (Tuple): Level Key for Constants
+    """
+
+    query_base = {
+        "_id": LEVEL_CONSTANTS[level_key].get("_id"),
         "sport_type": level_key[0],
         "gender": level_key[1],
         "level": level_key[2],
-        "team": [
-            {
-                "team_name": home_team.get('team_name')
-            }
-        ]
+    }
+    query_home = {
+        **query_base,
+        "teams.team_name": home_team['team_name']
     }
     query_away = {
-        "sport_type": level_key[0],
-        "gender": level_key[1],
-        "level": level_key[2],
-        "team": [
-            {
-                "team_name": away_team.get('team_name')
-            }
-        ]
+        **query_base,
+        "teams.team_name": away_team['team_name']
     }
-    home_team_info = retrieve_sports(query_home, 0)
-    away_team_info = retrieve_sports(query_away, 0)
 
-    if home_team_info and away_team_info:
+    home_team_info = retrieve_sports(query_home)
+    away_team_info = retrieve_sports(query_away)
+
+    if home_team_info:
         update_home = {
-            "power_ranking": home_team.get('power_ranking'),
-            "win_ratio": home_team.get('win_ratio'),
-            "prediction_info": home_team.get('prediction_info')
+            "$set": {
+                "team.$.power_ranking": home_team.get('power_ranking'),
+                "team.$.win_ratio": home_team.get('win_ratio'),
+                "team.$.prediction_info": home_team.get('prediction_info')
+            },
+            "$push": {
+                "team.$.season_opp": {
+                    "$each": home_team.get("season_opp")
+                }
+            }
         }
-        home_season_opp = {
-            "$push": {"season_opp": {"$each": home_team.get("season_opp")}}
-        }
+        await update_sport(query_home, update_home)
+    else:
+        await add_sports_data(query_base, home_team)
+
+    if away_team_info:
         update_away = {
-            "power_ranking": away_team.get('power_ranking'),
-            "win_ratio": away_team.get('win_ratio'),
-            "prediction_info": away_team.get('prediction_info')
+            "$set": {
+                "team.$.power_ranking": away_team.get('power_ranking'),
+                "team.$.win_ratio": away_team.get('win_ratio'),
+                "team.$.prediction_info": away_team.get('prediction_info')
+            },
+            "$push": {
+                "team.$.season_opp": {
+                    "$each": away_team.get("season_opp")}
+            }
         }
-        away_season_opp = {
-            "$push": {"season_opp": {"$each": away_team.get("season_opp")}}
-        }
-    return None
+        await update_sport(query_away, update_away)
+    else:
+        await add_sports_data(query_base, away_team)
 
 
 def output_to_json(df, level_key: Tuple):
@@ -70,43 +92,10 @@ def output_to_json(df, level_key: Tuple):
         team_name_map, team_id_map, team_division = \
             CONSTANTS_MAP.get(level_key)
 
-    # List to hold the formatted data
-    output_data = []
-
     # Loop through each row (game) in the DataFrame
     for _, row in df.iterrows():
         # Extract only the date part (no time) and convert to string
         game_date = row['date'].date().isoformat()
-        
-        """
-            Changing output to:
-            home_team_data = {
-                'team_id': id_num,
-                'team_name': 'team_name',
-                'city': '',
-                'state': 'state',
-                'power_rank': 0.0,
-                'win_ratio': 0.0
-                "data": date,
-                'season_opp': [
-                    {
-                        'id': id_num,
-                        'home_team': bool,
-                        'home_score': 0,
-                        'away_score': 0,
-                        'power_diff': 0.0,
-                        'home_zscore': 0.0,
-                        'away_zscore': 0.0,
-                        'data': date
-                    }
-                ],
-                "prediction_info": {
-                    'expected_performance': 0.0,
-                    'actual_performance': bool,
-                    'predicted_score': 0.0
-                }
-            }
-        """
 
         # Power Ranking will change to a constant so we can update
         # easier and still store it into the database
@@ -151,7 +140,6 @@ def output_to_json(df, level_key: Tuple):
                 "predicted_score": row['predicted_home_score']
             }
         }
-        # output_data.append(home_team_data)
 
         # Create a section for the away team
         away_team_data = {
@@ -193,12 +181,5 @@ def output_to_json(df, level_key: Tuple):
                 "predicted_score": row['predicted_away_score']
             }
         }
-        # output_data.append(away_team_data)
+        # Changed this to add or update home and away team data
         update_or_add_teams(home_team_data, away_team_data, level_key)
-
-    # Write the JSON data to a file
-    # with open(output_file_path, 'w') as json_file:
-    #     json.dump(output_data, json_file, indent=4)
-
-    # print(f"Results saved to {output_file_path}")
-    return output_data

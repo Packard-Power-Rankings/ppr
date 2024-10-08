@@ -20,6 +20,7 @@ def json_file_builder(sport_type: str, gender: str, level: str) -> Dict:
     """
 
     return {
+        "_id": "",
         "sports_type": sport_type,
         "gender": gender,
         "level": level,

@@ -13,21 +13,16 @@ from config.config import LEVEL_CONSTANTS
 
 def update_values(
         level_key: Tuple,
-        sport_json_doc: Any,
-        algo_vals: Dict) -> Any:
+        algo_vals: Dict):
     """
-        : Updates Algorithm values if any are passed through
-        : and uses defaults that are set in LEVEL_CONSTANTS. Also
-        : it will update values in LEVEL_CONSTANTS as well.
+        : Function to check if the values that the main algorithm
+        : needs to do calculations were needing to be updated. If
+        : so, then check if value it is non-falsy and not a matching
+        : value.
 
     Args:
         level_key (Tuple): Values used to search in LEVEL_CONSTANTS
-        sport_json_doc (Any): JSON file to be updated
-        algo_vals (Dict): Keyword dictionary from create sports
-
-    Returns:
-        JSON: Returns an updated JSON file with the updated algorithm
-        values stored appropriately.
+        algo_vals (Dict): Dictionary from create sports
     """
 
     params = [
@@ -37,11 +32,8 @@ def update_values(
         'game_set_len'
     ]
     for param in params:
-        new_value = algo_vals.get(param, LEVEL_CONSTANTS[level_key][param])
-        sport_json_doc[
-            'sports'][level_key[0]][level_key[1]][level_key[2]][param] \
-            = new_value
+        replacement_value = algo_vals.get(param)
+        lvl_check = LEVEL_CONSTANTS[level_key][param]
 
-        if param in algo_vals:
-            LEVEL_CONSTANTS[level_key][param] = new_value
-    return sport_json_doc
+        if replacement_value and replacement_value != lvl_check:
+            LEVEL_CONSTANTS[level_key][param] = replacement_value

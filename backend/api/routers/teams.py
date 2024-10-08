@@ -7,15 +7,14 @@
 # Returns JSON formatted info.
 #
 
-from fastapi import APIRouter
-from fastapi.encoders import jsonable_encoder
-from datetime import datetime
-from typing import List, Any, Dict
+from fastapi import APIRouter, File, UploadFile, Depends
+# from fastapi.encoders import jsonable_encoder
+# from datetime import datetime
+from typing import Any, Dict, Tuple
 from utils.json_helper import json_file_builder
 from utils.update_algo_vals import update_values
 from utils.algorithm.run import main
 from service.teams import (
-    add_sports_data,
     retrieve_sports
 )
 from schemas import items
@@ -26,35 +25,49 @@ router = APIRouter()
 # CREATE routes:
 @router.post("/", response_description="Added sports data into database")
 async def add_sports(
-        sport_type: str,
-        gender: str,
-        level: str,
-        csv_file: Any,
-        **algo_vals) -> Any:
+        input_method: items.InputMethod = Depends(...),
+        csv_file: UploadFile = File(...)
+) -> Any:
+    # Going to be updating this function as I have changed
+    # how the output function call does in the background
 
-    sport_doc: Dict = json_file_builder(sport_type, gender, level)
+    algo_values = {
+        "k_value": input_method.k_value,
+        "home_advantage": input_method.home_advantage,
+        "average_game_score": input_method.average_game_score,
+        "game_set_len": input_method.game_set_len
+    }
 
-    if algo_vals:
-        algo_update = update_values(
-            (sport_type, gender, level),
-            sport_doc,
-            algo_vals
-        )
-        sport_doc['sports'][sport_type][gender][level].update(algo_update)
-
-    team_info: List = sport_doc['sports'][sport_type][gender][level]['team']
-    teams_data: List = await main(
-        csv_file,
-        (sport_type, gender, level)
+    level_key: Tuple = (
+        input_method.sport_type,
+        input_method.gender,
+        input_method.level
     )
-    for team_data in teams_data:
-        team_info.append(team_data)
 
-    sport_doc['sports'][sport_type][gender][level].update(team=team_info)
-    sport_doc = jsonable_encoder(sport_doc)
-    # Below I need the service connection for the database
-    new_sports = await add_sports_data(sport_doc)
-    return items.ResponseModel(new_sports, "Successfully added new sports")
+    if any(value for value in algo_values.values()):
+        update_values(
+            level_key,
+            algo_values
+        )
+
+    await main(
+        csv_file,
+        level_key
+    )
+    # I will add back the ResponseModel here just not a priority at the
+    # moment
+
+
+# Another get function just to retrieve all the sports for
+# a specific sport, gender, and level
+
+@router.get("/sports/teams", response_description="Display Teams Data")
+async def list_teams(
+    sport_type: str,
+    gender: str,
+    level: str
+):
+    pass
 
 
 # READ routes:
@@ -93,3 +106,17 @@ async def list_sports(
 
     except Exception as e:
         return {"error": f"An error occurred: {str(e)}"}
+
+
+# Update Sports (may involve some specifics but here is a start)
+
+@router.put("/sports/teams/", response_description="Updating Team Info")
+async def update_teams():
+    pass
+
+
+# Delete Sporst (also will involve some more but basic start)
+
+@router.delete("/sports/teams/", response_description="Deleting Team Info")
+async def delete_teams():
+    pass

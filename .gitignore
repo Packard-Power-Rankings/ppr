@@ -252,3 +252,4 @@ $RECYCLE.BIN/
 data/
 .devcontainer
 .vscode
+temp/

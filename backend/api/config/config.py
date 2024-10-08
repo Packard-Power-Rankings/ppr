@@ -1,35 +1,44 @@
+from bson import ObjectId
+
+
 LEVEL_CONSTANTS = {
     ("football", "mens", "high_school"): {
+        "_id": ObjectId("67017efbb2d2f30e9c5ecc52"),
         "k_value": 0.7,
         "home_advantage": 3,
         "average_game_score": 50,
         "game_set_len": 7
     },
     ("football", "mens", "college"): {
+        "_id": ObjectId("67017efbb2d2f30e9c5ecc53"),
         "k_value": 0.69,
         "home_advantage": 3,
         "average_game_score": 60,
         "game_set_len": 7
     },
     ("basketball", "mens", "high_school"): {
+        "_id": ObjectId("67017efbb2d2f30e9c5ecc54"),
         "k_value": 0.43,
         "home_advantage": 4.5,
         "average_game_score": 106,
         "game_set_len": 7
     },
     ("basketball", "mens", "college"): {
+        "_id": ObjectId("67017efbb2d2f30e9c5ecc55"),
         "k_value": 0.31,
         "home_advantage": 4.5,
         "average_game_score": 136,
         "game_set_len": 1
     },
     ("basketball", "womens", "high_school"): {
+        "_id": ObjectId("67017efbb2d2f30e9c5ecc56"),
         "k_value": 0.43,
         "home_advantage": 4.5,
         "average_game_score": 83,
         "game_set_len": 7
     },
     ("basketball", "womens", "college"): {
+        "_id": ObjectId("67017efbb2d2f30e9c5ecc57"),
         "k_value": 0.31,
         "home_advantage": 4.5,
         "average_game_score": 122,

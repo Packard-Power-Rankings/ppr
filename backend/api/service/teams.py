@@ -19,30 +19,61 @@ database = client.sports_cluster
 sports_collection = database.get_collection('sports_cluster')
 
 
-async def add_sports_data(sport_doc: Dict):
-    sport = await sports_collection.insert_one(sport_doc)
-    new_sport = await sports_collection.find_one({'_id': sport.updated_id})
-    return json_file_builder(new_sport)
+async def add_sports_data(query: Dict, team_data: Dict):
+    """Adds Sports to Database
 
+    Args:
+        query (Dict): Query parameter for MongoDB
+        team_data (Dict): Specific Team Data
 
-# async def retrieve_sports(query: Dict):
-#     sports_teams: List = sports_collection.find(query)
-#     return sports_teams
+    Returns:
+        Integer: The number of Documents Entered
+    """
+    results = await sports_collection.update_one(
+        query,
+        {"$push": {"teams": team_data}}
+    )
+    return results.modified_count()
 
 
 # Function to retrieve sports data from MongoDB
 # Changed id to mongo_id because it is overriding a builtin function
-async def retrieve_sports(query: Dict, mongo_id: int):
+async def retrieve_sports(query: Dict):
+    """Retrieves Sports From MongoDB
+
+    Args:
+        query (Dict): Query to Search The Database
+
+    Returns:
+        Dictionary | None: Returns either the dictionary or none
+    """
     # MongoDB lookup based on query
     sport = await sports_collection.find_one(query)
     if sport:
-        return json_file_builder(sport)
+        return sport
     return None
 
 
-async def update_sport():
-    pass
+async def update_sport(query: Dict, update_data: Dict):
+    """Updates information based off the specific query
+    in the database
+
+    Args:
+        query (Dict): Search Parameters for Database
+        update_data (Dict): What is Being Updated
+
+    Returns:
+        Integer: Returns the count of documents updated
+    """
+    result = await sports_collection.update_one(query, update_data)
+    return result.modified_count()
 
 
-async def delete_sport():
-    pass
+async def delete_sport(query: Dict):
+    result = await sports_collection.update_one(
+        query,
+        {"$unset": {"teams": ""}}
+    )
+    if result.modified_count() > 0:
+        return "Removed Teams From Database"
+    return "No Teams Were Found"

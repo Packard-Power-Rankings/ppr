@@ -63,7 +63,7 @@ class SeasonOpponent(BaseModel):
         ..., pattern=r'^\d{2}/\d{2}/\d{4}$',
         description="Match date in mm/dd/yyyy format"
     )
-    
+
 
 class PredictionInfo(BaseModel):
     expected_performance: float = Field(
