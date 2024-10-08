@@ -17,12 +17,12 @@ def update_values(
     """
         : Function to check if the values that the main algorithm
         : needs to do calculations were needing to be updated. If
-        : so, then check if value it is non-falsy and not a matching
-        : value.
+        : so, then check if the value is non-falsy and not a matching
+        : value
 
     Args:
         level_key (Tuple): Values used to search in LEVEL_CONSTANTS
-        algo_vals (Dict): Dictionary from create sports
+        algo_vals (Dict): Keyword dictionary from create sports
     """
 
     params = [
