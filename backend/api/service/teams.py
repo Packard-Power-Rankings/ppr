@@ -38,7 +38,7 @@ async def add_sports_data(query: Dict, team_data: Dict):
 
 # Function to retrieve sports data from MongoDB
 # Changed id to mongo_id because it is overriding a builtin function
-async def retrieve_sports(query: Dict):
+async def retrieve_sports(query: Dict, projection: Dict | None):
     """Retrieves Sports From MongoDB
 
     Args:
@@ -48,7 +48,11 @@ async def retrieve_sports(query: Dict):
         Dictionary | None: Returns either the dictionary or none
     """
     # MongoDB lookup based on query
-    sport = await sports_collection.find_one(query)
+    if projection is not None:
+        sport = await sports_collection.find_one(query, projection)
+    else:
+        sport = await sports_collection.find_one(query)
+
     if sport:
         return sport
     return None
