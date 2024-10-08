@@ -6,7 +6,9 @@ from config.config import (
     LEVEL_CONSTANTS
 )
 from service.teams import (
-    retrieve_sports
+    retrieve_sports,
+    add_sports_data,
+    update_sport
 )
 
 
