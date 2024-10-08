@@ -56,6 +56,18 @@ async def add_sports(
     # return items.ResponseModel(new_sports, "Successfully added new sports")
 
 
+# Another get function just to retrieve all the sports for
+# a specific sport, gender, and level
+
+@router.get("/sports/teams", response_description="Display Teams Data")
+async def list_teams(
+    sport_type: str,
+    gender: str,
+    level: str
+):
+    pass
+
+
 # READ routes:
 @router.get("/sports/teams/{id}", response_description="Display sports data")
 async def list_sports(
@@ -92,3 +104,17 @@ async def list_sports(
 
     except Exception as e:
         return {"error": f"An error occurred: {str(e)}"}
+
+
+# Update Sports (may involve some specifics but here is a start)
+
+@router.put("/sports/teams/", response_description="Updating Team Info")
+async def update_teams():
+    pass
+
+
+# Delete Sporst (also will involve some more but basic start)
+
+@router.delete("/sports/teams/", response_description="Deleting Team Info")
+async def delete_teams():
+    pass
