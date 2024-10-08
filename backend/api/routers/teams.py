@@ -11,12 +11,13 @@ from fastapi import APIRouter, File, UploadFile, Depends
 # from fastapi.encoders import jsonable_encoder
 # from datetime import datetime
 from typing import Any, Dict, Tuple
-from utils.json_helper import json_file_builder
+from utils.json_helper import json_file_builder, query_params_builder
 from utils.update_algo_vals import update_values
 from utils.algorithm.run import main
 from service.teams import (
     retrieve_sports
 )
+from config import LEVEL_CONSTANTS
 from schemas import items
 
 router = APIRouter()
@@ -63,12 +64,29 @@ async def add_sports(
 
 @router.get("/sports/teams", response_description="Display Teams Data")
 async def list_teams(
-    sport_type: str,
-    gender: str,
-    level: str
+    search_params: items.GeneralInputMethod = Depends(...)
 ):
-    pass
+    level_key: Tuple = (
+        search_params.sport_type,
+        search_params.gender,
+        search_params.level
+    )
+    mongo_id = LEVEL_CONSTANTS[level_key].get("_id")
 
+    query: Dict = query_params_builder()
+    query.update(
+        _id=mongo_id,
+        sport_type=search_params.sport_type,
+        gender=search_params.gender,
+        level=search_params.level
+    )
+
+    projection = {"teams": 1, "_id": 0}
+
+    teams = await retrieve_sports(query, projection)
+    if teams and 'teams' in teams:
+        return teams['teams']
+    return "No teams found"
 
 # READ routes:
 @router.get("/sports/teams/{id}", response_description="Display sports data")
