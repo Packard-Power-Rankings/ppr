@@ -10,7 +10,7 @@
 from fastapi import APIRouter, File, UploadFile, Depends
 # from fastapi.encoders import jsonable_encoder
 # from datetime import datetime
-from typing import Any, Dict
+from typing import Any, Dict, Tuple
 from utils.json_helper import json_file_builder
 from utils.update_algo_vals import update_values
 from utils.algorithm.run import main
@@ -38,17 +38,24 @@ async def add_sports(
         "game_set_len": input_method.game_set_len
     }
 
+    level_key: Tuple = (
+        input_method.sport_type,
+        input_method.gender,
+        input_method.level
+    )
+
     if any(value for value in algo_values.values()):
         update_values(
-            (input_method.sport_type, input_method.gender, input_method.level),
+            level_key,
             algo_values
         )
 
-    # team_info: List = sport_doc['sports'][sport_type][gender][level]['team']
     await main(
         csv_file,
-        (input_method.sport_type, input_method.gender, input_method.level)
+        level_key
     )
+    # I will add back the ResponseModel here just not a priority at the
+    # moment
 
 
 # Another get function just to retrieve all the sports for
