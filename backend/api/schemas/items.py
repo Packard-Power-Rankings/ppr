@@ -49,7 +49,6 @@ class GeneralInputMethod(BaseModel):
     level: Level = Field(..., description="Sport Level")
 
 
-
 class SeasonOpponent(BaseModel):
     id: int = Field(..., description="Opponent ID")
     home_game_bool: bool = Field(..., description="Is the game a home game")
@@ -64,7 +63,7 @@ class SeasonOpponent(BaseModel):
         ..., pattern=r'^\d{2}/\d{2}/\d{4}$',
         description="Match date in mm/dd/yyyy format"
     )
-    
+
 
 class PredictionInfo(BaseModel):
     expected_performance: float = Field(
