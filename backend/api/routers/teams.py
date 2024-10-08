@@ -17,7 +17,7 @@ from utils.algorithm.run import main
 from service.teams import (
     retrieve_sports
 )
-from config import LEVEL_CONSTANTS
+from config.config import LEVEL_CONSTANTS
 from schemas import items
 
 router = APIRouter()
@@ -133,7 +133,7 @@ async def update_teams():
     pass
 
 
-# Delete Sporst (also will involve some more but basic start)
+# Delete Sports (also will involve some more but basic start)
 
 @router.delete("/sports/teams/", response_description="Deleting Team Info")
 async def delete_teams():
