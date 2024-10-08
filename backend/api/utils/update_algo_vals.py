@@ -13,7 +13,6 @@ from config import LEVEL_CONSTANTS
 
 def update_values(
         level_key: Tuple,
-        sport_json_doc: Any,
         algo_vals: Dict) -> Any:
     """
         : Updates Algorithm values if any are passed through
@@ -38,10 +37,6 @@ def update_values(
     ]
     for param in params:
         new_value = algo_vals.get(param, LEVEL_CONSTANTS[level_key][param])
-        sport_json_doc[
-            'sports'][level_key[0]][level_key[1]][level_key[2]][param] \
-            = new_value
 
         if param in algo_vals:
             LEVEL_CONSTANTS[level_key][param] = new_value
-    return sport_json_doc
