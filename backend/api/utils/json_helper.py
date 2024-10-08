@@ -6,6 +6,15 @@
 from typing import Dict
 
 
+def query_params_builder() -> Dict:
+    return {
+        "_id": "",
+        "sport_type": "",
+        "gender": "",
+        "level": ""
+    }
+
+
 def json_file_builder(sport_type: str, gender: str, level: str) -> Dict:
     """Function that defines the structure for
     json file for mongodb
