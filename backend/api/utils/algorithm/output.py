@@ -1,14 +1,12 @@
 from typing import Tuple, Dict
 import json
-from ...config import (
+from config.config import (
     CONSTANTS_MAP,
     STATES,
     LEVEL_CONSTANTS
 )
-from ...service.teams import (
-    add_sports_data,
-    retrieve_sports,
-    update_sport
+from service.teams import (
+    retrieve_sports
 )
 
 

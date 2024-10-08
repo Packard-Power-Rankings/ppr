@@ -14,7 +14,7 @@ It includes:
 from typing import List, Optional, Dict, Any
 from enum import Enum
 from pydantic import BaseModel, Field
-from config import LEVEL_CONSTANTS
+from config.config import LEVEL_CONSTANTS
 
 
 # Enum Definitions (fixed set of values)
