@@ -29,7 +29,7 @@ def main(file_path, level_key: Tuple):
     df = run_calculations(df)
 
     # Step 5: Output the final results to JSON
-    return output_to_json(df)
+    output_to_json(df)
 
 
 if __name__ == "__main__":
