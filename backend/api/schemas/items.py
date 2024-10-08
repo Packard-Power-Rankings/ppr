@@ -14,7 +14,7 @@ It includes:
 from typing import List, Optional, Dict, Any
 from enum import Enum
 from pydantic import BaseModel, Field
-from config import LEVEL_CONSTANTS
+from config.config import LEVEL_CONSTANTS
 
 
 # Enum Definitions (fixed set of values)
@@ -47,7 +47,6 @@ class GeneralInputMethod(BaseModel):
     sport_type: Sport = Field(..., description="Sport Type")
     gender: Gender = Field(..., description="Gender Of Sport")
     level: Level = Field(..., description="Sport Level")
-
 
 
 class SeasonOpponent(BaseModel):

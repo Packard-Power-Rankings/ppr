@@ -1,7 +1,7 @@
 from typing import Tuple
 import random
 import pandas as pd
-from ...config import LEVEL_CONSTANTS
+from config.config import LEVEL_CONSTANTS
 
 
 def enrich_data(df, level_key: Tuple):

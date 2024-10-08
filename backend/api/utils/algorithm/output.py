@@ -1,10 +1,10 @@
 from typing import Tuple, Dict
 import json
-from ...config import (
+from config.config import (
     CONSTANTS_MAP,
     STATES
 )
-from ...service.teams import (
+from service.teams import (
     retrieve_sports
 )
 
