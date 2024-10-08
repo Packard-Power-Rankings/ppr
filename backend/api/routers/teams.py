@@ -7,10 +7,10 @@
 # Returns JSON formatted info.
 #
 
-from fastapi import APIRouter
+from fastapi import APIRouter, File, UploadFile, Depends
 # from fastapi.encoders import jsonable_encoder
 # from datetime import datetime
-from typing import List, Any, Dict
+from typing import Any, Dict
 from utils.json_helper import json_file_builder
 from utils.update_algo_vals import update_values
 from utils.algorithm.run import main
@@ -25,35 +25,30 @@ router = APIRouter()
 # CREATE routes:
 @router.post("/", response_description="Added sports data into database")
 async def add_sports(
-        sport_type: str,
-        gender: str,
-        level: str,
-        csv_file: Any,
-        **algo_vals) -> Any:
+        input_method: items.InputMethod = Depends(...),
+        csv_file: UploadFile = File(...)
+) -> Any:
     # Going to be updating this function as I have changed
     # how the output function call does in the background
 
-    # sport_doc: Dict = json_file_builder(sport_type, gender, level)
+    algo_values = {
+        "k_value": input_method.k_value,
+        "home_advantage": input_method.home_advantage,
+        "average_game_score": input_method.average_game_score,
+        "game_set_len": input_method.game_set_len
+    }
 
-    if algo_vals:
+    if any(value for value in algo_values.values()):
         update_values(
-            (sport_type, gender, level),
-            algo_vals
+            (input_method.sport_type, input_method.gender, input_method.level),
+            algo_values
         )
 
     # team_info: List = sport_doc['sports'][sport_type][gender][level]['team']
     await main(
         csv_file,
-        (sport_type, gender, level)
+        (input_method.sport_type, input_method.gender, input_method.level)
     )
-    # for team_data in teams_data:
-    #     team_info.append(team_data)
-
-    # sport_doc['sports'][sport_type][gender][level].update(team=team_info)
-    # sport_doc = jsonable_encoder(sport_doc)
-    # Below I need the service connection for the database
-    # new_sports = await add_sports_data(sport_doc)
-    # return items.ResponseModel(new_sports, "Successfully added new sports")
 
 
 # Another get function just to retrieve all the sports for
