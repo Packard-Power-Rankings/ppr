@@ -7,7 +7,7 @@
 # Returns JSON formatted info.
 #
 
-from fastapi import APIRouter, File, UploadFile, Depends
+from fastapi import APIRouter
 # from fastapi.encoders import jsonable_encoder
 # from datetime import datetime
 from typing import Any, Dict, Tuple
@@ -26,30 +26,24 @@ router = APIRouter()
 # CREATE routes:
 @router.post("/", response_description="Added sports data into database")
 async def add_sports(
-        input_method: items.InputMethod = Depends(...),
-        csv_file: UploadFile = File(...)
+        sport_type: str,
+        gender: str,
+        level: str,
+        csv_file: Any,
+        algo_values: Dict
 ) -> Any:
-    # Going to be updating this function as I have changed
-    # how the output function call does in the background
 
-    algo_values = {
-        "k_value": input_method.k_value,
-        "home_advantage": input_method.home_advantage,
-        "average_game_score": input_method.average_game_score,
-        "game_set_len": input_method.game_set_len
-    }
-
-    level_key: Tuple = (
-        input_method.sport_type,
-        input_method.gender,
-        input_method.level
-    )
+    level_key: Tuple = (sport_type, gender, level)
 
     if any(value for value in algo_values.values()):
         update_values(
             level_key,
             algo_values
         )
+    # Need to store the csv file in db instead of sending it to main
+    # algorithm function
+
+    
 
     await main(
         csv_file,
@@ -64,21 +58,21 @@ async def add_sports(
 
 @router.get("/sports/teams", response_description="Display Teams Data")
 async def list_teams(
-    search_params: items.GeneralInputMethod = Depends(...)
+    sport_type: str,
+    gender: str,
+    level: str
 ):
-    level_key: Tuple = (
-        search_params.sport_type,
-        search_params.gender,
-        search_params.level
-    )
+    # Need to add try blocks and exception handling below
+
+    level_key: Tuple = (sport_type, gender, level)
     mongo_id = LEVEL_CONSTANTS[level_key].get("_id")
 
     query: Dict = query_params_builder()
     query.update(
         _id=mongo_id,
-        sport_type=search_params.sport_type,
-        gender=search_params.gender,
-        level=search_params.level
+        sport_type=sport_type,
+        gender=gender,
+        level=level
     )
 
     projection = {"teams": 1, "_id": 0}
@@ -87,6 +81,7 @@ async def list_teams(
     if teams and 'teams' in teams:
         return teams['teams']
     return "No teams found"
+
 
 # READ routes:
 @router.get("/sports/teams/{id}", response_description="Display sports data")
