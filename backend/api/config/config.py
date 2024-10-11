@@ -202,7 +202,7 @@ FOOTBALL_COLLEGE_CONF = {
     80: 'NESCAC',
 }
 
-FOOTBALL_TEAMS_COLLEGE = {
+FOOTBALL_TEAMS_COLLEGE = { 
     1: {'team_name': 'Northwestern', 'division_id': 11, 'state_id': 18, 'conference_id': 2},
     2: {'team_name': 'Nebraska', 'division_id': 11, 'state_id': 5, 'conference_id': 2},
     3: {'team_name': 'Reinhardt', 'division_id': 12, 'state_id': 15, 'conference_id': 3},
