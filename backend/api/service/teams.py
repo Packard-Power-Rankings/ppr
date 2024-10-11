@@ -36,6 +36,17 @@ async def add_sports_data(query: Dict, team_data: Dict):
     return results.modified_count()
 
 
+# Adding CSV file storing into database
+async def add_csv_file(query: Dict):
+    """Adds CSV file into the database for faster algorithm
+    calculations
+
+    Args:
+        query (Dict): Query for the Database
+    """
+    pass
+
+
 # Function to retrieve sports data from MongoDB
 # Changed id to mongo_id because it is overriding a builtin function
 async def retrieve_sports(query: Dict, projection: Dict | None):
