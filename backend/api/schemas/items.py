@@ -44,7 +44,6 @@ class InputMethod(BaseModel):
 
 
 class GeneralInputMethod(BaseModel):
-    sport_type: Sport = Field(..., description="Sport Type")
     gender: Gender = Field(..., description="Gender Of Sport")
     level: Level = Field(..., description="Sport Level")
 
