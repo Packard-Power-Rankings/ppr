@@ -94,6 +94,9 @@ def output_to_json(df, level_key: Tuple):
         team_name_map, team_id_map, team_division = \
             CONSTANTS_MAP.get(level_key)
 
+    # Need to calculate the wins and losses for
+    # each team and store in the db
+
     # Loop through each row (game) in the DataFrame
     for _, row in df.iterrows():
         # Extract only the date part (no time) and convert to string
