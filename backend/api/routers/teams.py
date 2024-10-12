@@ -15,7 +15,8 @@ from utils.json_helper import json_file_builder, query_params_builder
 from utils.update_algo_vals import update_values
 from utils.algorithm.run import main
 from service.teams import (
-    retrieve_sports
+    retrieve_sports,
+    clear_season
 )
 from config.config import LEVEL_CONSTANTS
 from schemas import items
@@ -255,5 +256,49 @@ async def update_teams(
 # Delete Sports (also will involve some more but basic start)
 #
 @router.delete("/sports/teams/", response_description="Deleting Team Info")
-async def delete_teams():
-    pass
+async def delete_teams(
+    sport_type: str,
+    gender: str,
+    level: str
+):
+    try:
+        query: Dict = query_params_builder()
+        query.update(
+            _id=get_level_mongoid((sport_type, gender, level)),
+            sport_type=sport_type,
+            gender=gender,
+            level=level
+        )
+        update_params = {
+            "$unset": {
+                "teams.$[team].win_ratio": 0.0,
+                "teams.$[team].wins": 0,
+                "teams.$[team].losses": 0,
+                "teams.$[team].prediction_info.expected_performance": 0.0,
+                "teams.$[team].prediction_info.actual_performance": 0.0,
+                "teams.$[team].prediction_info.predicted_score": 0
+            },
+            "$set": {
+                "teams.$[team].season_opp": []
+            }
+        }
+        array_filters = [{"team": {"$exists": True}}]
+
+        result = clear_season(query, update_params, array_filters)
+
+        if result.matched_count == 0:
+            raise HTTPException(
+                status_code=404,
+                details="No matching document based on query"
+            )
+        if result.modified_count == 0:
+            raise HTTPException(
+                status_code=404,
+                details="No fields were modified"
+            )
+        return items.ResponseModel(
+                result,
+                "Fields Cleared For All Teams"
+            )
+    except HTTPException as exc:
+        raise HTTPException(status_code=500, details="Error Occurred") from exc
