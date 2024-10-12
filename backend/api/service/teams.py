@@ -70,7 +70,7 @@ async def retrieve_sports(query: Dict, projection: Dict | None = None):
             return sport_data
         return None
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Database error") from e
 
 
 async def update_sport(query: Dict, update_data: Dict):
@@ -96,3 +96,16 @@ async def delete_sport(query: Dict):
     if result.modified_count() > 0:
         return "Removed Teams From Database"
     return "No Teams Were Found"
+
+
+async def clear_season(
+    query: Dict,
+    update_params: Dict,
+    array_filters: List[Dict]
+):
+    result = await sports_collection.update_one(
+        query,
+        update_params,
+        array_filters
+    )
+    return result
