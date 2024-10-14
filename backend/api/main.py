@@ -19,14 +19,26 @@ from routers.teams import (
     add_sports,
     list_sports
 )
+from fastapi.middleware.cors import CORSMiddleware
 
 
 app = FastAPI(lifespan=lifespan)
+
+# Add CORS middleware to allow requests from React frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # Frontend URL
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # CREATE routes:
 # Changed to app.post because this is typically used for
 # sending data to the backend, in our case to store the
 # data.
+
+
 @app.post("/admin/", tags=["Admin"])
 async def root(
         input: InputMethod = Depends(),
@@ -61,18 +73,21 @@ async def root(
 async def read_root():
     return {"message:" "Welcome page:"}
 
+
 @app.get("/sports/", tags=["Sports"])
 async def read_root():
     return {"message": "Sports navigation:"}
+
 
 @app.get("/sports/teams", tags=["Sports"])
 async def read_root():
     return {"message": "Teams navigation:"}
 
+
 @app.get("/sports/teams/{team_id}", tags=["Sports"])
 async def get_team(
-    team_id: int,
-    input: GeneralInputMethod = Depends()):
+        team_id: int,
+        input: GeneralInputMethod = Depends()):
     try:
         response = await list_sports(team_id, input)
         if response:
@@ -89,7 +104,7 @@ async def get_team(
 #         input: InputMethod = Depends()):
 #     try:
 #         # Call to logic for update_sport_data
-#         updated_sport = await 
+#         updated_sport = await
 #         # Calls to various functions from routers/teams.py
 #         # to validate and process CSV data.
 #         response = await add_sports(
