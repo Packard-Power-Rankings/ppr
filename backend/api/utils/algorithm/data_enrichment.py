@@ -5,16 +5,20 @@ import pandas as pd
 def enrich_data(df):
     """
     Adds dummy values for R-value, home field advantage, power rankings, 
-    and win/loss ratios.
+    win/loss ratios, and AVEGAMESC.
     :param df: Cleaned DataFrame from data_cleaning.py.
     :return: DataFrame with dummy values added.
     """
 
-    # R-value (constant for all teams)
-    R_value = 1.0
+    # R-value (or K value) for calculations
+    # This can be modified based on the sport (football, basketball, etc.)
+    R_value = 0.7
 
-    # Home field advantage (constant for all home games)
-    home_advantage = 5.0
+    # AVEGAMESC (average game score)
+    AVEGAMESC = 50  # Ex constant; adjust based on the sport's avg game score
+
+    # Home field advantage (constant for home games, none for neutral site)
+    home_advantage = 3  # Football example (can be adjusted)
 
     # Generate power rankings and win/loss ratios for each team
     team_data = {}
@@ -29,6 +33,9 @@ def enrich_data(df):
 
     # Add enrichment values to the DataFrame
     df['R_value'] = R_value
+    df['AVEGAMESC'] = AVEGAMESC
+
+    # Adjust home field advantage: set to 0 for neutral sites (999)
     df['home_field_advantage'] = df['neutral_site'].apply(
         lambda x: home_advantage if x == 0 else 0)
 

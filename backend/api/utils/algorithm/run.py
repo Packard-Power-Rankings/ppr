@@ -34,7 +34,7 @@ def main(file_path, output_file):
 if __name__ == "__main__":
     # Example file paths for input and output
     input_csv_path = "CFootballEx.csv"
-    output_json_path = "results.json"
+    output_json_path = "results_new.json"
 
     # Run the pipeline
     main(input_csv_path, output_json_path)
