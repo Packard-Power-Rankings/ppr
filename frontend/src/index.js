@@ -1,4 +1,5 @@
 // src/index.js
+// Entry point of the application
 
 import React from 'react';
 import ReactDOM from 'react-dom';
