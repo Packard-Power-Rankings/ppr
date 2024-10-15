@@ -1,8 +1,10 @@
+from typing import Tuple
 import random
 import pandas as pd
+from config.config import LEVEL_CONSTANTS
 
 
-def enrich_data(df):
+def enrich_data(df, level_key: Tuple):
     """
     Adds dummy values for R-value, home field advantage, power rankings, 
     win/loss ratios, and AVEGAMESC.
@@ -10,15 +12,11 @@ def enrich_data(df):
     :return: DataFrame with dummy values added.
     """
 
-    # R-value (or K value) for calculations
-    # This can be modified based on the sport (football, basketball, etc.)
-    R_value = 0.7
+    # R-value (constant for all teams)
+    R_value = 1.0
 
-    # AVEGAMESC (average game score)
-    AVEGAMESC = 50  # Ex constant; adjust based on the sport's avg game score
-
-    # Home field advantage (constant for home games, none for neutral site)
-    home_advantage = 3  # Football example (can be adjusted)
+    # Home field advantage (constant for all home games)
+    home_advantage = 5.0
 
     # Generate power rankings and win/loss ratios for each team
     team_data = {}
