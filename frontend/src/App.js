@@ -11,7 +11,7 @@ import AdminPage from './components/AdminPage';
 import './Nav.css';
 
 const App = () => {
-    const [isLoggedIn, setIsLoggedIn] = useState(false)
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     // Handle login
     const handleLogin = (status) => {
@@ -28,6 +28,7 @@ const App = () => {
             <nav>
                 <Link to="/">Home</Link>
                 <Link to="/about">About</Link>
+                {isLoggedIn && <Link to="/admin">Admin</Link>}
                 {isLoggedIn ? (
                     <button onClick={handleLogout}>Logout</button>
                 ) : (
@@ -38,7 +39,7 @@ const App = () => {
                 <Route path="/" element={<Home />} />
                 <Route path="/admin" element={isLoggedIn ? <AdminPage /> : <Login onLogin={handleLogin} />} />
                 <Route path="/about" element={<About />} />
-                <Route path='/login' element={<Login onLogin={handleLogin} />} />
+                <Route path="/login" element={<Login onLogin={handleLogin} />} />
             </Routes>
         </Router>
     );

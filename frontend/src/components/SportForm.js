@@ -1,20 +1,26 @@
 // src/components/SportForm.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const SportForm = () => {
-    const [sportType, setSportType] = useState('');
-    const [gender, setGender] = useState('');
-    const [level, setLevel] = useState('');
+const SportForm = ({ onSubmit, initialSportType = '', initialGender = '', initialLevel = '' }) => {
+    const [sportType, setSportType] = useState(initialSportType);
+    const [gender, setGender] = useState(initialGender);
+    const [level, setLevel] = useState(initialLevel);
+
+    // Update state when props change
+    useEffect(() => {
+        setSportType(initialSportType);
+        setGender(initialGender);
+        setLevel(initialLevel);
+    }, [initialSportType, initialGender, initialLevel]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log({
-            sportType,
-            gender,
-            level,
-        });
-        // Here, you can implement the logic to handle the data
-        // or send it to the backend when you're ready.
+        // Make sure we call onSubmit only if it is passed as a prop
+        if (typeof onSubmit === 'function') {
+            onSubmit({ sportType, gender, level });
+        } else {
+            console.error('onSubmit is not a function');
+        }
     };
 
     return (
@@ -29,7 +35,6 @@ const SportForm = () => {
                     <option value="">Select a sport type</option>
                     <option value="football">Football</option>
                     <option value="basketball">Basketball</option>
-                    {/* Add more options as needed */}
                 </select>
             </div>
 
