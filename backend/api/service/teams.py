@@ -38,24 +38,28 @@ async def add_sports_data(query: Dict, team_data: Dict):
 
 # Function to retrieve sports data from MongoDB
 # Changed id to mongo_id because it is overriding a builtin function
-async def retrieve_sports(query: Dict, projection: Dict | None):
-    """Retrieves Sports From MongoDB
+async def retrieve_sports(query: Dict, projection: Dict | None = None):
+    """
+    Retrieves sports or teams data from the MongoDB collection.
 
     Args:
-        query (Dict): Query to Search The Database
+        query (Dict): The query filter for MongoDB.
+        projection (Dict | None): Fields to include or exclude (optional).
 
     Returns:
-        Dictionary | None: Returns either the dictionary or none
+        Dict | None: Returns the document or None if no match is found.
     """
-    # MongoDB lookup based on query
-    if projection is not None:
-        sport = await sports_collection.find_one(query, projection)
-    else:
-        sport = await sports_collection.find_one(query)
+    try:
+        if projection:
+            sport_data = await sports_collection.find_one(query, projection)
+        else:
+            sport_data = await sports_collection.find_one(query)
 
-    if sport:
-        return sport
-    return None
+        if sport_data:
+            return sport_data
+        return None
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 
 async def update_sport(query: Dict, update_data: Dict):
