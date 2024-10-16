@@ -8,6 +8,7 @@
 #
 
 import uvicorn
+# import logging
 from typing import Dict
 from fastapi import FastAPI, UploadFile, File, Depends, HTTPException
 from dependencies import lifespan
@@ -22,6 +23,7 @@ from routers.teams import (
     delete_teams
 )
 
+# logging.basicConfig(level=logging.DEBUG)
 
 app = FastAPI(lifespan=lifespan)
 
@@ -32,7 +34,7 @@ app = FastAPI(lifespan=lifespan)
 @app.post("/admin", tags=["Admin"])
 async def root(
         input: InputMethod = Depends(),
-        csv_file: UploadFile = File(...)):
+        csv_file: UploadFile = File()):
     try:
         # Ensure the file type is correct
         if not csv_file.filename.endswith('.csv'):
@@ -40,6 +42,7 @@ async def root(
         algo_values = input.model_dump(
             exclude=("sport_type", "gender", "level")
         )
+        # logging.debug(f"Algo Values: {algo_values}")
         # Calls to various functions from routers/teams.py
         # to validate and process CSV data.
         response = await add_sports(
@@ -47,7 +50,7 @@ async def root(
             input.gender,
             input.level,
             csv_file,
-            **algo_values
+            algo_values
         )
 
         return response
