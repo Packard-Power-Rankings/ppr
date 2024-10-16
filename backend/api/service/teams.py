@@ -7,16 +7,21 @@
 
 # from bson.objectid import ObjectId
 # from backend.api.utils.dependencies import get_database
-
+import os
+import traceback
 from typing import Dict, List
+from fastapi import HTTPException
 import motor.motor_asyncio
 from utils.json_helper import json_file_builder
 
+MONGO_DETAILS = \
+    f"mongodb+srv://{os.getenv("MONGO_USER")}:{os.getenv("MONGO_PASS")}@" \
+    "sports-cluster.mx1mo.mongodb.net/" \
+    "?retryWrites=true&w=majority&appName=Sports-Cluster"
 
-MONGO_DETAILS = "mongodb://localhost:27017"
 client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_DETAILS)
-database = client.sports_cluster
-sports_collection = database.get_collection('sports_cluster')
+database = client[f"{os.getenv("sports_data")}"]
+sports_collection = database.get_collection('teams_data')
 
 
 async def add_sports_data(query: Dict, team_data: Dict):
@@ -29,11 +34,16 @@ async def add_sports_data(query: Dict, team_data: Dict):
     Returns:
         Integer: The number of Documents Entered
     """
-    results = await sports_collection.update_one(
-        query,
-        {"$push": {"teams": team_data}}
-    )
-    return results.modified_count()
+    try:
+        results = await sports_collection.update_one(
+            query,
+            {"$push": {"teams": team_data}}
+        )
+        return results.modified_count
+    except Exception as exc:
+        traceback.print_exc()
+        raise HTTPException(status_code=404, detail="Database error") from exc
+    
 
 
 # Adding CSV file storing into database
