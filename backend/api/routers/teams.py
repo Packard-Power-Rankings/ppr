@@ -26,8 +26,8 @@ router = APIRouter()
 # CREATE routes:
 @router.post("/", response_description="Added sports data into database")
 async def add_sports(
-        input_method: items.InputMethod = Depends(...),
-        csv_file: UploadFile = File(...)
+        input_method: items.InputMethod = Depends(),
+        csv_file: UploadFile = File()
 ) -> Any:
     # Going to be updating this function as I have changed
     # how the output function call does in the background
@@ -64,7 +64,7 @@ async def add_sports(
 
 @router.get("/sports/teams", response_description="Display Teams Data")
 async def list_teams(
-    search_params: items.GeneralInputMethod = Depends(...)
+    search_params: items.GeneralInputMethod = Depends()
 ):
     level_key: Tuple = (
         search_params.sport_type,
