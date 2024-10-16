@@ -40,8 +40,8 @@ async def update_or_add_teams(
         "teams.team_name": away_team['team_name']
     }
 
-    home_team_info = retrieve_sports(query_home)
-    away_team_info = retrieve_sports(query_away)
+    home_team_info = await retrieve_sports(query_home)
+    away_team_info = await retrieve_sports(query_away)
 
     if home_team_info:
         update_home = {
@@ -77,7 +77,7 @@ async def update_or_add_teams(
         await add_sports_data(query_base, away_team)
 
 
-def output_to_json(df, level_key: Tuple):
+async def output_to_json(df, level_key: Tuple):
     """
     Converts the final DataFrame to JSON format and saves it to a file.
     Reformats the output so that each team has its own section.
@@ -187,4 +187,4 @@ def output_to_json(df, level_key: Tuple):
             }
         }
         # Changed this to add or update home and away team data
-        update_or_add_teams(home_team_data, away_team_data, level_key)
+        await update_or_add_teams(home_team_data, away_team_data, level_key)

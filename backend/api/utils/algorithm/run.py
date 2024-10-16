@@ -7,7 +7,7 @@ from .main import run_calculations
 from .output import output_to_json
 
 
-def main(file_path, level_key: Tuple):
+async def main(file_path, level_key: Tuple):
     """
     Main orchestration function to run the entire pipeline.
     :param file_path: Path to the input CSV file.
@@ -29,7 +29,7 @@ def main(file_path, level_key: Tuple):
     df = run_calculations(df)
 
     # Step 5: Output the final results to JSON
-    output_to_json(df)
+    await output_to_json(df, level_key)
 
 
 if __name__ == "__main__":
