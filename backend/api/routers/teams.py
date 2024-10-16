@@ -7,7 +7,8 @@
 # Returns JSON formatted info.
 #
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, UploadFile
+import traceback
 # from fastapi.encoders import jsonable_encoder
 # from datetime import datetime
 from typing import Any, Dict, Tuple
@@ -34,7 +35,7 @@ async def add_sports(
         sport_type: str,
         gender: str,
         level: str,
-        csv_file: Any,
+        csv_file: UploadFile,
         algo_values: Dict
 ) -> Any:
 
@@ -47,11 +48,16 @@ async def add_sports(
         )
     # Need to store the csv file in db instead of sending it to main
     # algorithm function
-
-    await main(
-        csv_file,
-        level_key
-    )
+    try:
+        await main(
+            csv_file.file,
+            level_key
+        )
+        csv_file.file.close()
+        return {"success": "Successful upload"}
+    except Exception as exc:
+        traceback.print_exc()
+        raise HTTPException(status_code=404, detail="Error has occured")
     # I will add back the ResponseModel here just not a priority at the
     # moment
 
@@ -147,7 +153,7 @@ async def list_teams_by_sport(
 async def list_sports(
     sport_type: str,
     team_name: str,
-    sport_input: items.GeneralInputMethod = Depends(...)
+    sport_input: items.GeneralInputMethod = Depends()
 ):
     """
     Fetch sports or team data based on query parameters.
