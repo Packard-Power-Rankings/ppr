@@ -46,8 +46,8 @@ const SportForm = ({ onSubmit, initialSportType = '', initialGender = '', initia
                     onChange={(e) => setGender(e.target.value)}
                 >
                     <option value="">Select a gender</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
+                    <option value="mens">Mens</option>
+                    <option value="womens">Womens</option>
                 </select>
             </div>
 

@@ -13,24 +13,25 @@ It includes:
 
 from typing import List, Optional, Dict, Any
 from enum import Enum
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 from config.config import LEVEL_CONSTANTS
+from fastapi import Form, Depends, HTTPException
 
 
 # Enum Definitions (fixed set of values)
 class Sport(str, Enum):
-    FOOTBALL = "football"
-    BASKETBALL = "basketball"
+    football = "football"
+    basketball = "basketball"
 
 
 class Gender(str, Enum):
-    MENS = "mens"
-    WOMENS = "womens"
+    mens = "mens"
+    womens = "womens"
 
 
 class Level(str, Enum):
-    HIGH_SCHOOL = "high_school"
-    COLLEGE = "college"
+    college = "college"
+    high_school = "high_school"
 
 
 class InputMethod(BaseModel):
@@ -43,7 +44,32 @@ class InputMethod(BaseModel):
     game_set_len: Optional[int] = 0
 
 
+async def input_method_dependency(
+    sport_type: str = Form(...),
+    gender: str = Form(...),
+    level: str = Form(...),
+    k_value: Optional[float] = Form(0.0),
+    home_advantage: Optional[int] = Form(0),
+    average_game_score: Optional[int] = Form(0),
+    game_set_len: Optional[int] = Form(0),
+) -> InputMethod:
+    # Convert form inputs to the expected enum types
+    try:
+        return InputMethod(
+            sport_type=Sport(sport_type),
+            gender=Gender(gender),
+            level=Level(level),
+            k_value=k_value,
+            home_advantage=home_advantage,
+            average_game_score=average_game_score,
+            game_set_len=game_set_len
+        )
+    except (ValueError, ValidationError) as e:
+        raise HTTPException(status_code=422, detail=f"Invalid input: {str(e)}")
+
+
 class GeneralInputMethod(BaseModel):
+    # sport_type: Sport = Field(..., description="Type of Sport")
     gender: Gender = Field(..., description="Gender Of Sport")
     level: Level = Field(..., description="Sport Level")
 

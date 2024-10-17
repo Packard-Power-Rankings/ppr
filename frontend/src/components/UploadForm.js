@@ -6,12 +6,10 @@ const UploadForm = ({ initialSportType, initialGender, initialLevel }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         const formData = new FormData();
+        formData.append('sport_type', initialSportType);
+        formData.append('gender', initialGender);
+        formData.append('level', initialLevel);
         formData.append('csv_file', file);
-        formData.append('input', JSON.stringify({
-            sport_type: initialSportType,
-            gender: initialGender,
-            level: initialLevel
-        }));
 
         try {
             const response = await fetch('http://localhost:8000/admin/', {

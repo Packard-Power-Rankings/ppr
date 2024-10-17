@@ -7,16 +7,18 @@
 
 # from bson.objectid import ObjectId
 # from backend.api.utils.dependencies import get_database
-
+import os
+import traceback
 from typing import Dict, List
 import motor.motor_asyncio
 from utils.json_helper import json_file_builder
+from fastapi import HTTPException
 
 
-MONGO_DETAILS = "mongodb://localhost:27017"
+MONGO_DETAILS = f"mongodb+srv://{os.getenv("MONGO_USER")}:{os.getenv("MONGO_PASS")}@sports-cluster.mx1mo.mongodb.net/?retryWrites=true&w=majority&appName=Sports-Cluster"
 client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_DETAILS)
-database = client.sports_cluster
-sports_collection = database.get_collection('sports_cluster')
+database = client["sports_data"]
+sports_collection = database.get_collection('teams_data')
 
 
 async def add_sports_data(query: Dict, team_data: Dict):

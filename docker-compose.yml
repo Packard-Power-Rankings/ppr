@@ -11,6 +11,8 @@ services:
       - "${MONGO_PORT}:${MONGO_PORT}"
     networks:
       - app-network
+    env_file:
+      - .env
 
   backend:
     build: ./backend
@@ -25,6 +27,8 @@ services:
       - MONGO_URI=mongodb://${MONGO_USER}:${MONGO_PASS}@db:${MONGO_PORT}/${MONGO_DB_NAME}
     depends_on:
       - db
+    env_file:
+      - .env
 
   frontend:
     build: ./frontend

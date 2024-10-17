@@ -13,15 +13,18 @@ from fastapi import FastAPI, UploadFile, File, Depends, HTTPException
 from dependencies import lifespan
 from schemas.items import (
     InputMethod,
-    GeneralInputMethod
+    GeneralInputMethod,
+    input_method_dependency
 )
 from routers.teams import (
     add_sports,
-    list_sports,
+    list_teams,
+    list_teams_info,
     update_teams,
     delete_teams
 )
 from fastapi.middleware.cors import CORSMiddleware
+from schemas import items
 
 
 app = FastAPI(lifespan=lifespan)
@@ -43,7 +46,7 @@ app.add_middleware(
 
 @app.post("/admin/", tags=["Admin"])
 async def root(
-        input: InputMethod = Depends(),
+        input: InputMethod = Depends(input_method_dependency),
         csv_file: UploadFile = File(...)):
     try:
         # Ensure the file type is correct
@@ -71,46 +74,50 @@ async def root(
 # Browsers only allow GET requests when you navigate to a URL.
 # This GET route will handle requests made to the root URL.
 # The next step is going to routers.
-@app.get("/", tags=["Sports"])
-async def get_sport_categories():
-    """
-    Retrieves a list of available sport categories and displays them on the homepage.
-    """
-    try:
-        sport_categories = await list_sports()  # TODO: fetch sports categories
-        if sport_categories:
-            return {
-                "message": "Welcome to the Sports API. Here are the available sport categories:",
-                "categories": sport_categories
-            }
-        raise HTTPException(status_code=404, detail="No sport categories found")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+# @app.get("/", tags=["Sports"])
+# async def get_sport_categories():
+#     """
+#     Retrieves a list of available sport categories and displays them on the homepage.
+#     """
+#     try:
+#         sport_categories = await list_sports()  # TODO: fetch sports categories
+#         if sport_categories:
+#             return {
+#                 "message": "Welcome to the Sports API. Here are the available sport categories:",
+#                 "categories": sport_categories
+#             }
+#         raise HTTPException(status_code=404, detail="No sport categories found")
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
 
-@app.get("/sports", tags=["Sports"])
-async def get_sports():
-    """
-    Retrieves a list of all available sports.
-    """
-    try:
-        sports_list = await list_sports() # No parameters: get all sports
-        if sports_list:
-            return {"message": "Sports data retrieved successfully", "data": sports_list}
-        raise HTTPException(status_code=404, detail="No sports data found")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+# @app.get("/sports", tags=["Sports"])
+# async def get_sports():
+#     """
+#     Retrieves a list of all available sports.
+#     """
+#     try:
+#         sports_list = await list_sports() # No parameters: get all sports
+#         if sports_list:
+#             return {"message": "Sports data retrieved successfully", "data": sports_list}
+#         raise HTTPException(status_code=404, detail="No sports data found")
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
 
-@app.get("/sports/{sport_type}/teams", tags=["Sports"])
+@app.get("/{sport_type}/", tags=["Sports"])
 async def get_teams(
-    sport_type: str
+    sport_type: str,
+    search_params: items.GeneralInputMethod = Depends()
 ):
     """
     Retrieves a list of all available teams for a given sport.
     """
     try:
-        teams_list = await list_sports(sport_type=sport_type)
+        teams_list = await list_teams(
+            sport_type=sport_type,
+            search_params=search_params
+        )
         if teams_list:
             return {"message": "Teams data retrieved successfully", "data": teams_list}
         raise HTTPException(status_code=404, detail="No teams data found")
@@ -118,19 +125,21 @@ async def get_teams(
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
 
-@app.get("/sports/{sport_type}/teams/{team_name}", tags=["Sports"])
+@app.get("/{sport_type}/{team_name}", tags=["Sports"])
 async def get_team(
     sport_type: str,
-    team_name: str,
-    input: GeneralInputMethod = Depends()):
+    search_params: items.GeneralInputMethod = Depends()
+):
     """
     Retrieves team specific data
     (season_opp and eventually prediction info).
     """
     try:
-        response = await list_sports(sport_type=sport_type, team_name=team_name, input=input)
-        if response:
-            return response
+        teams_info_list = await list_teams_info(
+            sport_type=sport_type,
+            search_params=search_params)
+        if teams_info_list:
+            return teams_info_list
         raise HTTPException(status_code=404, detail="No sports data found")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
