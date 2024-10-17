@@ -831,7 +831,7 @@ FOOTBALL_TEAMS_COLLEGE = {
     742: {'team_name': 'Indiana PA', 'division_id': 9, 'state_id': 19, 'conference_id': 36},
     743: {'team_name': 'Lawrence', 'division_id': 14, 'state_id': 50, 'conference_id': 61},
     744: {'team_name': 'Anna Maria', 'division_id': 14, 'state_id': 26, 'conference_id': 46},
-    745: {'team_name': 'N Central Il', 'division_id': 14, 'state_id': 18, 'conference_id': 56},
+    745: {'team_name': 'N Central IL', 'division_id': 14, 'state_id': 18, 'conference_id': 56},
     746: {'team_name': 'IL Wesleyan', 'division_id': 14, 'state_id': 18, 'conference_id': 56},
     747: {'team_name': 'WI Stout', 'division_id': 14, 'state_id': 50, 'conference_id': 77},
     748: {'team_name': 'Wheaton Il', 'division_id': 14, 'state_id': 18, 'conference_id': 56},
@@ -876,6 +876,7 @@ FOOTBALL_TEAMS_COLLEGE = {
     790: {'team_name': 'Anderson SC', 'division_id': 9, 'state_id': 42, 'conference_id': None},
     791: {'team_name': 'Calvin', 'division_id': 12, 'state_id': 27, 'conference_id': 37},
     792: {'team_name': 'Centenary', 'division_id': 14, 'state_id': 23, 'conference_id': 58},
+    793: {'team_name': 'Dodge City CC', 'division_id': None, 'state_id': 21, 'conference_id': None}
 }
 
 FOOTBALL_TEAMS_IDS_COLLEGE = {
@@ -1611,7 +1612,7 @@ FOOTBALL_TEAMS_IDS_COLLEGE = {
     'Indiana PA': 742,
     'Lawrence': 743,
     'Anna Maria': 744,
-    'N Central Il': 745,
+    'N Central IL': 745,
     'IL Wesleyan': 746,
     'WI Stout': 747,
     'Wheaton Il': 748,
@@ -1656,6 +1657,7 @@ FOOTBALL_TEAMS_IDS_COLLEGE = {
     'Anderson SC': 790,
     'Calvin': 791,
     'Centenary': 792,
+    'Dodge City CC': 793
 }
 
 FOOTBALL_TEAMS_HS = {
