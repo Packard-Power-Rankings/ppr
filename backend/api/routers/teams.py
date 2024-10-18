@@ -153,7 +153,7 @@ async def list_teams_by_sport(
 async def list_sports(
     sport_type: str,
     team_name: str,
-    sport_input: items.GeneralInputMethod = Depends()
+    sport_input: Any
 ):
     """
     Fetch sports or team data based on query parameters.
@@ -172,7 +172,7 @@ async def list_sports(
         level=sport_input.level
     )
     projection = {
-        "teams": {"team_name": team_name},
+        "teams": {"$elemMatch": {"team_name": team_name}},
         "_id": 0
     }
 
