@@ -57,7 +57,9 @@ async def add_sports(
         return {"success": "Successful upload"}
     except Exception as exc:
         traceback.print_exc()
-        raise HTTPException(status_code=404, detail="Error has occured")
+        raise HTTPException(
+            status_code=404, detail="Error has occured"
+        ) from exc
     # I will add back the ResponseModel here just not a priority at the
     # moment
 
@@ -157,8 +159,7 @@ async def list_teams_info(
     level_key: Tuple = (
         sport_type,
         search_params.gender,
-        search_params.level,
-        team_name
+        search_params.level
     )
 
     query: Dict = query_params_builder()
@@ -170,7 +171,10 @@ async def list_teams_info(
         level=search_params.level
     )
 
-    projection = {"teams": 1, "_id": 0}
+    projection = {
+        "teams": {"$elemMatch": {"team_name": team_name}},
+        "_id": 0
+    }
 
     # Fetch data from database
     team_data = await retrieve_sports(query, projection)
