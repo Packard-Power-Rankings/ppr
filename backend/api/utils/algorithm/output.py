@@ -1,4 +1,4 @@
-from typing import Tuple, Dict
+from typing import Tuple, Dict, Any
 import json
 from config.config import (
     CONSTANTS_MAP,
@@ -10,7 +10,6 @@ from service.teams import (
     add_sports_data,
     update_sport
 )
-
 
 async def update_or_add_teams(
     home_team: Dict,
@@ -40,8 +39,8 @@ async def update_or_add_teams(
         "teams.team_name": away_team['team_name']
     }
 
-    home_team_info = await retrieve_sports(query_home)
-    away_team_info = await retrieve_sports(query_away)
+    home_team_info = await retrieve_sports(query_home, None)
+    away_team_info = await retrieve_sports(query_away, None)
 
     if home_team_info:
         update_home = {
@@ -58,6 +57,7 @@ async def update_or_add_teams(
         }
         await update_sport(query_home, update_home)
     else:
+        print("Hello home?")
         await add_sports_data(query_base, home_team)
 
     if away_team_info:
@@ -74,7 +74,23 @@ async def update_or_add_teams(
         }
         await update_sport(query_away, update_away)
     else:
+        print("Hello away?")
         await add_sports_data(query_base, away_team)
+        
+
+def check_division_conf(
+    team_name_map: Dict,
+    team_id_map: Dict,
+    team_division: Dict,
+    team_conf: Dict | None,
+    team_name: str
+) -> Any:
+    division = team_division[team_name_map[
+                team_id_map.get(team_name)].get('division_id')]
+    conf = team_conf[team_name_map[
+            team_id_map.get(team_name)].get('conference_id')]
+    
+    return division, conf
 
 
 async def output_to_json(df, level_key: Tuple):
@@ -106,6 +122,14 @@ async def output_to_json(df, level_key: Tuple):
         # easier and still store it into the database
 
         # Create a section for the home team
+        division_home, conf_home = check_division_conf(
+            team_name_map,
+            team_id_map,
+            team_division,
+            team_conf,
+            row['home_team']
+        )
+        # print(row['home_team'])
         home_team_data = {
             "team_id": team_id_map.get(row['home_team']),
             "team_name": row['home_team'],
@@ -113,17 +137,8 @@ async def output_to_json(df, level_key: Tuple):
             "state":
                     STATES[team_name_map[team_id_map.get(
                         row['home_team'])].get('state_id')].get('state_name'),
-            "division":
-                    team_division[
-                        team_name_map[
-                            team_id_map.get(row['home_team'])
-                        ].get('division_id')],
-            "conference":
-                    team_conf[
-                        team_name_map[
-                            team_id_map.get(row['home_team'])
-                        ].get('conference_id')
-                    ] if team_conf else None,
+            "division": division_home,
+            "conference": conf_home,
             "power_ranking": row['home_team_power_ranking'],
             "win_ratio": row['home_team_win_ratio'],
             "date": game_date,
@@ -146,6 +161,14 @@ async def output_to_json(df, level_key: Tuple):
             }
         }
 
+        division_away, conf_away = check_division_conf(
+            team_name_map,
+            team_id_map,
+            team_division,
+            team_conf,
+            row['away_team']
+        )
+        # print(row['away_team'])
         # Create a section for the away team
         away_team_data = {
             "team_id": team_id_map.get(row['away_team']),
@@ -153,18 +176,8 @@ async def output_to_json(df, level_key: Tuple):
             "city": "",
             "state": STATES[team_name_map[team_id_map.get(
                     row['away_team'])].get("state_id")].get("state_name"),
-            "division":
-                team_division[
-                    team_name_map[
-                        team_id_map.get(row['away_team'])
-                    ].get('division_id')
-                ],
-            "conference":
-                team_conf[
-                        team_name_map[
-                            team_id_map.get(row['away_team'])
-                        ].get('conference_id')
-                    ] if team_conf else None,
+            "division": division_away,
+            "conference": conf_away,
             "power_ranking": row['away_team_power_ranking'],
             "win_ratio": row['away_team_win_ratio'],
             "date": game_date,
