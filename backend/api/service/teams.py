@@ -21,8 +21,6 @@ MONGO_DETAILS = \
     f"mongodb+srv://{os.getenv("MONGO_USER")}:{os.getenv("MONGO_PASS")}@" \
     "sports-cluster.mx1mo.mongodb.net/" \
     "?retryWrites=true&w=majority&appName=Sports-Cluster"
-
-MONGO_DETAILS = f"mongodb+srv://{os.getenv("MONGO_USER")}:{os.getenv("MONGO_PASS")}@sports-cluster.mx1mo.mongodb.net/?retryWrites=true&w=majority&appName=Sports-Cluster"
 client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_DETAILS)
 database = client["sports_data"]
 sports_collection = database.get_collection('teams_data')
