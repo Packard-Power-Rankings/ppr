@@ -113,13 +113,13 @@ async def get_teams(
 async def get_team(
     sport_type: str,
     team_name: str,
-    input: GeneralInputMethod = Depends()):
+    sport_input: GeneralInputMethod = Depends()):
     """
     Retrieves team specific data
     (season_opp and eventually prediction info).
     """
     try:
-        response = await list_sports(sport_type=sport_type, team_name=team_name, input=input)
+        response = await list_sports(sport_type=sport_type, team_name=team_name, sport_input=sport_input)
         if response:
             return response
         raise HTTPException(status_code=404, detail="No sports data found")
