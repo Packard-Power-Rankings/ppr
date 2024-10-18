@@ -132,6 +132,7 @@ async def get_teams(
 @app.get("/{sport_type}/{team_name}", tags=["Sports"])
 async def get_team(
     sport_type: str,
+    team_name: str,
     search_params: items.GeneralInputMethod = Depends()
 ):
     """
@@ -141,6 +142,7 @@ async def get_team(
     try:
         teams_info_list = await list_teams_info(
             sport_type=sport_type,
+            team_name=team_name,
             search_params=search_params)
         if teams_info_list:
             return teams_info_list
