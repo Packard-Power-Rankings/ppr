@@ -9,8 +9,6 @@
 # from backend.api.utils.dependencies import get_database
 import os
 import traceback
-import os
-import traceback
 from typing import Dict, List
 from fastapi import HTTPException
 import motor.motor_asyncio
