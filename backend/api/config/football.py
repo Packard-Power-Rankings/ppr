@@ -13,6 +13,7 @@ DIVISION_FOOTBALL = {
     12: 'NAIA',
     13: 'Other',
     14: 'NCAA 3',
+    None: None
 }
 
 FOOTBALL_COLLEGE_CONF = {
@@ -96,6 +97,7 @@ FOOTBALL_COLLEGE_CONF = {
     78: 'NCAA 3 Ind',
     79: 'Ivy',
     80: 'NESCAC',
+    None: None
 }
 
 FOOTBALL_TEAMS_COLLEGE = { 
@@ -876,7 +878,8 @@ FOOTBALL_TEAMS_COLLEGE = {
     790: {'team_name': 'Anderson SC', 'division_id': 9, 'state_id': 42, 'conference_id': None},
     791: {'team_name': 'Calvin', 'division_id': 12, 'state_id': 27, 'conference_id': 37},
     792: {'team_name': 'Centenary', 'division_id': 14, 'state_id': 23, 'conference_id': 58},
-    793: {'team_name': 'Dodge City CC', 'division_id': None, 'state_id': 21, 'conference_id': None}
+    793: {'team_name': 'Dodge City CC', 'division_id': None, 'state_id': 21, 'conference_id': None},
+    794: {'team_name': 'Iowa Cent', 'division_id': None, 'state_id': 20, 'conference_id': None}
 }
 
 FOOTBALL_TEAMS_IDS_COLLEGE = {
@@ -1657,7 +1660,8 @@ FOOTBALL_TEAMS_IDS_COLLEGE = {
     'Anderson SC': 790,
     'Calvin': 791,
     'Centenary': 792,
-    'Dodge City CC': 793
+    'Dodge City CC': 793,
+    'Iowa Cent': 794
 }
 
 FOOTBALL_TEAMS_HS = {
