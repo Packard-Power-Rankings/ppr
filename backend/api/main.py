@@ -34,7 +34,8 @@ app = FastAPI(lifespan=lifespan)
 @app.post("/admin", tags=["Admin"])
 async def root(
         input: InputMethod = Depends(),
-        csv_file: UploadFile = File()):
+        csv_file: UploadFile = File()
+):
     try:
         # Ensure the file type is correct
         if not csv_file.filename.endswith('.csv'):
