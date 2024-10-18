@@ -8,7 +8,7 @@
 # from bson.objectid import ObjectId
 # from backend.api.utils.dependencies import get_database
 import os
-import traceback
+# import traceback
 from typing import Dict, List
 import motor.motor_asyncio
 from utils.json_helper import json_file_builder

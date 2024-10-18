@@ -125,7 +125,7 @@ async def get_teams(
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
 
-@app.get("/{sport_type}/{team_name}", tags=["Sports"])
+@app.get("/{sport_type}/{team_name}/", tags=["Sports"])
 async def get_team(
     sport_type: str,
     search_params: items.GeneralInputMethod = Depends()

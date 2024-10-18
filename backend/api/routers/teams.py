@@ -139,7 +139,7 @@ async def list_teams(
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
 
-@router.get("/{sport_type}/{team_name}", response_description="Display Team Specific Data")
+@router.get("/{sport_type}/{team_name}/", response_description="Display Team Specific Data")
 async def list_teams_info(
     sport_type: str,
     team_name: str,
