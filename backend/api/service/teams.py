@@ -20,7 +20,7 @@ MONGO_DETAILS = \
     "?retryWrites=true&w=majority&appName=Sports-Cluster"
 
 client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_DETAILS)
-database = client[f"{os.getenv("sports_data")}"]
+database = client["sports_data"]
 sports_collection = database.get_collection('teams_data')
 
 
@@ -37,7 +37,8 @@ async def add_sports_data(query: Dict, team_data: Dict):
     try:
         results = await sports_collection.update_one(
             query,
-            {"$push": {"teams": team_data}}
+            {"$push": {"teams": team_data}},
+            upsert=True
         )
         return results.modified_count
     except Exception as exc:
@@ -59,7 +60,7 @@ async def add_csv_file(query: Dict):
 
 # Function to retrieve sports data from MongoDB
 # Changed id to mongo_id because it is overriding a builtin function
-async def retrieve_sports(query: Dict, projection: Dict | None = None):
+async def retrieve_sports(query: Dict, projection: Dict | None):
     """
     Retrieves sports or teams data from the MongoDB collection.
 
