@@ -35,7 +35,7 @@ async def main(file_path, level_key: Tuple):
 if __name__ == "__main__":
     # Example file paths for input and output
     input_csv_path = "CFootballEx.csv"
-    # output_json_path = "results.json"
+    output_json_path = "results.json"
 
     # Run the pipeline
     main(input_csv_path, ('football', 'mens', 'college'))

@@ -7,16 +7,16 @@ from config.config import LEVEL_CONSTANTS
 def enrich_data(df, level_key: Tuple):
     """
     Adds dummy values for R-value, home field advantage, power rankings, 
-    and win/loss ratios.
+    win/loss ratios, and AVEGAMESC.
     :param df: Cleaned DataFrame from data_cleaning.py.
     :return: DataFrame with dummy values added.
     """
 
     # R-value (constant for all teams)
-    R_value = LEVEL_CONSTANTS[level_key]['k_value']
+    R_value = 1.0
 
     # Home field advantage (constant for all home games)
-    home_advantage = LEVEL_CONSTANTS[level_key]['home_advantage']
+    home_advantage = 5.0
 
     # Generate power rankings and win/loss ratios for each team
     team_data = {}
@@ -31,6 +31,9 @@ def enrich_data(df, level_key: Tuple):
 
     # Add enrichment values to the DataFrame
     df['R_value'] = R_value
+    df['AVEGAMESC'] = AVEGAMESC
+
+    # Adjust home field advantage: set to 0 for neutral sites (999)
     df['home_field_advantage'] = df['neutral_site'].apply(
         lambda x: home_advantage if x == 0 else 0)
 
