@@ -1,0 +1,13 @@
+/* src/Home.css */
+.ranking-tiles {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center; /* Center tiles horizontally */
+    margin-top: 20px;
+}
+
+.ranking-tile {
+    flex: 1 1 200px; /* Adjusts tile size */
+    max-width: 300px; /* Max width for each tile */
+    margin: 10px; /* Space between tiles */
+}
