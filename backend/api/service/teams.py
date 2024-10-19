@@ -9,9 +9,9 @@
 # from backend.api.utils.dependencies import get_database
 import os
 import traceback
-import os
-import traceback
-from typing import Dict, List
+import bson.binary
+import datetime
+from typing import Dict, List, Any
 from fastapi import HTTPException
 import motor.motor_asyncio
 from utils.json_helper import json_file_builder
@@ -24,6 +24,7 @@ MONGO_DETAILS = \
 client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_DETAILS)
 database = client["sports_data"]
 sports_collection = database.get_collection('teams_data')
+csv_collection = database.get_collection('csv_files')
 
 
 async def add_sports_data(query: Dict, team_data: Dict):
@@ -50,14 +51,40 @@ async def add_sports_data(query: Dict, team_data: Dict):
 
 
 # Adding CSV file storing into database
-async def add_csv_file(query: Dict):
+async def add_csv_file(query: Dict, csv_file: Any):
     """Adds CSV file into the database for faster algorithm
     calculations
 
     Args:
         query (Dict): Query for the Database
     """
-    pass
+    try:
+        file_entry = {
+            "file_name": csv_file.filename,
+            "file_data": bson.binary.Binary(await csv_file.read()),
+            "upload_date": str(datetime.datetime.today())
+        }
+        response = await csv_collection.update_one(
+            query,
+            {"$push": {"csv_files": file_entry}},
+            upsert=True
+        )
+        return response.modified_count
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500, detail="Database error"
+        ) from exc
+
+
+async def retrieve_csv_file(query: Dict):
+    csv_document = await csv_collection.find_one(
+        query,
+        {
+            "csv_files": {"$slice": -1},
+            "_id": 0
+        }
+    )
+    return csv_document['csv_files'][0]
 
 
 # Function to retrieve sports data from MongoDB
@@ -98,7 +125,7 @@ async def update_sport(query: Dict, update_data: Dict):
         Integer: Returns the count of documents updated
     """
     result = await sports_collection.update_one(query, update_data)
-    return result.modified_count()
+    return result.modified_count
 
 
 async def delete_sport(query: Dict):
