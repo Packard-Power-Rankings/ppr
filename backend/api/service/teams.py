@@ -7,8 +7,6 @@
 
 # from bson.objectid import ObjectId
 # from backend.api.utils.dependencies import get_database
-import os
-import traceback
 import bson.binary
 import datetime
 from typing import Dict, List, Any
