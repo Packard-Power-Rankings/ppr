@@ -25,7 +25,6 @@ from routers.teams import (
     delete_teams
 )
 from fastapi.middleware.cors import CORSMiddleware
-from schemas import items
 
 # logging.basicConfig(level=logging.DEBUG)
 
@@ -112,7 +111,7 @@ async def root(
 @app.get("/{sport_type}/", tags=["Sports"])
 async def get_teams(
     sport_type: str,
-    search_params: items.GeneralInputMethod = Depends()
+    search_params: GeneralInputMethod = Depends()
 ):
     """
     Retrieves a list of all available teams for a given sport.
@@ -133,7 +132,7 @@ async def get_teams(
 async def get_team(
     sport_type: str,
     team_name: str,
-    search_params: items.GeneralInputMethod = Depends()
+    search_params: GeneralInputMethod = Depends()
 ):
     """
     Retrieves team specific data
