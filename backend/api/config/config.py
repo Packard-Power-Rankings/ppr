@@ -248,10 +248,37 @@ CONFERENCE_CB = {
 }
 
 CONSTANTS_MAP = {
-    ("football", "mens", "high_school"): (football.FOOTBALL_TEAMS_HS, football.FOOTBALL_TEAMS_IDS_HS, football.DIVISION_FOOTBALL),
-    ("football", "mens", "college"): (football.FOOTBALL_TEAMS_COLLEGE, football.FOOTBALL_TEAMS_IDS_COLLEGE, football.DIVISION_FOOTBALL, football.FOOTBALL_COLLEGE_CONF),
-    ("basketball", "mens", "high_school"): (basketball_m.MHS_BB_TEAM_INFO, basketball_m.MHS_BB_IDS, DIVISION_BASKETBALL),
-    ("basketball", "mens", "college"): (basketball_m.MC_BB_TEAM_INFO, basketball_m.MC_BB_IDS, DIVISION_BASKETBALL, CONFERENCE_CB),
-    ("basketball", "womens", "high_school"): (basketball_w.HS_WBB_TEAM_INFO, basketball_w.HS_WBB_IDS, DIVISION_BASKETBALL),
-    ("basketball", "womens", "college"): (basketball_w.C_WBB_TEAM_INFO, basketball_w.C_WBB_IDS, DIVISION_BASKETBALL, CONFERENCE_CB)
+    ("football", "mens", "high_school"): (
+        football.FOOTBALL_TEAMS_HS,
+        football.FOOTBALL_TEAMS_IDS_HS,
+        football.DIVISION_FOOTBALL
+    ),
+    ("football", "mens", "college"): (
+        football.FOOTBALL_TEAMS_COLLEGE,
+        football.FOOTBALL_TEAMS_IDS_COLLEGE,
+        football.DIVISION_FOOTBALL,
+        football.FOOTBALL_COLLEGE_CONF
+    ),
+    ("basketball", "mens", "high_school"): (
+        basketball_m.MHS_BB_TEAM_INFO,
+        basketball_m.MHS_BB_IDS,
+        DIVISION_BASKETBALL
+    ),
+    ("basketball", "mens", "college"): (
+        basketball_m.MC_BB_TEAM_INFO,
+        basketball_m.MC_BB_IDS,
+        DIVISION_BASKETBALL,
+        CONFERENCE_CB
+    ),
+    ("basketball", "womens", "high_school"): (
+        basketball_w.HS_WBB_TEAM_INFO,
+        basketball_w.HS_WBB_IDS,
+        DIVISION_BASKETBALL
+    ),
+    ("basketball", "womens", "college"): (
+        basketball_w.C_WBB_TEAM_INFO,
+        basketball_w.C_WBB_IDS,
+        DIVISION_BASKETBALL,
+        CONFERENCE_CB
+    )
 }
