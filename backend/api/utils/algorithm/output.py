@@ -46,36 +46,42 @@ async def update_or_add_teams(
     if home_team_info:
         update_home = {
             "$set": {
-                "team.$.power_ranking": home_team.get('power_ranking'),
-                "team.$.win_ratio": home_team.get('win_ratio'),
-                "team.$.prediction_info": home_team.get('prediction_info')
+                "teams.$.power_ranking": home_team.get('power_ranking'),
+                "teams.$.win_ratio": home_team.get('win_ratio'),
+                "teams.$.prediction_info": home_team.get('prediction_info')
             },
             "$push": {
-                "team.$.season_opp": {
+                "teams.$.season_opp": {
                     "$each": home_team.get("season_opp")
                 }
+            },
+            "$inc": {
+                "teams.$.wins": home_team.get('wins'),
+                "teams.$.losses": home_team.get('losses')
             }
         }
         await update_sport(query_home, update_home)
     else:
-        print("Hello home?")
         await add_sports_data(query_base, home_team)
 
     if away_team_info:
         update_away = {
             "$set": {
-                "team.$.power_ranking": away_team.get('power_ranking'),
-                "team.$.win_ratio": away_team.get('win_ratio'),
-                "team.$.prediction_info": away_team.get('prediction_info')
+                "teams.$.power_ranking": away_team.get('power_ranking'),
+                "teams.$.win_ratio": away_team.get('win_ratio'),
+                "teams.$.prediction_info": away_team.get('prediction_info')
             },
             "$push": {
-                "team.$.season_opp": {
+                "teams.$.season_opp": {
                     "$each": away_team.get("season_opp")}
+            },
+            "$inc": {
+                "teams.$.wins": away_team.get('wins'),
+                "teams.$.losses": away_team.get('losses'),
             }
         }
         await update_sport(query_away, update_away)
     else:
-        print("Hello away?")
         await add_sports_data(query_base, away_team)
 
 
@@ -108,6 +114,15 @@ async def output_to_json(df, level_key: Tuple):
         # easier and still store it into the database
 
         # Create a section for the home team
+        home_win, home_loss = 0, 0
+        away_win, away_loss = 0, 0
+
+        if row['home_score'] > row['away_score']:
+            home_win += 1
+            away_loss += 1
+        else:
+            home_loss += 1
+            away_win += 1
 
         home_team_data = {
             "team_id": team_id_map.get(row['home_team']),
@@ -122,6 +137,8 @@ async def output_to_json(df, level_key: Tuple):
                 team_id_map.get(row['home_team'])].get('conference_id')],
             "power_ranking": row['home_team_power_ranking'],
             "win_ratio": row['home_team_win_ratio'],
+            "wins": home_win,
+            "losses": home_loss,
             "date": game_date,
             "season_opp": [
                 {
@@ -155,6 +172,8 @@ async def output_to_json(df, level_key: Tuple):
                 team_id_map.get(row['away_team'])].get('conference_id')],
             "power_ranking": row['away_team_power_ranking'],
             "win_ratio": row['away_team_win_ratio'],
+            "wins": away_win,
+            "losses": away_loss,
             "date": game_date,
             "season_opp": [
                 {
