@@ -17,7 +17,8 @@ from utils.update_algo_vals import update_values
 from utils.algorithm.run import main
 from service.teams import (
     retrieve_sports,
-    clear_season
+    clear_season,
+    add_csv_file
 )
 from config.config import LEVEL_CONSTANTS
 from schemas import items
@@ -48,17 +49,24 @@ async def add_sports(
         )
     # Need to store the csv file in db instead of sending it to main
     # algorithm function
+
+    query_csv = {
+        "sport_type": sport_type,
+        "gender": gender,
+        "level": level
+    }
     try:
-        await main(
-            csv_file.file,
-            level_key
+        await add_csv_file(
+            query_csv,
+            csv_file
         )
         csv_file.file.close()
+        await main(level_key)
         return {"success": "Successful upload"}
     except Exception as exc:
         traceback.print_exc()
         raise HTTPException(
-            status_code=404, detail="Error has occured"
+            status_code=404, detail="Error has occurred"
         ) from exc
     # I will add back the ResponseModel here just not a priority at the
     # moment
