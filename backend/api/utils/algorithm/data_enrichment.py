@@ -13,10 +13,10 @@ def enrich_data(df, level_key: Tuple):
     """
 
     # R-value (constant for all teams)
-    R_value = 1.0
+    R_value = LEVEL_CONSTANTS[level_key].get("k_value")
 
     # Home field advantage (constant for all home games)
-    home_advantage = 5.0
+    home_advantage = LEVEL_CONSTANTS[level_key].get("home_advantage")
 
     # Generate power rankings and win/loss ratios for each team
     team_data = {}
@@ -28,10 +28,9 @@ def enrich_data(df, level_key: Tuple):
             # Random win ratio between 30% and 90%
             "win_ratio": round(random.uniform(0.3, 0.9), 2)
         }
-
     # Add enrichment values to the DataFrame
     df['R_value'] = R_value
-    df['AVEGAMESC'] = AVEGAMESC
+    df['AVEGAMESC'] = LEVEL_CONSTANTS[level_key].get("average_game_score")
 
     # Adjust home field advantage: set to 0 for neutral sites (999)
     df['home_field_advantage'] = df['neutral_site'].apply(
