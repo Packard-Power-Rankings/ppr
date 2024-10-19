@@ -45,9 +45,9 @@ class InputMethod(BaseModel):
 
 
 async def input_method_dependency(
-    sport_type: str = Form(...),
-    gender: str = Form(...),
-    level: str = Form(...),
+    sport_type: Sport = Form(...),
+    gender: Gender = Form(...),
+    level: Level = Form(...),
     k_value: Optional[float] = Form(0.0),
     home_advantage: Optional[int] = Form(0),
     average_game_score: Optional[int] = Form(0),
