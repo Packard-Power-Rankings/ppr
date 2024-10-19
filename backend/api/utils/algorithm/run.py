@@ -1,23 +1,36 @@
 # Import the necessary functions from each module
+from io import BytesIO
 from typing import Tuple
+from fastapi import HTTPException
 from .upload import upload_csv
 from .data_cleaning import clean_data
 from .data_enrichment import enrich_data
 from .main import run_calculations
 from .output import output_to_json
+from service.teams import retrieve_csv_file
 
 
-async def main(file_path, level_key: Tuple):
+async def main(level_key: Tuple):
     """
     Main orchestration function to run the entire pipeline.
     :param file_path: Path to the input CSV file.
     :param output_file: Path to the output JSON file.
     """
+    
     # Step 1: Upload and validate CSV
-    df = upload_csv(file_path)
+    query = {
+        "sport_type": level_key[0],
+        "gender": level_key[1],
+        "level": level_key[2]
+    }
+    csv_file = await retrieve_csv_file(query)
+    if not csv_file:
+        raise HTTPException(status_code=404, detail="No CSV file found")
+
+    csv_content = BytesIO(csv_file['file_data'])
+    df = upload_csv(csv_content)
     if df is None:
-        print("Error in CSV upload.")
-        return None
+        raise HTTPException(status_code=400, detail='No CSV file found')
 
     # Step 2: Clean the data
     df = clean_data(df)
@@ -38,4 +51,4 @@ if __name__ == "__main__":
     output_json_path = "results.json"
 
     # Run the pipeline
-    main(input_csv_path, ('football', 'mens', 'college'))
+    # main(input_csv_path, ('football', 'mens', 'college'))
