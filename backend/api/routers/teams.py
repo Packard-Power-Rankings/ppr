@@ -15,7 +15,10 @@ from utils.json_helper import json_file_builder, query_params_builder
 from utils.update_algo_vals import update_values
 from utils.algorithm.run import main
 from service.teams import (
-    retrieve_sports
+    retrieve_sports,
+    delete_sport,
+    update_sport,
+    add_sports_data
 )
 from config.config import LEVEL_CONSTANTS
 from schemas import items
@@ -155,7 +158,6 @@ async def list_teams_info(
         sport_type,
         search_params.gender,
         search_params.level,
-        team_name
     )
 
     query: Dict = query_params_builder()
@@ -164,7 +166,15 @@ async def list_teams_info(
         _id=mongo_id,
         sport_type=sport_type,
         gender=search_params.gender,
-        level=search_params.level
+        level=search_params.level,
+        teams={
+            "$elemMatch": {
+                "team_name": {
+                    "$regex": f"^{team_name}$",
+                    "$options": "i"  # Case-insensitive search
+                }
+            }
+        }
     )
 
     projection = {"teams": 1, "_id": 0}
@@ -180,13 +190,61 @@ async def list_teams_info(
 
 # Update Sports (may involve some specifics but here is a start)
 #
-@router.put("/sports/teams/", response_description="Updating Team Info")
-async def update_teams():
-    pass
+@router.put("/admin/{sport_type}/{team_name}", response_description="Updating Team Info")
+async def update_teams(
+    sport_type: str,
+    team_name:str,
+    search_params: items.GeneralInputMethod = Depends()
+):
+    """
+    Updates a specific team's information based on the provided input.
+
+    Args:
+        sport_type (str): The type of sport (e.g., basketball, football).
+        team_name (str): The name of the sport.
+        search_params (GeneralInputMethod): Additional input values for update, passed via dependency.
+
+    Returns:
+        JSON response indicating success or failure.
+    """
+    try:
+        updated_team = await update_sport(
+            {"sport_type": sport_type,
+             "team_name": team_name
+            }
+        )
+        if updated_team:
+            return {"message": f"Team '{search_params.team_name}' updated successfully"}
+        raise HTTPException(status_code=404, detail="Team not found or no changes made")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
 
 # Delete Sports (also will involve some more but basic start)
 #
-@router.delete("/sports/teams/", response_description="Deleting Team Info")
-async def delete_teams():
-    pass
+@router.delete("/admin/{sport_type}/{team_name}", response_description="Deleting Team Info")
+async def delete_teams(
+    sport_type: str,
+    team_name: str
+):
+    """
+    Deletes specific team data such as scores, win/loss ratios, and performance information.
+
+    Args:
+        sport_type (str): The type of sport (e.g., basketball, football).
+        team_name (str): The name of the team to delete data from.
+
+    Returns:
+        JSON response indicating success or failure.
+    """
+    try:
+        response = await delete_sport(
+            {"sport_type": sport_type},
+            sport_type,
+            team_name
+        )
+        if response:
+            return {"message": f"Team '{team_name}' deleted successfully"}
+        raise HTTPException(status_code=404, detail="Team not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")

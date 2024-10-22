@@ -9,9 +9,9 @@
 # from backend.api.utils.dependencies import get_database
 import os
 # import traceback
-from typing import Dict, List
+from typing import Dict # , List
 import motor.motor_asyncio
-from utils.json_helper import json_file_builder
+# from utils.json_helper import json_file_builder
 from fastapi import HTTPException
 
 
@@ -64,26 +64,48 @@ async def retrieve_sports(query: Dict, projection: Dict | None = None):
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 
-async def update_sport(query: Dict, update_data: Dict):
-    """Updates information based off the specific query
-    in the database
+async def update_sport(query: Dict, team_name: str, update_data: Dict):
+    """
+    Updates a specific team in the 'teams' array of a document based on team_name.
 
     Args:
-        query (Dict): Search Parameters for Database
-        update_data (Dict): What is Being Updated
+        query (Dict): The query filter to find the document.
+        team_name (str): The name of the team to update.
+        update_data (Dict): The fields and values to update for the team.
 
     Returns:
-        Integer: Returns the count of documents updated
+        str: Message indicating the result of the operation.
     """
-    result = await sports_collection.update_one(query, update_data)
-    return result.modified_count()
-
-
-async def delete_sport(query: Dict):
     result = await sports_collection.update_one(
         query,
-        {"$unset": {"teams": ""}}
+        {
+            "$set": {"teams.$[team]": update_data}  # Update the team where the filter matches
+        },
+        array_filters=[{"team.name": team_name}]  # Using 'team.name' to match the team by name
     )
-    if result.modified_count() > 0:
-        return "Removed Teams From Database"
-    return "No Teams Were Found"
+    
+    if result.modified_count > 0:
+        return f"Team '{team_name}' was updated."
+    return f"No team named '{team_name}' was found or data unchanged."
+
+
+async def delete_sport(query: Dict, sport_type: str, team_name: str):
+    """
+    Deletes a specific team from the 'teams' array in the collection based on team_name.
+
+    Args:
+        query (Dict): The query filter to find the document.
+        team_name (str): The name of the team to remove.
+
+    Returns:
+        str: Message indicating the result of the operation.
+    """
+    # Filter by sport_type and the specific team by name
+    result = await sports_collection.update_one(
+        {**query, "teams.name": team_name},  # Make sure to filter for the specific team in the sport
+        {"$pull": {"teams": {"name": team_name}}}  # Use $pull to remove the team from the teams array
+    )
+    
+    if result.modified_count > 0:
+        return f"Team '{team_name}' was removed from the database."
+    return f"No team named '{team_name}' was found."
