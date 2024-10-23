@@ -1,5 +1,12 @@
 from bson import ObjectId
-from . import football, basketball_m, basketball_w
+from . import (
+    football_college,
+    football_hs,
+    mens_c_basketball,
+    mens_hs_basketball,
+    womens_c_basketball,
+    womens_hs_basketball
+)
 
 
 LEVEL_CONSTANTS = {
@@ -45,6 +52,108 @@ LEVEL_CONSTANTS = {
         "average_game_score": 122,
         "game_set_len": 1
     }
+}
+
+DIVISION_FOOTBALL = {
+    1: '1A',
+    2: '2A',
+    3: '3A',
+    4: '4A',
+    5: '5A',
+    6: '6A',
+    7: '6-MAN',
+    8: '8-MAN',
+    9: 'NCAA 2',
+    10: 'NCAA 1 FCS',
+    11: 'NCAA 1 FBS',
+    12: 'NAIA',
+    13: 'Other',
+    14: 'NCAA 3',
+    None: None
+}
+
+FOOTBALL_COLLEGE_CONF = {
+    1: 'RMAC',
+    2: 'Big 10',
+    3: 'Mid-South',
+    4: 'New Jersey',
+    5: 'Great Plains',
+    6: 'ACC',
+    7: 'NAIA Ind',
+    8: 'Heart of America',
+    9: 'Frontier',
+    10: 'Kansas',
+    11: 'North Star',
+    12: 'Mid-States',
+    13: 'Sooner',
+    14: 'Great Midwest',
+    15: 'Mountain West',
+    16: 'Conf USA',
+    17: 'SEC',
+    18: 'FBS Ind',
+    19: 'SWAC',
+    20: 'Atlantic Sun',
+    21: 'Northeast',
+    22: 'Mid Eastern',
+    23: 'Big Sky',
+    24: 'Southern IAC',
+    25: 'Southern',
+    26: 'Pioneer',
+    27: 'Western Athletic',
+    28: 'Other',
+    29: 'Big 12',
+    30: 'Pac 12',
+    31: 'South Atlantic',
+    32: 'Central',
+    33: 'Great American',
+    34: 'Mid America',
+    35: 'Mountain East',
+    36: 'Penn St',
+    37: 'Michigan',
+    38: 'Heartland',
+    39: 'Northeast-10',
+    40: 'USA South',
+    41: 'SAA',
+    42: 'New England',
+    43: 'Commonwealth Coast',
+    44: 'MASCAC',
+    45: 'Mid Atlantic',
+    46: 'East Coast',
+    47: 'Centennial',
+    48: 'Empire 8',
+    49: 'Lone Star',
+    50: 'Sunbelt',
+    51: 'Northern Sun',
+    52: 'Presidents',
+    53: 'Mid-American',
+    54: 'NCAA 2 Ind',
+    55: 'Minnesota',
+    56: 'Ill and Wisc',
+    57: 'Northern Atlantic',
+    58: 'American SW',
+    59: 'Old Dominion',
+    60: 'Ohio',
+    61: 'Midwest',
+    62: 'Big South',
+    63: 'Patriot',
+    64: 'American Rivers',
+    65: 'Liberty',
+    66: 'Southern Cal',
+    67: 'American Athletic',
+    68: 'Upper Midwest',
+    69: 'Great Lakes',
+    70: 'North Coast',
+    71: 'Colonial',
+    72: 'Gulf South',
+    73: 'Ohio Valley',
+    74: 'Northwest',
+    75: 'Southland',
+    76: 'Missouri Valley',
+    77: 'Wisconsin',
+    78: 'NCAA 3 Ind',
+    79: 'Ivy',
+    80: 'NESCAC',
+    None: None
 }
 
 STATES = {
@@ -249,35 +358,35 @@ CONFERENCE_CB = {
 
 CONSTANTS_MAP = {
     ("football", "mens", "high_school"): (
-        football.FOOTBALL_TEAMS_HS,
-        football.FOOTBALL_TEAMS_IDS_HS,
-        football.DIVISION_FOOTBALL
+        football_hs.FOOTBALL_TEAMS_HS,
+        football_hs.FOOTBALL_TEAMS_IDS_HS,
+        DIVISION_FOOTBALL
     ),
     ("football", "mens", "college"): (
-        football.FOOTBALL_TEAMS_COLLEGE,
-        football.FOOTBALL_TEAMS_IDS_COLLEGE,
-        football.DIVISION_FOOTBALL,
-        football.FOOTBALL_COLLEGE_CONF
+        football_college.FOOTBALL_TEAMS_COLLEGE,
+        football_college.FOOTBALL_TEAMS_IDS_COLLEGE,
+        DIVISION_FOOTBALL,
+        FOOTBALL_COLLEGE_CONF
     ),
     ("basketball", "mens", "high_school"): (
-        basketball_m.MHS_BB_TEAM_INFO,
-        basketball_m.MHS_BB_IDS,
+        mens_hs_basketball.MHS_BB_TEAM_INFO,
+        mens_hs_basketball.MHS_BB_IDS,
         DIVISION_BASKETBALL
     ),
     ("basketball", "mens", "college"): (
-        basketball_m.MC_BB_TEAM_INFO,
-        basketball_m.MC_BB_IDS,
+        mens_c_basketball.MC_BB_TEAM_INFO,
+        mens_c_basketball.MC_BB_IDS,
         DIVISION_BASKETBALL,
         CONFERENCE_CB
     ),
     ("basketball", "womens", "high_school"): (
-        basketball_w.HS_WBB_TEAM_INFO,
-        basketball_w.HS_WBB_IDS,
+        womens_hs_basketball.HS_WBB_TEAM_INFO,
+        womens_hs_basketball.HS_WBB_IDS,
         DIVISION_BASKETBALL
     ),
     ("basketball", "womens", "college"): (
-        basketball_w.C_WBB_TEAM_INFO,
-        basketball_w.C_WBB_IDS,
+        womens_c_basketball.C_WBB_TEAM_INFO,
+        womens_c_basketball.C_WBB_IDS,
         DIVISION_BASKETBALL,
         CONFERENCE_CB
     )
