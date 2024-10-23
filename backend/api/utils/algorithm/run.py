@@ -39,7 +39,7 @@ async def main(level_key: Tuple):
     df = enrich_data(df, level_key)
 
     # Step 4: Run the core calculations (power difference, Z-scores, etc.)
-    df = run_calculations(df)
+    df = run_calculations(df, level_key)
 
     # Step 5: Output the final results to JSON
     await output_to_json(df, level_key)
