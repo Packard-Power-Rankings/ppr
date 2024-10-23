@@ -156,7 +156,7 @@ async def list_teams(
 
 
 @router.get("/{sport_type}/{team_name}/", response_description="Display Team Specific Data")
-async def list_teams_info(
+async def list_team_info(
     sport_type: str,
     team_name: str,
     search_params: items.GeneralInputMethod = Depends()
@@ -182,16 +182,13 @@ async def list_teams_info(
         level=search_params.level,
         teams={
             "$elemMatch": {
-                "team_name": {
-                    "$regex": f"^{team_name}$",
-                    "$options": "i"  # Case-insensitive search
-                }
+                "team_name": {"$regex": f"^{team_name}$", "$options": "i"}
             }
         }
     )
 
     projection = {
-        "teams": {"$elemMatch": {"team_name": team_name}},
+        "teams.$": 1,
         "_id": 0
     }
 

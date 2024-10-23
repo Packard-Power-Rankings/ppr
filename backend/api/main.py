@@ -20,7 +20,7 @@ from schemas.items import (
 from routers.teams import (
     add_sports,
     list_teams,
-    list_teams_info,
+    list_team_info,
     update_teams,
     delete_teams
 )
@@ -106,7 +106,7 @@ async def get_team(
     (season_opp and eventually prediction info).
     """
     try:
-        teams_info_list = await list_teams_info(
+        teams_info_list = await list_team_info(
             sport_type=sport_type,
             team_name=team_name,
             search_params=search_params)
