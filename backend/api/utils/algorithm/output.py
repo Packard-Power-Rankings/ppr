@@ -101,6 +101,7 @@ async def output_to_json(df, level_key: Tuple):
     else:
         team_name_map, team_id_map, team_division = \
             CONSTANTS_MAP.get(level_key)
+        team_conf = None
 
     # Need to calculate the wins and losses for
     # each team and store in the db
@@ -125,16 +126,16 @@ async def output_to_json(df, level_key: Tuple):
             away_win += 1
 
         home_team_data = {
-            "team_id": team_id_map.get(row['home_team']),
+            "team_id": team_id_map.get(row['home_team'].lower()),
             "team_name": row['home_team'],
             "city": '',
             "state":
                     STATES[team_name_map[team_id_map.get(
-                        row['home_team'])].get('state_id')].get('state_name'),
+                        row['home_team'].lower())].get('state')].get('state_name'),
             "division": team_division[team_name_map[
-                team_id_map.get(row['home_team'])].get('division_id')],
+                team_id_map.get(row['home_team'].lower())].get('division')],
             "conference": team_conf[team_name_map[
-                team_id_map.get(row['home_team'])].get('conference_id')],
+                team_id_map.get(row['home_team'].lower())].get('conference')],
             "power_ranking": row['home_team_power_ranking'],
             "win_ratio": row['home_team_win_ratio'],
             "wins": home_win,
@@ -146,30 +147,29 @@ async def output_to_json(df, level_key: Tuple):
                     "home_team": True,
                     "home_score": row['home_score'],
                     "away_score": row['away_score'],
-                    "power_difference": row['power_difference'],
                     "home_z_score": row['home_z_score'],
                     "away_z_score": row['away_z_score'],
                     "date": game_date
                 }
-            ],
-            "prediction_info": {
-                "expected_performance": row['expected_performance_home'],
-                "actual_performance": row['actual_performance_home'],
-                "predicted_score": row['predicted_home_score']
-            }
+            ]
+            # "prediction_info": {
+            #     "expected_performance": row['expected_performance_home'],
+            #     "actual_performance": row['actual_performance_home'],
+            #     "predicted_score": row['predicted_home_score']
+            # }
         }
 
         # Create a section for the away team
         away_team_data = {
-            "team_id": team_id_map.get(row['away_team']),
+            "team_id": team_id_map.get(row['away_team'].lower()),
             "team_name": row['away_team'],
             "city": "",
             "state": STATES[team_name_map[team_id_map.get(
-                    row['away_team'])].get("state_id")].get("state_name"),
+                    row['away_team'].lower())].get("state")].get("state_name"),
             "division": team_division[team_name_map[
-                team_id_map.get(row['away_team'])].get('division_id')],
+                team_id_map.get(row['away_team'].lower())].get('division')],
             "conference": team_conf[team_name_map[
-                team_id_map.get(row['away_team'])].get('conference_id')],
+                team_id_map.get(row['away_team'].lower())].get('conference')],
             "power_ranking": row['away_team_power_ranking'],
             "win_ratio": row['away_team_win_ratio'],
             "wins": away_win,
@@ -181,17 +181,16 @@ async def output_to_json(df, level_key: Tuple):
                     "home_team": False,
                     "home_score": row['home_score'],
                     "away_score": row['away_score'],
-                    "power_difference": row['power_difference'],
                     "home_z_score": row['home_z_score'],
                     "away_z_score": row['away_z_score'],
                     "date": game_date
                 }
-            ],
-            "prediction_info": {
-                "expected_performance": row['expected_performance_away'],
-                "actual_performance": row['actual_performance_away'],
-                "predicted_score": row['predicted_away_score']
-            }
+            ]
+            # "prediction_info": {
+            #     "expected_performance": row['expected_performance_away'],
+            #     "actual_performance": row['actual_performance_away'],
+            #     "predicted_score": row['predicted_away_score']
+            # }
         }
         # Changed this to add or update home and away team data
         await update_or_add_teams(home_team_data, away_team_data, level_key)

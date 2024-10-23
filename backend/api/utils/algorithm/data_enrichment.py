@@ -1,12 +1,12 @@
 from typing import Tuple
 import random
 import pandas as pd
-from config.config import LEVEL_CONSTANTS
+from config.config import LEVEL_CONSTANTS, CONSTANTS_MAP
 
 
 def enrich_data(df, level_key: Tuple):
     """
-    Adds dummy values for R-value, home field advantage, power rankings, 
+    Adds dummy values for R-value, home field advantage, power rankings,
     win/loss ratios, and AVEGAMESC.
     :param df: Cleaned DataFrame from data_cleaning.py.
     :return: DataFrame with dummy values added.
@@ -18,13 +18,16 @@ def enrich_data(df, level_key: Tuple):
     # Home field advantage (constant for all home games)
     home_advantage = LEVEL_CONSTANTS[level_key].get("home_advantage")
 
+    team_info, team_id = \
+        CONSTANTS_MAP[level_key][0:2]
+
     # Generate power rankings and win/loss ratios for each team
     team_data = {}
 
     for team in pd.concat([df['home_team'], df['away_team']]).unique():
         team_data[team] = {
             # Random power ranking between 50 and 100
-            "power_ranking": random.randint(50, 100),
+            "power_ranking": team_info[team_id.get(team.lower())].get('power_ranking'),
             # Random win ratio between 30% and 90%
             "win_ratio": round(random.uniform(0.3, 0.9), 2)
         }
