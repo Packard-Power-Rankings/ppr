@@ -14,7 +14,7 @@ import traceback
 from typing import Dict, List, Any
 from fastapi import HTTPException
 import motor.motor_asyncio
-from utils.json_helper import json_file_builder
+# from utils.json_helper import json_file_builder
 from fastapi import HTTPException
 
 MONGO_DETAILS = \
@@ -113,25 +113,29 @@ async def retrieve_sports(query: Dict, projection: Dict | None):
         raise HTTPException(status_code=500, detail="Database error") from e
 
 
-async def update_sport(query: Dict, update_data: Dict):
-    """Updates information based off the specific query
-    in the database
+async def update_sport(query: Dict, team_name: str, update_data: Dict):
+    """
+    Updates a specific team in the 'teams' array of a document based on team_name.
 
     Args:
-        query (Dict): Search Parameters for Database
-        update_data (Dict): What is Being Updated
+        query (Dict): The query filter to find the document.
+        team_name (str): The name of the team to update.
+        update_data (Dict): The fields and values to update for the team.
 
     Returns:
-        Integer: Returns the count of documents updated
+        str: Message indicating the result of the operation.
     """
     result = await sports_collection.update_one(query, update_data)
     return result.modified_count
 
 
-async def delete_sport(query: Dict):
+async def delete_sport(query: Dict, team_name: str, update_data: Dict):
     result = await sports_collection.update_one(
         query,
-        {"$unset": {"teams": ""}}
+        {
+            "$set": {"teams.$[team]": update_data}  # Update the team where the filter matches
+        },
+        array_filters=[{"team.name": team_name}]  # Using 'team.name' to match the team by name
     )
     if result.modified_count() > 0:
         return "Removed Teams From Database"

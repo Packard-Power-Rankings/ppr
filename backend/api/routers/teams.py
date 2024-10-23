@@ -18,7 +18,10 @@ from utils.algorithm.run import main
 from service.teams import (
     retrieve_sports,
     clear_season,
-    add_csv_file
+    add_csv_file,
+    delete_sport,
+    update_sport,
+    add_sports_data
 )
 from config.config import LEVEL_CONSTANTS
 from schemas import items
@@ -176,7 +179,15 @@ async def list_teams_info(
         _id=mongo_id,
         sport_type=sport_type,
         gender=search_params.gender,
-        level=search_params.level
+        level=search_params.level,
+        teams={
+            "$elemMatch": {
+                "team_name": {
+                    "$regex": f"^{team_name}$",
+                    "$options": "i"  # Case-insensitive search
+                }
+            }
+        }
     )
 
     projection = {
