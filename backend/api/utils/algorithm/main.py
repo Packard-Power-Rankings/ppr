@@ -1,7 +1,8 @@
 import numpy as np  # For numerical operations
 import pandas as pd
 from typing import Tuple, Dict, Any, List
-from config.config import CONSTANTS_MAP
+# from config.config import CONSTANTS_MAP
+from config.team_state import TeamState
 
 
 def calculate_z_scores(df):
@@ -211,22 +212,23 @@ def update_recent_opp_list(opp_list: List, team_num):
 
 
 def nested_power_change(df, level_key: Tuple):
-    team_info, team_id = \
-        CONSTANTS_MAP[level_key][0:2]
+    team_state = TeamState()
 
     home_power_change = df.at[0, 'home_power_change']
     away_power_change = df.at[0, 'away_power_change']
     max_depth = 5
-    
+
     home_team = df.at[0, 'home_team']
     away_team = df.at[0, 'away_team']
-
+    
     home_team_recent_opp = \
-        team_info.get(team_id.get(home_team.lower())).get('recent_opp')
+        team_state.team_recent_opp(level_key, home_team)
     away_team_recent_opp = \
-        team_info.get(team_id.get(away_team.lower())).get('recent_opp')
+        team_state.team_recent_opp(level_key, away_team)
 
-
+    team_info = \
+        team_state.team_info(level_key)
+    print(f"Home Recent: {home_team_recent_opp} Away Recent: {away_team_recent_opp}")
     # process_team_opponents(
     #     team_info,
     #     home_team_recent_opp,
@@ -243,12 +245,19 @@ def nested_power_change(df, level_key: Tuple):
     #     max_depth,
     #     depth_factor=(1.0 / 3.0)
     # )
-    team_info[team_id.get(home_team.lower())].update(
-        recent_opp=update_recent_opp_list(home_team_recent_opp, team_id.get(away_team.lower()))
+    team_state.update_team_info(
+        level_key,
+        home_team,
+        away_team,
+        df.at[0, 'home_team_power_ranking'],
+        df.at[0, 'away_team_power_ranking']
     )
-    team_info[team_id.get(away_team.lower())].update(
-        recent_opp=update_recent_opp_list(away_team_recent_opp, team_id.get(home_team.lower()))
-    )
+    # team_info[team_id.get(home_team.lower())].update(
+    #     recent_opp=update_recent_opp_list(home_team_recent_opp, team_id.get(away_team.lower()))
+    # )
+    # team_info[team_id.get(away_team.lower())].update(
+    #     recent_opp=update_recent_opp_list(away_team_recent_opp, team_id.get(home_team.lower()))
+    # )
 
 
 def run_calculations(df, level_key: Tuple):

@@ -1,7 +1,8 @@
 from typing import Tuple
 import random
 import pandas as pd
-from config.config import LEVEL_CONSTANTS, CONSTANTS_MAP
+from config.config import LEVEL_CONSTANTS
+from config.team_state import TeamState
 
 
 def enrich_data(df, level_key: Tuple):
@@ -11,15 +12,15 @@ def enrich_data(df, level_key: Tuple):
     :param df: Cleaned DataFrame from data_cleaning.py.
     :return: DataFrame with dummy values added.
     """
-
+    team_state = TeamState()
     # R-value (constant for all teams)
     R_value = LEVEL_CONSTANTS[level_key].get("k_value")
 
     # Home field advantage (constant for all home games)
     home_advantage = LEVEL_CONSTANTS[level_key].get("home_advantage")
 
-    team_info, team_id = \
-        CONSTANTS_MAP[level_key][0:2]
+    # team_info, team_id = \
+    #     CONSTANTS_MAP[level_key][0:2]
 
     # Generate power rankings and win/loss ratios for each team
     team_data = {}
@@ -27,7 +28,7 @@ def enrich_data(df, level_key: Tuple):
     for team in pd.concat([df['home_team'], df['away_team']]).unique():
         team_data[team] = {
             # Random power ranking between 50 and 100
-            "power_ranking": team_info[team_id.get(team.lower())].get('power_ranking'),
+            "power_ranking": team_state.team_power_ranking(level_key, team),
             # Random win ratio between 30% and 90%
             "win_ratio": round(random.uniform(0.3, 0.9), 2)
         }
