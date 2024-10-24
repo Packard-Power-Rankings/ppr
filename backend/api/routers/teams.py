@@ -23,7 +23,8 @@ from service.teams import (
     add_csv_file,
     delete_sport,
     update_sport,
-    add_sports_data
+    add_sports_data,
+    find_teams
 )
 from config.config import LEVEL_CONSTANTS
 from schemas import items
@@ -75,6 +76,7 @@ async def add_sports(
         ) from exc
     # I will add back the ResponseModel here just not a priority at the
     # moment
+
 
 @router.post("/admin/upload_csv", description="Upload and check teams in db")
 async def upload_csv_check_teams(
