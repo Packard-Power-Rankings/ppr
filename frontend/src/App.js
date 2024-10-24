@@ -1,13 +1,10 @@
-// src/App.js
-// Main application component
-
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import Home from './components/Home';
 import About from './components/About';
 import Login from './components/Login';
-//import SportForm from './components/SportForm';
 import AdminPage from './components/AdminPage';
+import TeamsPage from './components/TeamsPage';
 import './Nav.css';
 
 const App = () => {
@@ -40,6 +37,7 @@ const App = () => {
                 <Route path="/admin" element={isLoggedIn ? <AdminPage /> : <Login onLogin={handleLogin} />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/login" element={<Login onLogin={handleLogin} />} />
+                <Route path="/teams/:sportType" element={<TeamsPage />} />
             </Routes>
         </Router>
     );

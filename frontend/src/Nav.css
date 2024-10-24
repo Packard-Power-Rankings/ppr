@@ -1,7 +1,9 @@
 /* src/Nav.css */
 nav {
-    display: flex; /* Use Flexbox for layout */
-    justify-content: space-around; /* Space links evenly */
+    display: flex;
+    /* Use Flexbox for layout */
+    justify-content: space-around;
+    /* Space links evenly */
     background-color: #007bff;
     padding: 10px;
 }

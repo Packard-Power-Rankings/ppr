@@ -1,13 +1,29 @@
 /* src/RankingTile.css */
+.ranking-tiles {
+    display: grid; /* Enable Grid layout */
+    grid-template-rows: auto auto; /* Two rows for football and basketball */
+    gap: 2px; /* Keep a small gap between tiles */
+    margin: 0; /* Reset margin for parent container */
+}
+
+.tile-row {
+    display: flex; /* Use Flexbox for each row */
+    justify-content: center; /* Center align tiles in each row */
+    margin-bottom: 10px; /* Increase space between rows */
+}
+
 .ranking-tile {
     background-color: #f0f0f0;
     border: 1px solid #ccc;
     border-radius: 8px;
-    padding: 16px;
-    margin: 10px;
+    padding: 10px; /* Keep padding as is for internal spacing */
+    margin: 0 5px; /* Add horizontal margin for spacing between tiles */
     text-align: center;
     transition: transform 0.2s;
     cursor: pointer;
+    width: auto; /* Adjust width for better fit */
+    height: auto; /* Let height adjust based on content */
+    flex-shrink: 0; /* Prevent shrinking */
 }
 
 .ranking-tile:hover {
@@ -16,8 +32,8 @@
 
 .tile-link {
     display: inline-block;
-    margin-top: 10px;
-    padding: 8px 12px;
+    margin-top: 5px; /* Decrease margin for the link */
+    padding: 6px 10px; /* Adjust padding */
     background-color: #007bff;
     color: white;
     border-radius: 4px;
