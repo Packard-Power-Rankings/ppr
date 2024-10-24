@@ -69,7 +69,7 @@ async def input_method_dependency(
 
 
 class GeneralInputMethod(BaseModel):
-    # sport_type: Sport = Field(..., description="Type of Sport")
+    sport_type: Sport = Field(..., description="Type of Sport")
     gender: Gender = Field(..., description="Gender Of Sport")
     level: Level = Field(..., description="Sport Level")
 
@@ -116,8 +116,6 @@ class Team(BaseModel):
     season_opp: List[SeasonOpponent] = Field(
         ..., description="List of team opponents"
     )
-    prediction_info: List[PredictionInfo] = Field(
-        ..., description="List of predicted and actual performance metrics")
 
 
 class LevelData(BaseModel):
@@ -157,9 +155,14 @@ class OpponentData(BaseModel):
     date: Optional[int]
 
 
-def ResponseModel(data, message):
+class UpdateRequest(BaseModel):
+    added_teams: List[Team]
+
+
+def ResponseModel(data, num_of_files, message):
     return {
-        'data': [data],
+        'data': data,
+        'files_uploaded': num_of_files,
         'code': 200,
         'message': message,
     }
