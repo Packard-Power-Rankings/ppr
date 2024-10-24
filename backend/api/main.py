@@ -7,18 +7,20 @@
 # that parses it to JSON.
 #
 
+from typing import Dict, List
 import uvicorn
 # import logging
-from typing import Dict
 from fastapi import FastAPI, UploadFile, File, Depends, HTTPException
 from dependencies import lifespan
 from schemas.items import (
     InputMethod,
     GeneralInputMethod,
-    input_method_dependency
+    input_method_dependency,
+    UpdateRequest
 )
 from routers.teams import (
     add_sports,
+    upload_csv_check_teams,
     list_teams,
     list_teams_info,
     update_teams,
@@ -45,32 +47,40 @@ app.add_middleware(
 # data.
 
 
-@app.post("/admin/", tags=["Admin"])
+@app.post("/admin/upload_csv", tags=["Admin"])
 async def root(
-        input: InputMethod = Depends(input_method_dependency),
+        sport_input: InputMethod = Depends(input_method_dependency),
         csv_file: UploadFile = File()
 ):
     try:
-        # Ensure the file type is correct
         if not csv_file.filename.endswith('.csv'):
             return {"error": "File must be a CSV."}
-        algo_values = input.model_dump(
-            exclude=("sport_type", "gender", "level")
-        )
-        # logging.debug(f"Algo Values: {algo_values}")
-        # Calls to various functions from routers/teams.py
-        # to validate and process CSV data.
-        response = await add_sports(
-            input.sport_type,
-            input.gender,
-            input.level,
-            csv_file,
-            algo_values
-        )
 
+        # content = await csv_file.read()
+        # decode_content = content.decode("utf-8")
+        # csv_reader = csv.reader(StringIO(decode_content))
+
+        response = await upload_csv_check_teams(
+            sport_input.sport_type,
+            sport_input.gender,
+            sport_input.level,
+            csv_file
+        )
+        if response.get('data'):
+            response['message'] = "List of teams to be updated"
         return response
+
     except Exception as e:
         return {"error": f"An error occurred: {str(e)}"}
+
+
+app.post("/admin/add_teams", tags=["Admin"])
+async def add_teams_to_db(
+    number_of_runs: int,
+    sport_input: GeneralInputMethod = Depends(),
+    teams_to_update: UpdateRequest = Depends()
+):
+    teams = teams_to_update
 
 
 # READ routes:
