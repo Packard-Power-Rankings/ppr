@@ -21,7 +21,9 @@ from service.teams import (
     retrieve_sports,
     clear_season,
     add_csv_file,
-    find_teams
+    delete_sport,
+    update_sport,
+    add_sports_data
 )
 from config.config import LEVEL_CONSTANTS
 from schemas import items
@@ -213,7 +215,7 @@ async def list_teams(
 
 
 @router.get("/{sport_type}/{team_name}/", response_description="Display Team Specific Data")
-async def list_teams_info(
+async def list_team_info(
     sport_type: str,
     team_name: str,
     search_params: items.GeneralInputMethod = Depends()
@@ -236,11 +238,16 @@ async def list_teams_info(
         _id=mongo_id,
         sport_type=sport_type,
         gender=search_params.gender,
-        level=search_params.level
+        level=search_params.level,
+        teams={
+            "$elemMatch": {
+                "team_name": {"$regex": f"^{team_name}$", "$options": "i"}
+            }
+        }
     )
 
     projection = {
-        "teams": {"$elemMatch": {"team_name": team_name}},
+        "teams.$": 1,
         "_id": 0
     }
 

@@ -1,11 +1,11 @@
 from bson import ObjectId
 from . import (
     football_college,
-    football_hs,
-    mens_c_basketball,
-    mens_hs_basketball,
-    womens_c_basketball,
-    womens_hs_basketball
+    football_hs
+    # mens_c_basketball,
+    # mens_hs_basketball,
+    # womens_c_basketball,
+    # womens_hs_basketball
 )
 
 
@@ -369,24 +369,24 @@ CONSTANTS_MAP = {
         FOOTBALL_COLLEGE_CONF
     ),
     ("basketball", "mens", "high_school"): (
-        mens_hs_basketball.MHS_BB_TEAM_INFO,
-        mens_hs_basketball.MHS_BB_IDS,
+        # mens_hs_basketball.MHS_BB_TEAM_INFO,
+        # mens_hs_basketball.MHS_BB_IDS,
         DIVISION_BASKETBALL
     ),
     ("basketball", "mens", "college"): (
-        mens_c_basketball.MC_BB_TEAM_INFO,
-        mens_c_basketball.MC_BB_IDS,
+        # mens_c_basketball.MC_BB_TEAM_INFO,
+        # mens_c_basketball.MC_BB_IDS,
         DIVISION_BASKETBALL,
         CONFERENCE_CB
     ),
     ("basketball", "womens", "high_school"): (
-        womens_hs_basketball.HS_WBB_TEAM_INFO,
-        womens_hs_basketball.HS_WBB_IDS,
+        # womens_hs_basketball.HS_WBB_TEAM_INFO,
+        # womens_hs_basketball.HS_WBB_IDS,
         DIVISION_BASKETBALL
     ),
     ("basketball", "womens", "college"): (
-        womens_c_basketball.C_WBB_TEAM_INFO,
-        womens_c_basketball.C_WBB_IDS,
+        # womens_c_basketball.C_WBB_TEAM_INFO,
+        # womens_c_basketball.C_WBB_IDS,
         DIVISION_BASKETBALL,
         CONFERENCE_CB
     )
