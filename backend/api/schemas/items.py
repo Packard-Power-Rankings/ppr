@@ -90,16 +90,16 @@ class SeasonOpponent(BaseModel):
     )
 
 
-class PredictionInfo(BaseModel):
-    expected_performance: float = Field(
-        ..., description="Expected performance metrics"
-    )
-    actual_performance: float = Field(
-        ..., description="Actual performance metrics"
-    )
-    predicted_score: float = Field(
-        ..., description="Predicted score for the game"
-    )
+# class PredictionInfo(BaseModel):
+#     expected_performance: float = Field(
+#         ..., description="Expected performance metrics"
+#     )
+#     actual_performance: float = Field(
+#         ..., description="Actual performance metrics"
+#     )
+#     predicted_score: float = Field(
+#         ..., description="Predicted score for the game"
+#     )
 
 
 class Team(BaseModel):
@@ -116,8 +116,8 @@ class Team(BaseModel):
     season_opp: List[SeasonOpponent] = Field(
         ..., description="List of team opponents"
     )
-    prediction_info: List[PredictionInfo] = Field(
-        ..., description="List of predicted and actual performance metrics")
+    # prediction_info: List[PredictionInfo] = Field(
+    #     ..., description="List of predicted and actual performance metrics")
 
 
 class LevelData(BaseModel):
@@ -143,7 +143,7 @@ class TeamData(BaseModel):
     z_score: float
     power_ranking: float
     season_opp: List[Dict]
-    prediction_info: List[Dict[str, float]]
+    # prediction_info: List[Dict[str, float]]
 
 
 class OpponentData(BaseModel):
