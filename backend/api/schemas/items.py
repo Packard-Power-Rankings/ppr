@@ -160,6 +160,16 @@ class OpponentData(BaseModel):
 class UpdateRequest(BaseModel):
     added_teams: List[Team]
 
+class TokenData(BaseModel):
+    username: str | None = None
+
+class NewTeam(BaseModel):
+    team_name: str
+    division: Optional[str] = None
+    conference: Optional[str] = None
+    power_ranking: float
+    state: str
+    
 
 def ResponseModel(data, num_of_files, message):
     return {
