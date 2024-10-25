@@ -5,6 +5,8 @@
 # via Packard algorithm (utils).
 #
 # Returns JSON formatted info.
+# This will get reduced to very a smaller
+# structure versus what it is now
 #
 
 import csv
@@ -78,63 +80,17 @@ async def add_sports(
     # moment
 
 
-@router.post("/admin/upload_csv", description="Upload and check teams in db")
+@router.post(
+    "/upload_csv",
+    description="Upload and checks for missing teams in db"
+)
 async def upload_csv_check_teams(
     sport_type: str,
     gender: str,
     level: str,
     csv_file: UploadFile,
 ):
-    try:
-        file_name = csv_file.filename
-        file_content = await csv_file.read()
-        query_csv = {
-            "sport_type": sport_type,
-            "gender": gender,
-            "level": level
-        }
-        file_upload = await add_csv_file(
-            query_csv,
-            file_name,
-            file_content
-        )
-
-        decode_content = file_content.decode("utf-8")
-        csv_reader = csv.reader(StringIO(decode_content))
-
-        team_check: List[str] = []
-        for team in csv_reader:
-            team_check.append(team[1].lower())
-            team_check.append(team[2].lower())
-
-        print(team_check)
-        query_teams = {
-            "_id": get_level_mongoid((sport_type, gender, level))
-        }
-        results = await find_teams(query_teams, team_check)
-
-        if results:
-            teams: List[Dict[str, str]] = results[0].get('teams')
-            for team in teams:
-                if team.get('team_name').lower() in \
-                    [t.lower() for t in team_check]:
-                        team_check = [
-                            t for t in team_check 
-                            if t.lower() != team.get('team_name').lower()
-                        ]
-            csv_file.close()
-            return items.ResponseModel(
-                team_check,
-                file_upload,
-                {"Success": "Teams Checked and Files Uploaded"}
-            )
-        raise HTTPException(status_code=400, detail="Error in team checking")
-    
-    except Exception as exc:
-        traceback.print_exc()
-        raise HTTPException(
-            status_code=404, detail="An error has occurred"
-        ) from exc
+    pass
 
 # GET routes:
 #
