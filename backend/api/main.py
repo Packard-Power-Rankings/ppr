@@ -4,7 +4,7 @@
 # The base route for the FastAPI application.
 #
 # Takes in a .csv file and sends it to routers/teams.py
-# that parses it to JSON.
+# This structure is going to change now to be a lot smaller
 #
 
 from typing import Dict, List
