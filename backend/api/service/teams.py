@@ -2,7 +2,8 @@
 # teams.py
 #
 # Location for database CRUD operations
-# from JSON file.
+# This is going to change to being a class that
+# the routers will communicate with.
 #
 
 # from bson.objectid import ObjectId
