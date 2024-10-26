@@ -312,9 +312,6 @@ async def delete_teams(
                 "teams.$[team].win_ratio": 0.0,
                 "teams.$[team].wins": 0,
                 "teams.$[team].losses": 0,
-                "teams.$[team].prediction_info.expected_performance": 0.0,
-                "teams.$[team].prediction_info.actual_performance": 0.0,
-                "teams.$[team].prediction_info.predicted_score": 0
             },
             "$set": {
                 "teams.$[team].season_opp": []
