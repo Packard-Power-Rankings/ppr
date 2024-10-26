@@ -21,6 +21,7 @@ class AdminTeamsService():
     def __init__(self, level_key: Tuple):
         self.sports_collection = database.get_collection('teams_data')
         self.csv_collection = database.get_collection('csv_files')
+        self.previous_season = database.get_collection('previous_season')
         self.level_constant = LEVEL_CONSTANTS[level_key]
 
     async def store_csv_check_teams(
@@ -103,7 +104,7 @@ class AdminTeamsService():
 
     async def add_teams_to_db(
         self,
-        teams: list[items.NewTeam],
+        teams: List[items.NewTeam],
         number_of_runs: int
     ) -> Any:
         if teams:
@@ -135,6 +136,43 @@ class AdminTeamsService():
                 "number_of_files": results.modified_count
             }
 
+    async def clear_season(self):
+        query_base = {
+            "_id": self.level_constant.get('_id')
+        }
+        await self.sports_collection.aggregate([
+            {"$match": {**query_base}},
+            {"$out": "previous_season"}
+        ])
+        update_params = {
+            "$set": {
+                "teams.$[].win_ratio": 0.0,
+                "teams.$[].wins": 0,
+                "teams.$[].losses": 0,
+                "teams.$[].season_opp": []
+            }
+        }
+        await self.sports_collection.update_one(query_base, update_params)
+
+        last_pr = self.sports_collection.find_one(
+            query_base,
+            {"teams.power_ranking": {"$slice": -1}}
+        )
+        if last_pr and "teams" in last_pr:
+            updates = []
+            for team in last_pr["teams"]:
+                if "power_ranking" in team and team["power_ranking"]:
+                    last_rank = team["power_ranking"][-1]
+                    updates.append(last_rank)
+            cleared_seasons = await self.sports_collection.update_one(
+                query_base,
+                {"$set": {
+                        f"teams.{i}.power_ranking": \
+                            [updates[i]] for i, _ in enumerate(updates)
+                    }
+                }
+            )
+
     async def _add_csv_file(
         self,
         query: dict,
@@ -160,7 +198,7 @@ class AdminTeamsService():
         )
         return await results.to_list()
 
-    async def _generate_team_id(self):
+    async def _generate_team_id(self) -> int:
         teams = await self.sports_collection.find_one(
             {'_id': self.level_constant.get('_id')},
             sort=[("team_id", -1)],
@@ -173,3 +211,12 @@ class AdminTeamsService():
             new_team_id = 1
         return new_team_id
 
+    async def retrieve_csv_file(self) -> Dict:
+        csv_document = await self.csv_collection.find_one(
+            {"_id": self.level_constant.get("_id")},
+            {
+                "csv_files": {"$slice": -1},
+                "_id": 0
+            }
+        )
+        return csv_document['csv_files'][0]
