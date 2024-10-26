@@ -3,7 +3,6 @@ from config.config import (
     STATES,
     LEVEL_CONSTANTS
 )
-from config.team_state import TeamState
 from service.teams import (
     retrieve_sports,
     add_sports_data,
@@ -93,7 +92,7 @@ async def output_to_json(df, level_key: Tuple):
     :return: None
     """
     # sport_type, gender, level = level_key
-    team_state = TeamState()
+    # team_state = TeamState()
     # if level_key[2] == "college":
     #     team_name_map, team_id_map, team_division, team_conf = \
     #         CONSTANTS_MAP.get(level_key)

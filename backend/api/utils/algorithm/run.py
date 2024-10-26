@@ -1,7 +1,8 @@
 # Import the necessary functions from each module
 from io import BytesIO
-from typing import Tuple
-from fastapi import HTTPException
+from typing import Tuple, List, Dict
+from fastapi import HTTPException, status
+from service.admin_teams import AdminTeamsService
 from .upload import upload_csv
 from .data_cleaning import clean_data
 from .data_enrichment import enrich_data
@@ -43,6 +44,63 @@ async def main(level_key: Tuple):
 
     # Step 5: Output the final results to JSON
     await output_to_json(df, level_key)
+
+
+class MainAlgorithm(AdminTeamsService):
+    def __init__(self, level_key) -> None:
+        super().__init__(level_key)
+        self.df = None
+        self.team_data = []
+        self.upload_csv = upload_csv
+        self.clean_data = clean_data
+        self.enrich_data = enrich_data
+        self.run_calculations = run_calculations
+        # self.output_to_db
+
+    async def load_csv(self) -> None:
+        csv_content = await self.retrieve_csv_file()
+        if not csv_content:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="CSV file was not found"
+            )
+        csv_file = BytesIO(csv_content['file_data'])
+        self.df = self.upload_csv(csv_file)
+
+    @property
+    def team_collection(self) -> List:
+        return self.team_data
+
+    @team_collection.setter
+    def team_collection(self, teams_list) -> None:
+        self.team_data = teams_list
+
+    async def retrieve_teams(self) -> None:
+        document: dict = await self.sports_collection.find_one(
+            {"_id": self.level_constant.get("_id")},
+            {"teams": 1, "_id": 0}
+        )
+        if not document:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No teams were found"
+            )
+        self.team_data = document.get("teams")
+
+    def data_cleaning(self) -> None:
+        self.df = self.clean_data(self.df)
+
+    async def data_enrichment(self) -> None:
+        self.df = self.enrich_data(
+            self.df,
+            self.level_constant.get("k_value"),
+            self.level_constant.get("home_advantage"),
+            self.level_constant.get("average_game_score"),
+            self.team_data
+        )
+
+    def run_algorithm(self) -> None:
+        self.df = self.run_calculations(self.df, self.team_data)
 
 
 if __name__ == "__main__":
