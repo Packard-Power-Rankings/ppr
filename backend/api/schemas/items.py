@@ -38,20 +38,12 @@ class InputMethod(BaseModel):
     sport_type: Sport = Field(..., description="Sport Type")
     gender: Gender = Field(..., description="Gender Of Sport")
     level: Level = Field(..., description="Sport Level")
-    k_value: Optional[float] = 0.0
-    home_advantage: Optional[int] = 0
-    average_game_score: Optional[int] = 0
-    game_set_len: Optional[int] = 0
 
 
 async def input_method_dependency(
     sport_type: Sport = Form(...),
     gender: Gender = Form(...),
     level: Level = Form(...),
-    k_value: Optional[float] = Form(0.0),
-    home_advantage: Optional[int] = Form(0),
-    average_game_score: Optional[int] = Form(0),
-    game_set_len: Optional[int] = Form(0),
 ) -> InputMethod:
     # Convert form inputs to the expected enum types
     try:
@@ -59,10 +51,6 @@ async def input_method_dependency(
             sport_type=Sport(sport_type),
             gender=Gender(gender),
             level=Level(level),
-            k_value=k_value,
-            home_advantage=home_advantage,
-            average_game_score=average_game_score,
-            game_set_len=game_set_len
         )
     except (ValueError, ValidationError) as e:
         raise HTTPException(status_code=422, detail=f"Invalid input: {str(e)}")
@@ -164,11 +152,11 @@ class TokenData(BaseModel):
     username: str | None = None
 
 class NewTeam(BaseModel):
-    team_name: str
+    team_name: Optional[str] = None
     division: Optional[str] = None
     conference: Optional[str] = None
-    power_ranking: float
-    state: str
+    power_ranking: Optional[float] = None
+    state: Optional[str] = None
     
 
 def ResponseModel(data, num_of_files, message):
