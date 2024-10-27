@@ -37,7 +37,7 @@ const App = () => {
                 <Route path="/admin" element={isLoggedIn ? <AdminPage /> : <Login onLogin={handleLogin} />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/login" element={<Login onLogin={handleLogin} />} />
-                <Route path="/teams/:sportType" element={<TeamsPage />} />
+                <Route path="/:sportType" element={<TeamsPage />} />
             </Routes>
         </Router>
     );
