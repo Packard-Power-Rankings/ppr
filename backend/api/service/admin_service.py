@@ -103,7 +103,7 @@ class AdminServices():
     def generate_access_token(
         self,
         data: dict,
-        expires_delta = timedelta | None = None
+        expires_delta = timedelta | None
     ) -> str:
         to_encode = data.copy()
         if expires_delta:
