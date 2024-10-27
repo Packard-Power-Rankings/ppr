@@ -8,17 +8,23 @@
 # from bson.objectid import ObjectId
 # from backend.api.utils.dependencies import get_database
 import os
-# import traceback
-from typing import Dict # , List
+import bson.binary
+import datetime
+import traceback
+from typing import Dict, List, Any
+from fastapi import HTTPException
 import motor.motor_asyncio
 # from utils.json_helper import json_file_builder
 from fastapi import HTTPException
 
-
-MONGO_DETAILS = f"mongodb+srv://{os.getenv("MONGO_USER")}:{os.getenv("MONGO_PASS")}@sports-cluster.mx1mo.mongodb.net/?retryWrites=true&w=majority&appName=Sports-Cluster"
+MONGO_DETAILS = \
+    f"mongodb+srv://{os.getenv("MONGO_USER")}:{os.getenv("MONGO_PASS")}@" \
+    "sports-cluster.mx1mo.mongodb.net/" \
+    "?retryWrites=true&w=majority&appName=Sports-Cluster"
 client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_DETAILS)
 database = client["sports_data"]
 sports_collection = database.get_collection('teams_data')
+csv_collection = database.get_collection('csv_files')
 
 
 async def add_sports_data(query: Dict, team_data: Dict):
@@ -31,16 +37,59 @@ async def add_sports_data(query: Dict, team_data: Dict):
     Returns:
         Integer: The number of Documents Entered
     """
-    results = await sports_collection.update_one(
+    try:
+        results = await sports_collection.update_one(
+            query,
+            {"$push": {"teams": team_data}},
+            upsert=True
+        )
+        return results.modified_count
+    except Exception as exc:
+        traceback.print_exc()
+        raise HTTPException(status_code=404, detail="Database error") from exc
+    
+
+
+# Adding CSV file storing into database
+async def add_csv_file(query: Dict, csv_file: Any):
+    """Adds CSV file into the database for faster algorithm
+    calculations
+
+    Args:
+        query (Dict): Query for the Database
+    """
+    try:
+        file_entry = {
+            "file_name": csv_file.filename,
+            "file_data": bson.binary.Binary(await csv_file.read()),
+            "upload_date": str(datetime.datetime.today())
+        }
+        response = await csv_collection.update_one(
+            query,
+            {"$push": {"csv_files": file_entry}},
+            upsert=True
+        )
+        return response.modified_count
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500, detail="Database error"
+        ) from exc
+
+
+async def retrieve_csv_file(query: Dict):
+    csv_document = await csv_collection.find_one(
         query,
-        {"$push": {"teams": team_data}}
+        {
+            "csv_files": {"$slice": -1},
+            "_id": 0
+        }
     )
-    return results.modified_count()
+    return csv_document['csv_files'][0]
 
 
 # Function to retrieve sports data from MongoDB
 # Changed id to mongo_id because it is overriding a builtin function
-async def retrieve_sports(query: Dict, projection: Dict | None = None):
+async def retrieve_sports(query: Dict, projection: Dict | None):
     """
     Retrieves sports or teams data from the MongoDB collection.
 
@@ -61,7 +110,7 @@ async def retrieve_sports(query: Dict, projection: Dict | None = None):
             return sport_data
         return None
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Database error") from e
 
 
 async def update_sport(query: Dict, team_name: str, update_data: Dict):
@@ -76,6 +125,11 @@ async def update_sport(query: Dict, team_name: str, update_data: Dict):
     Returns:
         str: Message indicating the result of the operation.
     """
+    result = await sports_collection.update_one(query, update_data)
+    return result.modified_count
+
+
+async def delete_sport(query: Dict, team_name: str, update_data: Dict):
     result = await sports_collection.update_one(
         query,
         {
@@ -83,29 +137,19 @@ async def update_sport(query: Dict, team_name: str, update_data: Dict):
         },
         array_filters=[{"team.name": team_name}]  # Using 'team.name' to match the team by name
     )
-    
-    if result.modified_count > 0:
-        return f"Team '{team_name}' was updated."
-    return f"No team named '{team_name}' was found or data unchanged."
+    if result.modified_count() > 0:
+        return "Removed Teams From Database"
+    return "No Teams Were Found"
 
 
-async def delete_sport(query: Dict, sport_type: str, team_name: str):
-    """
-    Deletes a specific team from the 'teams' array in the collection based on team_name.
-
-    Args:
-        query (Dict): The query filter to find the document.
-        team_name (str): The name of the team to remove.
-
-    Returns:
-        str: Message indicating the result of the operation.
-    """
-    # Filter by sport_type and the specific team by name
+async def clear_season(
+    query: Dict,
+    update_params: Dict,
+    array_filters: List[Dict]
+):
     result = await sports_collection.update_one(
-        {**query, "teams.name": team_name},  # Make sure to filter for the specific team in the sport
-        {"$pull": {"teams": {"name": team_name}}}  # Use $pull to remove the team from the teams array
+        query,
+        update_params,
+        array_filters
     )
-    
-    if result.modified_count > 0:
-        return f"Team '{team_name}' was removed from the database."
-    return f"No team named '{team_name}' was found."
+    return result

@@ -8,24 +8,25 @@
 #
 
 import uvicorn
+# import logging
 from typing import Dict
 from fastapi import FastAPI, UploadFile, File, Depends, HTTPException
 from dependencies import lifespan
 from schemas.items import (
     InputMethod,
-    # GeneralInputMethod,
+    GeneralInputMethod,
     input_method_dependency
 )
 from routers.teams import (
     add_sports,
     list_teams,
-    list_teams_info,
+    list_team_info,
     update_teams,
     delete_teams
 )
 from fastapi.middleware.cors import CORSMiddleware
-from schemas import items
 
+# logging.basicConfig(level=logging.DEBUG)
 
 app = FastAPI(lifespan=lifespan)
 
@@ -45,7 +46,8 @@ app.add_middleware(
 @app.post("/admin/", tags=["Admin"])
 async def root(
         input: InputMethod = Depends(input_method_dependency),
-        csv_file: UploadFile = File(...)):
+        csv_file: UploadFile = File()
+):
     try:
         # Ensure the file type is correct
         if not csv_file.filename.endswith('.csv'):
@@ -53,6 +55,7 @@ async def root(
         algo_values = input.model_dump(
             exclude=("sport_type", "gender", "level")
         )
+        # logging.debug(f"Algo Values: {algo_values}")
         # Calls to various functions from routers/teams.py
         # to validate and process CSV data.
         response = await add_sports(
@@ -60,7 +63,7 @@ async def root(
             input.gender,
             input.level,
             csv_file,
-            **algo_values
+            algo_values
         )
 
         return response
@@ -75,7 +78,7 @@ async def root(
 @app.get("/{sport_type}/", tags=["Sports"])
 async def get_teams(
     sport_type: str,
-    search_params: items.GeneralInputMethod = Depends()
+    search_params: GeneralInputMethod = Depends()
 ):
     """
     Retrieves a list of all available teams for a given sport.
@@ -96,14 +99,14 @@ async def get_teams(
 async def get_team(
     sport_type: str,
     team_name: str,
-    search_params: items.GeneralInputMethod = Depends()
+    search_params: GeneralInputMethod = Depends()
 ):
     """
     Retrieves team specific data
     (season_opp and eventually prediction info).
     """
     try:
-        teams_info_list = await list_teams_info(
+        teams_info_list = await list_team_info(
             sport_type=sport_type,
             team_name=team_name,
             search_params=search_params)
@@ -120,7 +123,7 @@ async def get_team(
 async def root(
         sport_type: str,
         team_name: str,
-        search_params: items.GeneralInputMethod = Depends()):
+        search_params: GeneralInputMethod = Depends()):
     try:
         # Call to logic for update_sport_data
         updated_sport = await update_teams
