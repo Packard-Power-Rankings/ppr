@@ -175,8 +175,8 @@ def modify_game_scores(df):
 
 
 def update_team_power_ranking(team, team_power_change, depth_factor):
-    team['power_ranking'] = \
-        team.get('power_ranking', 0) + team_power_change * depth_factor
+    team['power_ranking'][-1] = \
+        team['power_ranking'][-1] + team_power_change * depth_factor
 
 
 def process_team_opponents(
@@ -213,14 +213,14 @@ def update_recent_opp_list(opp_list: List, team_num):
 def nested_power_change(df, teams_id_dict, teams_names_dict):
     def calculate_power_change(row):
         max_depth = 5
-        home_team_recent_opp = \
-            teams_names_dict[row["home_team"].lower()].get("recent_opp")
-        away_team_recent_opp = \
-            teams_names_dict[row["away_team"].lower()].get("recent_opp")
+        # print(row['home_team_power_ranking'])
+        # print(row['away_team_power_ranking'])
+        print(row["home_power_change"])
+        print(row['away_power_change'])
 
         process_team_opponents(
             teams_id_dict,
-            home_team_recent_opp,
+            teams_names_dict[row["home_team"].lower()].get("recent_opp"),
             row["home_power_change"],
             1,
             max_depth,
@@ -228,13 +228,27 @@ def nested_power_change(df, teams_id_dict, teams_names_dict):
         )
         process_team_opponents(
             teams_id_dict,
-            away_team_recent_opp,
+            teams_names_dict[row["away_team"].lower()].get("recent_opp"),
             row['away_power_change'],
             1,
             max_depth,
             depth_factor=(1.0 / 3.0)
         )
-    something = df.apply(calculate_power_change, axis=1)
+        
+        teams_names_dict[row['home_team'].lower()]["recent_opp"] = \
+            update_recent_opp_list(
+                teams_names_dict[row["home_team"].lower()].get("recent_opp"),
+                teams_names_dict[row["away_team"].lower()].get("team_id")
+            )
+
+        teams_names_dict[row["away_team"].lower()]["recent_opp"] = \
+            update_recent_opp_list(
+                teams_names_dict[row["away_team"].lower()].get("recent_opp"),
+                teams_names_dict[row["home_team"].lower()].get("team_id")
+            )
+        # print(teams_names_dict[row['home_team'].lower()]["recent_opp"])
+        # print(teams_names_dict[row["away_team"].lower()]["recent_opp"])
+    df.apply(calculate_power_change, axis=1)
 
 
 def run_calculations(df, teams_data, number_of_interations):
@@ -255,6 +269,8 @@ def run_calculations(df, teams_data, number_of_interations):
         df = expected_wl(df)
         df = calculate_power_difference(df)
         nested_power_change(df, teams_id_dict, teams_names_dict)
+
+    # print(teams_data)
 
     df = calculate_z_scores(df)  # Ensure Z-scores are calculated and included
     return df

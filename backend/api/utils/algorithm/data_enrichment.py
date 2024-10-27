@@ -26,7 +26,7 @@ def enrich_data(df, k_value, home_advantage, average_game_score, teams):
     for team in pd.concat([df['home_team'], df['away_team']]).unique():
         if team.lower() in team_dict:
             team_data[team] = {
-                "power_ranking": team_dict[team.lower()].get('power_ranking'),
+                "power_ranking": team_dict[team.lower()]['power_ranking'][-1],
                 # Random win ratio between 30% and 90%
                 "win_ratio": round(random.uniform(0.3, 0.9), 2)
             }
@@ -37,7 +37,7 @@ def enrich_data(df, k_value, home_advantage, average_game_score, teams):
     # Adjust home field advantage: set to 0 for neutral sites (999)
     df['home_field_advantage'] = df['neutral_site'].apply(
         lambda x: home_advantage if x == 0 else 0)
-
+    print(team_data)
     # Map power rankings and win/loss ratios to home and away teams
     df['home_team_power_ranking'] = df['home_team'].map(
         lambda x: team_data[x]['power_ranking'])
