@@ -18,11 +18,25 @@ client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_DETAILS)
 database = client["sports_data"]
 
 class AdminTeamsService():
+    """Admin Level CRUD operations for HTTP endpoints
+    containing all the logic for operations with the
+    database
+    """
     def __init__(self, level_key: Tuple):
-        self.sports_collection = database.get_collection('teams_data')
+        """Initializes MongoDB connections, constants,
+        and Child Class
+
+        Args:
+            level_key (Tuple): Tuple that contains three
+            strings: sport_type, gender, level
+        """
+        self.sports_collection = database.get_collection('temp')
         self.csv_collection = database.get_collection('csv_files')
         self.previous_season = database.get_collection('previous_season')
+        self.level_key = level_key
         self.level_constant = LEVEL_CONSTANTS[level_key]
+        from utils.algorithm.run import MainAlgorithm
+        self.main_algorithm = MainAlgorithm(self, level_key)
 
     async def store_csv_check_teams(
         self,
@@ -44,7 +58,7 @@ class AdminTeamsService():
             HTTPException: 404 Not Found
 
         Returns:
-            dict: Message for succesfull upload and an array of
+            dict: Message for successful upload and an array of
             missing teams (if any).
         """
         try:
@@ -63,7 +77,7 @@ class AdminTeamsService():
 
             decode_content = file_content.decode("utf-8")
             csv_reader = csv.reader(StringIO(decode_content))
-
+            # Creates a list for teams to check in db
             team_check: List[str] = []
             for team in csv_reader:
                 team_check.append(team[1].lower())
@@ -73,7 +87,9 @@ class AdminTeamsService():
                 "_id": self.level_constant.get('_id')
             }
             results = await self._find_teams(query_teams, team_check)
-
+            # If the results are not empty loop through and see
+            # which teams are not in the database and return the
+            # list of new teams to be added
             if results:
                 teams: List[Dict[str, str]] = results[0].get('teams')
                 for team in teams:
@@ -83,7 +99,7 @@ class AdminTeamsService():
                                 t for t in team_check 
                                 if t.lower() != team.get('team_name').lower()
                             ]
-                csv_file.close()
+                await csv_file.close()
                 return {
                     "success": "File Uploaded and Teams Searched",
                     "status": status.HTTP_200_OK,
@@ -105,8 +121,20 @@ class AdminTeamsService():
     async def add_teams_to_db(
         self,
         teams: List[items.NewTeam],
-        number_of_runs: int
+        itter: int
     ) -> Any:
+        """Adds new teams to database, then runs main
+        algorithm to update teams information
+
+        Args:
+            teams (List[items.NewTeam]): Model Schema
+            itter (int): Number of itterations
+
+        Returns:
+            Any: Succesfull storage of new teams and
+            running of main algorithm
+        """
+        message = {}
         if teams:
             for team in teams:
                 team_id = await self._generate_team_id()
@@ -130,13 +158,25 @@ class AdminTeamsService():
                     {"teams": {"$push": new_team_data}},
                     upsert=True
                 )
-            return {
-                "success": "Teams were added and algorithm was ran",
-                "status": status.HTTP_200_OK,
-                "number_of_files": results.modified_count
-            }
+            message.update(
+                success="Teams were added and algorithm was ran",
+                status=status.HTTP_200_OK,
+                number_of_files=results.modified_count
+            )
+            await self.main_algorithm.execute(itter)
+            return message
+        await self.main_algorithm.execute(itter)
+        return {
+            "success": "Teams were added and algorithm was ran",
+            "status": status.HTTP_200_OK,
+            "number_of_files": 0
+        }
 
     async def clear_season(self):
+        """Clears the season at the end of a season
+        and stores the previous season in a separate
+        database
+        """
         query_base = {
             "_id": self.level_constant.get('_id')
         }
@@ -179,10 +219,21 @@ class AdminTeamsService():
         filename: str,
         csv_file: Any
     ) -> int:
+        """Adds a csv file to the database for later
+        processing
+
+        Args:
+            query (dict): Filtering query for db
+            filename (str): CSV filename
+            csv_file (Any): CSV file data
+
+        Returns:
+            int: The number of uploaded documents
+        """
         file_entry = {
             "filename": filename,
             "filedata": Binary(csv_file),
-            "upload_date": str(datetime.datetime.today())
+            "upload_date": str(datetime.today())
         }
         results = await self.csv_collection.update_one(
             query,
@@ -192,6 +243,18 @@ class AdminTeamsService():
         return results.modified_count
 
     async def _find_teams(self, query: dict, teams_search: list) -> list:
+        """Finds the teams that are in the database and
+        returns those for filtering which teams are not
+        in the database
+
+        Args:
+            query (dict): Filtering query for db
+            teams_search (list): list of teams to search for
+
+        Returns:
+            list: returns the list of teams that were found (if
+            any)
+        """
         results = self.sports_collection.find(
             {**query, "teams": {"$nin": teams_search}},
             {"_id": 0}
@@ -199,6 +262,12 @@ class AdminTeamsService():
         return await results.to_list()
 
     async def _generate_team_id(self) -> int:
+        """Gets teams and finds the max team id and then
+        sets the new teams id to the max + 1
+
+        Returns:
+            int: Returns the new team id
+        """
         teams = await self.sports_collection.find_one(
             {'_id': self.level_constant.get('_id')},
             sort=[("team_id", -1)],
@@ -212,11 +281,18 @@ class AdminTeamsService():
         return new_team_id
 
     async def retrieve_csv_file(self) -> Dict:
+        """Retrieves the CSV file from the database
+
+        Returns:
+            Dict: Returns the contents recieved from
+            MongoDB
+        """
         csv_document = await self.csv_collection.find_one(
-            {"_id": self.level_constant.get("_id")},
             {
-                "csv_files": {"$slice": -1},
-                "_id": 0
-            }
+                "sport_type": self.level_key[0],
+                "gender": self.level_key[1],
+                "level": self.level_key[2]
+            },
+            {"csv_files": {"$slice": -1}}
         )
         return csv_document['csv_files'][0]
