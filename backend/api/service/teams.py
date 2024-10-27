@@ -2,7 +2,8 @@
 # teams.py
 #
 # Location for database CRUD operations
-# from JSON file.
+# This is going to change to being a class that
+# the routers will communicate with.
 #
 
 # from bson.objectid import ObjectId
@@ -47,11 +48,21 @@ async def add_sports_data(query: Dict, team_data: Dict):
     except Exception as exc:
         traceback.print_exc()
         raise HTTPException(status_code=404, detail="Database error") from exc
-    
 
+
+async def find_teams(query: Dict, teams_search: List):
+    try:
+        print(teams_search)
+        results = sports_collection.find(
+            {**query, "teams": {"$nin": teams_search}},
+            {"_id": 0}
+        )
+        return await results.to_list()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail="Database error") from exc
 
 # Adding CSV file storing into database
-async def add_csv_file(query: Dict, csv_file: Any):
+async def add_csv_file(query: Dict, filename, csv_file: Any):
     """Adds CSV file into the database for faster algorithm
     calculations
 
@@ -60,8 +71,8 @@ async def add_csv_file(query: Dict, csv_file: Any):
     """
     try:
         file_entry = {
-            "file_name": csv_file.filename,
-            "file_data": bson.binary.Binary(await csv_file.read()),
+            "file_name": filename,
+            "file_data": bson.binary.Binary(csv_file),
             "upload_date": str(datetime.datetime.today())
         }
         response = await csv_collection.update_one(

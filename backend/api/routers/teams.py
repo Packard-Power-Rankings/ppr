@@ -5,13 +5,17 @@
 # via Packard algorithm (utils).
 #
 # Returns JSON formatted info.
+# This will get reduced to very a smaller
+# structure versus what it is now
 #
 
+import csv
+from io import StringIO
 from fastapi import APIRouter, HTTPException, Depends, UploadFile
 import traceback
 # from fastapi.encoders import jsonable_encoder
 # from datetime import datetime
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Tuple, List
 from utils.json_helper import json_file_builder, query_params_builder
 from utils.update_algo_vals import update_values
 from utils.algorithm.run import main
@@ -21,7 +25,8 @@ from service.teams import (
     add_csv_file,
     delete_sport,
     update_sport,
-    add_sports_data
+    add_sports_data,
+    find_teams
 )
 from config.config import LEVEL_CONSTANTS
 from schemas import items
@@ -74,6 +79,18 @@ async def add_sports(
     # I will add back the ResponseModel here just not a priority at the
     # moment
 
+
+@router.post(
+    "/upload_csv",
+    description="Upload and checks for missing teams in db"
+)
+async def upload_csv_check_teams(
+    sport_type: str,
+    gender: str,
+    level: str,
+    csv_file: UploadFile,
+):
+    pass
 
 # GET routes:
 #
@@ -295,9 +312,6 @@ async def delete_teams(
                 "teams.$[team].win_ratio": 0.0,
                 "teams.$[team].wins": 0,
                 "teams.$[team].losses": 0,
-                "teams.$[team].prediction_info.expected_performance": 0.0,
-                "teams.$[team].prediction_info.actual_performance": 0.0,
-                "teams.$[team].prediction_info.predicted_score": 0
             },
             "$set": {
                 "teams.$[team].season_opp": []

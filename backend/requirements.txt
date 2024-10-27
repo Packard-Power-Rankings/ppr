@@ -7,3 +7,5 @@ python-multipart    # Python HTTP request handling (file uploads)
 numpy               # For algorithm processing
 pandas              # For file processing
 python-dotenv       # For loading environment variables (.env)
+pyjwt
+passlib[bcrypt]
