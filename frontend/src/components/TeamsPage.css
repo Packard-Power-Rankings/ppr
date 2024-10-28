@@ -1,0 +1,49 @@
+/* TeamsPage.css */
+
+.team-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px;
+}
+
+.team-link {
+    text-decoration: none; /* Remove underline from link */
+    color: inherit; /* Inherit text color */
+}
+
+.team-link:hover .team-row {
+    background-color: #e0e0e0; /* Change background on hover */
+    cursor: pointer;
+}
+
+.team-row {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease; /* Smooth transition */
+}
+
+.team-name {
+    min-width: 150px;
+    font-weight: bold;
+    font-size: 16px;
+    color: #333;
+    margin-right: 16px;
+}
+
+.team-details {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-size: 14px;
+    color: #555;
+}
+
+.team-details span {
+    font-size: 14px;
+    color: #555;
+}

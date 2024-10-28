@@ -5,6 +5,7 @@ import About from './components/About';
 import Login from './components/Login';
 import AdminPage from './components/AdminPage';
 import TeamsPage from './components/TeamsPage';
+import TeamDetails from './components/TeamDetails';
 import './Nav.css';
 
 const App = () => {
@@ -38,6 +39,7 @@ const App = () => {
                 <Route path="/about" element={<About />} />
                 <Route path="/login" element={<Login onLogin={handleLogin} />} />
                 <Route path="/:sportType" element={<TeamsPage />} />
+                <Route path="/user/:sportType/:teamName" element={<TeamDetails />} />
             </Routes>
         </Router>
     );

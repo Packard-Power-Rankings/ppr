@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
+import './TeamsPage.css'; // Import the CSS file for styling
 
 const TeamsPage = () => {
     const { sportType } = useParams(); // Get sportType from the URL
@@ -10,13 +11,17 @@ const TeamsPage = () => {
     const fetchTeams = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`http://localhost:8000/${sportType}/?gender=mens&level=college`);
+            const response = await fetch(`http://localhost:8000/user/${sportType}/?gender=mens&level=college`);
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error(`${response.status} (HTTP not found)`);
             }
+
             const data = await response.json();
-            if (data.data && Array.isArray(data.data.data)) {
-                setTeams(data.data.data);
+            console.log("Fetched data:", data); // Log the data to check its structure
+
+            // Access teams from `data.data` and set state
+            if (Array.isArray(data.data)) {
+                setTeams(data.data);
             } else {
                 throw new Error('Expected an array of teams');
             }
@@ -32,19 +37,29 @@ const TeamsPage = () => {
         fetchTeams(); // Fetch teams when the component mounts
     }, [sportType]);
 
-    if (loading) return <p>Loading...</p>;
-    if (error) return <p>Error: {error}</p>;
+    if (loading) return null; // Hide the loading message
+    if (error) return <>{error}</>;
 
     return (
-        <div>
-            <h2>{sportType.charAt(0).toUpperCase() + sportType.slice(1)} Teams</h2>
-            <div className="team-list">
-                {teams.map(team => (
-                    <div key={team.team_id} className="team-info">
-                        <p>{team.team_name}</p>
+        <div className="team-list">
+            {teams.map(team => (
+                <Link 
+                    to={`/user/${sportType}/${team.team_name}`} 
+                    key={team.team_id} 
+                    className="team-link"
+                >
+                    <div className="team-row">
+                        <p className="team-name">{team.team_name}</p>
+                        <div className="team-details">
+                            <span><strong>Overall Rank:</strong> {team.overall_rank}</span>
+                            <span><strong>Power:</strong> {team.power_ranking ? team.power_ranking[0] : 'N/A'}</span>
+                            <span><strong>Division Rank:</strong> {team.division_rank}</span>
+                            <span><strong>Division:</strong> {team.division}</span>
+                            <span><strong>Wins/Losses:</strong> {team.wins} / {team.losses}</span>
+                        </div>
                     </div>
-                ))}
-            </div>
+                </Link>
+            ))}
         </div>
     );
 };

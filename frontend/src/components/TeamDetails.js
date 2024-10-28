@@ -1,21 +1,25 @@
+// components/TeamDetails.js
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 const TeamDetails = () => {
-    const { teamId } = useParams(); // Get teamId from the URL
-    const [team, setTeam] = useState(null);
+    const { sportType, teamName } = useParams();
+    const [teamData, setTeamData] = useState(null);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
 
     const fetchTeamDetails = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`http://localhost:8000/team/${teamId}`); // Adjust the endpoint as needed
+            const response = await fetch(`http://localhost:8000/user/${sportType}/${teamName}`);
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error(`${response.status} (HTTP not found)`);
             }
             const data = await response.json();
-            setTeam(data); // Assuming the data contains team information directly
+            console.log("Fetched team data:", data);
+
+            // Assuming data contains the team information including the season_opp array
+            setTeamData(data); // Adjust based on the actual structure of the response
         } catch (err) {
             console.error(err);
             setError(err.message);
@@ -25,18 +29,27 @@ const TeamDetails = () => {
     };
 
     useEffect(() => {
-        fetchTeamDetails(); // Fetch team details when the component mounts
-    }, [teamId]);
+        fetchTeamDetails();
+    }, [sportType, teamName]);
 
-    if (loading) return <p>Loading...</p>; // Display loading message
-    if (error) return <p>Error: {error}</p>; // Handle error
+    if (loading) return <p>Loading...</p>;
+    if (error) return <p>Error: {error}</p>;
+    if (!teamData) return <p>No team data available.</p>;
 
     return (
         <div>
-            <h2>{team?.team_name} Details</h2>
-            {/* Display team details here */}
-            <p>{team?.description}</p> {/* Adjust according to your data structure */}
-            {/* Add more team information as needed */}
+            <h2>{teamName} Details</h2>
+            <p>Sport Type: {sportType}</p>
+            <h3>Season Opponents</h3>
+            {teamData.season_opp && teamData.season_opp.length > 0 ? (
+                <ul>
+                    {teamData.season_opp.map((opponent, index) => (
+                        <li key={index}>Opponent ID: {opponent}</li> // Adjust based on your opponent data structure
+                    ))}
+                </ul>
+            ) : (
+                <p>No opponents found for this season.</p> // Message when the array is empty
+            )}
         </div>
     );
 };
