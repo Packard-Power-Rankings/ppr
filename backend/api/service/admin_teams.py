@@ -120,57 +120,81 @@ class AdminTeamsService():
 
     async def add_teams_to_db(
         self,
-        teams: List[items.NewTeam],
-        itter: int
+        teams: Dict,
     ) -> Any:
         """Adds new teams to database, then runs main
         algorithm to update teams information
 
         Args:
             teams (List[items.NewTeam]): Model Schema
-            itter (int): Number of itterations
+            itter (int): Number of iterations
 
         Returns:
             Any: Succesfull storage of new teams and
             running of main algorithm
         """
         message = {}
-        if teams:
-            for team in teams:
-                team_id = await self._generate_team_id()
-                new_team_data = {
-                    "team_id": team_id,
-                    "team_name": team.team_name,
-                    "city": "",
-                    "division": team.division,
-                    "conference": team.conference,
-                    "division_rank": 0,
-                    "overall_rank": 0,
-                    "power_rankings": [team.power_ranking],
-                    "win_ratio": 0.0,
-                    "wins": 0,
-                    "losses": 0,
-                    "recent_opp": [0, 0, 0, 0, 0],
-                    "season_opp": []
-                }
-                results = await self.sports_collection.update_one(
-                    {self.level_constant.get('_id')},
-                    {"teams": {"$push": new_team_data}},
-                    upsert=True
-                )
-            message.update(
-                success="Teams were added and algorithm was ran",
-                status=status.HTTP_200_OK,
-                number_of_files=results.modified_count
-            )
-            await self.main_algorithm.execute(itter)
-            return message
-        await self.main_algorithm.execute(itter)
-        return {
-            "success": "Teams were added and algorithm was ran",
-            "status": status.HTTP_200_OK,
-            "number_of_files": 0
+        # if teams:
+        #     for team in teams:
+        #         team_id = await self._generate_team_id()
+        #         new_team_data = {
+        #             "team_id": team_id,
+        #             "team_name": team.get("team_name"),
+        #             "city": "",
+        #             "division": team.division,
+        #             "conference": team.conference,
+        #             "division_rank": 0,
+        #             "overall_rank": 0,
+        #             "power_rankings": [team.power_ranking],
+        #             "win_ratio": 0.0,
+        #             "wins": 0,
+        #             "losses": 0,
+        #             "recent_opp": [0, 0, 0, 0, 0],
+        #             "season_opp": []
+        #         }
+        team_id = await self._generate_team_id()
+        new_team_data = {
+            "team_id": team_id,
+            "team_name": teams.get("team_name"),
+            "city": "",
+            "state": teams.get('state'),
+            "division": teams.get('division'),
+            "conference": teams.get('conference'),
+            "division_rank": 0,
+            "overall_rank": 0,
+            "power_ranking": [teams.get('power_ranking')],
+            "win_ratio": 0.0,
+            "wins": 0,
+            "losses": 0,
+            "date": "",
+            "recent_opp": [0, 0, 0, 0, 0],
+            "season_opp": []
         }
+        results = await self.sports_collection.update_one(
+            {"_id": self.level_constant.get('_id')},
+            {"$push": {"teams": new_team_data}},
+            upsert=True
+        )
+        message.update(
+            success="Teams were added",
+            status=status.HTTP_200_OK,
+            number_of_files=results.modified_count
+        )
+        return message
+        # return {
+        #     "success": "Teams were added and algorithm was ran",
+        #     "status": status.HTTP_200_OK,
+        #     "number_of_files": 0
+        # }
+
+    async def run_main_algorithm(self, iterations: int):
+        """Runs the main algorithm
+
+        Args:
+            iterations (int): Number of times to run
+            the algorithm
+        """
+        self.main_algorithm.execute(iterations)
 
     async def clear_season(self):
         """Clears the season at the end of a season
@@ -270,11 +294,12 @@ class AdminTeamsService():
         """
         teams = await self.sports_collection.find_one(
             {'_id': self.level_constant.get('_id')},
-            sort=[("team_id", -1)],
             projection={"teams": 1, "_id": 0}
         )
         if teams:
-            max_id = teams['team_id']
+            max_id = \
+                max(team['team_id'] \
+                    for team in teams["teams"] if 'team_id' in team)
             new_team_id = max_id + 1
         else:
             new_team_id = 1
