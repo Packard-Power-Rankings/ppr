@@ -1,29 +1,31 @@
 /* src/RankingTile.css */
 .ranking-tiles {
-    display: grid; /* Enable Grid layout */
-    grid-template-rows: auto auto; /* Two rows for football and basketball */
-    gap: 2px; /* Keep a small gap between tiles */
-    margin: 0; /* Reset margin for parent container */
+    display: grid;
+    grid-template-rows: auto auto;
+    gap: 2px;
+    margin: 0;
 }
 
 .tile-row {
-    display: flex; /* Use Flexbox for each row */
-    justify-content: center; /* Center align tiles in each row */
-    margin-bottom: 10px; /* Increase space between rows */
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
 }
 
 .ranking-tile {
-    background-color: #f0f0f0;
+    background-color: #860037;
     border: 1px solid #ccc;
     border-radius: 8px;
-    padding: 10px; /* Keep padding as is for internal spacing */
-    margin: 0 5px; /* Add horizontal margin for spacing between tiles */
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.3);
+    padding: 10px;
+    margin: 0 5px;
     text-align: center;
     transition: transform 0.2s;
     cursor: pointer;
-    width: auto; /* Adjust width for better fit */
-    height: auto; /* Let height adjust based on content */
-    flex-shrink: 0; /* Prevent shrinking */
+    width: auto;
+    height: auto;
+    flex-shrink: 0;
+    color: white;
 }
 
 .ranking-tile:hover {
@@ -32,14 +34,18 @@
 
 .tile-link {
     display: inline-block;
-    margin-top: 5px; /* Decrease margin for the link */
-    padding: 6px 10px; /* Adjust padding */
-    background-color: #007bff;
+    margin-top: 5px;
+    padding: 6px 10px;
+    background-color: #860037; /* Background color for dark mode */
     color: white;
+    border: 1px solid #ffffff; /* White border for contrast */
     border-radius: 4px;
     text-decoration: none;
+    transition: background-color 0.3s, color 0.3s; /* Smooth transition */
 }
 
 .tile-link:hover {
-    background-color: #0056b3;
+    background-color: #6F0023; /* Hover background color */
+    color: white; /* Ensure text color is still visible */
+    border-color: #f0f0f0; /* Slightly lighter border on hover */
 }

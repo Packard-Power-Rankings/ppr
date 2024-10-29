@@ -12,7 +12,7 @@ const UploadForm = ({ initialSportType, initialGender, initialLevel }) => {
         formData.append('csv_file', file);
 
         try {
-            const response = await fetch('http://localhost:8000/admin/', {
+            const response = await fetch('http://localhost:8000/admin/upload_csv', {
                 method: 'POST',
                 body: formData,
             });

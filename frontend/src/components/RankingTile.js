@@ -16,19 +16,19 @@ const RankingTile = () => {
 
     const basketballSports = [
         {
-            title: 'Men’s High School Basketball',
-            link: '/basketball', // Link to the TeamsPage for basketball
-        },
-        {
-            title: 'Women’s High School Basketball',
-            link: '/basketball',
-        },
-        {
             title: 'Men’s College Basketball',
             link: '/basketball',
         },
         {
             title: 'Women’s College Basketball',
+            link: '/basketball',
+        },
+        {
+            title: 'Men’s High School Basketball',
+            link: '/basketball', // Link to the TeamsPage for basketball
+        },
+        {
+            title: 'Women’s High School Basketball',
             link: '/basketball',
         },
     ];
