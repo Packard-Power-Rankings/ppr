@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import './TeamsPage.css'; // Import the CSS file for styling
+import './TeamsPage.css';
 
 const TeamsPage = () => {
-    const { sportType } = useParams(); // Get sportType from the URL
+    const { sportType } = useParams();
     const [teams, setTeams] = useState([]);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -15,12 +15,8 @@ const TeamsPage = () => {
             if (!response.ok) {
                 throw new Error(`${response.status} (HTTP not found)`);
             }
-
             const data = await response.json();
-            console.log("Fetched data:", data); // Log the data to check its structure
-
-            // Access teams from `data.data` and set state
-            if (Array.isArray(data.data)) {
+            if (data.data && Array.isArray(data.data)) {
                 setTeams(data.data);
             } else {
                 throw new Error('Expected an array of teams');
@@ -34,32 +30,39 @@ const TeamsPage = () => {
     };
 
     useEffect(() => {
-        fetchTeams(); // Fetch teams when the component mounts
+        fetchTeams();
     }, [sportType]);
 
-    if (loading) return null; // Hide the loading message
-    if (error) return <>{error}</>;
+    if (loading) return <p>Loading...</p>;
+    if (error) return <p>Error: {error}</p>;
 
     return (
-        <div className="team-list">
-            {teams.map(team => (
-                <Link 
-                    to={`/user/${sportType}/${team.team_name}`} 
-                    key={team.team_id} 
-                    className="team-link"
-                >
-                    <div className="team-row">
-                        <p className="team-name">{team.team_name}</p>
-                        <div className="team-details">
-                            <span><strong>Overall Rank:</strong> {team.overall_rank}</span>
-                            <span><strong>Power:</strong> {team.power_ranking ? team.power_ranking[0] : 'N/A'}</span>
-                            <span><strong>Division Rank:</strong> {team.division_rank}</span>
-                            <span><strong>Division:</strong> {team.division}</span>
-                            <span><strong>Wins/Losses:</strong> {team.wins} / {team.losses}</span>
-                        </div>
-                    </div>
-                </Link>
-            ))}
+        <div>
+            <h2>{sportType.charAt(0).toUpperCase() + sportType.slice(1)} Teams</h2>
+            <div className="team-table">
+                <div className="table-header">
+                    <span>Overall Rank</span>
+                    <span>Team Name</span>
+                    <span>Power Ranking</span>
+                    <span>Division Rank</span>
+                    <span>Division</span>
+                    <span>Win/Loss</span>
+                </div>
+                {teams.map(team => (
+                    <Link 
+                        to={`/user/${sportType}/${team.team_name}`} 
+                        key={team.team_id} 
+                        className="team-row"
+                    >
+                        <span>{team.overall_rank ?? 'N/A'}</span>
+                        <span>{team.team_name}</span>
+                        <span>{team.power_ranking?.[0]?.toFixed(2) ?? 'N/A'}</span>
+                        <span>{team.division_rank ?? 'N/A'}</span>
+                        <span>{team.division ?? 'N/A'}</span>
+                        <span>{team.wins} / {team.losses}</span>
+                    </Link>
+                ))}
+            </div>
         </div>
     );
 };

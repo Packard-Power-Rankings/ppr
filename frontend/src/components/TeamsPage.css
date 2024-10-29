@@ -1,49 +1,52 @@
 /* TeamsPage.css */
-
-.team-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+.team-table-container {
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
     padding: 20px;
+    overflow-y: auto;
+    max-height: 500px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
 }
 
-.team-link {
-    text-decoration: none; /* Remove underline from link */
-    color: inherit; /* Inherit text color */
+.team-table {
+    display: table;
+    width: 100%;
+    border-collapse: collapse;
 }
 
-.team-link:hover .team-row {
-    background-color: #e0e0e0; /* Change background on hover */
-    cursor: pointer;
+.table-header {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr 1fr 1fr 1fr;
+    gap: 10px;
+    padding: 10px;
+    background-color: #eaeaea;
+    font-weight: bold;
+    position: sticky;
+    top: 38px;
+    z-index: 1;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    align-items: center;
+    text-align: left;
 }
 
 .team-row {
-    display: flex;
-    align-items: center;
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr 1fr 1fr 1fr;
+    gap: 10px;
     padding: 10px;
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: background-color 0.3s ease; /* Smooth transition */
-}
-
-.team-name {
-    min-width: 150px;
-    font-weight: bold;
-    font-size: 16px;
+    border-bottom: 1px solid #ddd;
     color: #333;
-    margin-right: 16px;
+    text-decoration: none;
+    align-items: center;
 }
 
-.team-details {
-    display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
-    font-size: 14px;
-    color: #555;
+.team-row:hover {
+    background-color: #f5f5f5;
 }
 
-.team-details span {
-    font-size: 14px;
-    color: #555;
+.team-table span {
+    padding: 5px;
+    text-align: left;
 }
