@@ -45,7 +45,7 @@ class AdminTeamsService():
         level: str,
         csv_file: UploadFile
     ):
-        """Admin level http post method
+        """Admin level http post method to handle CSV uploads and check for teams.
 
         Args:
             sport_type (str): Type Of Sport
@@ -54,69 +54,95 @@ class AdminTeamsService():
             csv_file (UploadFile): CSV File to Store
 
         Raises:
-            HTTPException: 400 Bad Request
-            HTTPException: 404 Not Found
+            HTTPException: 422 Unprocessable Entity for formatting issues
+            HTTPException: 400 Bad Request for other errors
 
         Returns:
-            dict: Message for successful upload and an array of
-            missing teams (if any).
+            dict: Message for successful upload and an array of missing teams (if any).
         """
         try:
+            # Read the uploaded CSV file
             file_name = csv_file.filename
             file_content = await csv_file.read()
+
+            # Decode the content to validate CSV format
+            decode_content = file_content.decode("utf-8")
+            csv_reader = csv.reader(StringIO(decode_content))
+            
+            # Check if the CSV file is empty
+            if not decode_content.strip():
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail="CSV file is empty."
+                )
+
+            # Validate CSV format by checking the first line
+            header = next(csv_reader, None)  # Read the first line for header
+            if header is None or len(header) < 3:
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail="CSV format is incorrect, insufficient columns."
+                )
+
+            # Create a list for teams to check in db
+            team_check: List[str] = []
+            for team in csv_reader:
+                # Ensure each row has enough columns
+                if len(team) < 3:
+                    raise HTTPException(
+                        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                        detail="CSV format is incorrect, each row must have at least three columns."
+                    )
+                team_check.append(team[1].lower())  # Assuming team name is in column 2
+                team_check.append(team[2].lower())  # Assuming additional data in column 3
+
+            # Prepare the query for the database
             query_csv = {
                 "sport_type": sport_type,
                 "gender": gender,
                 "level": level
             }
+
+            # Add CSV file metadata to storage (this should be after validation)
             file_upload = await self._add_csv_file(
                 query_csv,
                 file_name,
                 file_content
             )
 
-            decode_content = file_content.decode("utf-8")
-            csv_reader = csv.reader(StringIO(decode_content))
-            # Creates a list for teams to check in db
-            team_check: List[str] = []
-            for team in csv_reader:
-                team_check.append(team[1].lower())
-                team_check.append(team[2].lower())
-
+            # Query teams from the database
             query_teams = {
                 "_id": self.level_constant.get('_id')
             }
             results = await self._find_teams(query_teams, team_check)
-            # If the results are not empty loop through and see
-            # which teams are not in the database and return the
-            # list of new teams to be added
+
+            # Process results and identify missing teams
             if results:
                 teams: List[Dict[str, str]] = results[0].get('teams')
                 for team in teams:
-                    if team.get('team_name').lower() in \
-                        [t.lower() for t in team_check]:
-                            team_check = [
-                                t for t in team_check 
-                                if t.lower() != team.get('team_name').lower()
-                            ]
-                await csv_file.close()
-                return {
-                    "success": "File Uploaded and Teams Searched",
-                    "status": status.HTTP_200_OK,
-                    "missing_teams": team_check,
-                    "files_uploaded": file_upload
-                }
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Error in team checking"
-            )
-    
+                    if team.get('team_name').lower() in [t.lower() for t in team_check]:
+                        team_check = [
+                            t for t in team_check 
+                            if t.lower() != team.get('team_name').lower()
+                        ]
+
+            # Close the CSV file after processing
+            await csv_file.close()
+
+            return {
+                "success": "File Uploaded and Teams Searched",
+                "status": status.HTTP_200_OK,
+                "missing_teams": team_check,
+                "files_uploaded": file_upload
+            }
+        
         except Exception as exc:
             traceback.print_exc()
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="An error has occurred"
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="An internal error has occurred."
             ) from exc
+
 
     async def add_teams_to_db(
         self,

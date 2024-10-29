@@ -49,9 +49,9 @@ const TeamsPage = () => {
                     <span>Win/Loss</span>
                 </div>
                 {teams.map(team => (
-                    <Link 
-                        to={`/user/${sportType}/${team.team_name}`} 
-                        key={team.team_id} 
+                    <Link
+                        to={`/user/${sportType}/${team.team_name}`}
+                        key={team.team_id}
                         className="team-row"
                     >
                         <span>{team.overall_rank ?? 'N/A'}</span>

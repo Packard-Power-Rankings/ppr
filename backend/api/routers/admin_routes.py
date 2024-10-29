@@ -12,7 +12,7 @@ def admin_team_class(level_key: Tuple):
     return AdminTeamsService(level_key)
 
 
-@router.post("/upload_csv", tags=["Admin"])
+@router.post("/upload_csv/", tags=["Admin"])
 async def upload_csv(
     sports_input: InputMethod = Depends(input_method_dependency),
     csv_file: UploadFile = File()
