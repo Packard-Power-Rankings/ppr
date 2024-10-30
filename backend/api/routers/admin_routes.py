@@ -1,8 +1,16 @@
 from __future__ import annotations
 import traceback
-from typing import List, Tuple, Dict
-from fastapi import APIRouter, Depends, File, UploadFile, HTTPException, status
-from schemas.items import InputMethod, NewTeam, input_method_dependency
+from typing import Tuple, Dict, Annotated
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    UploadFile,
+    HTTPException,
+    status,
+    Body
+)
+from schemas.items import InputMethod, NewTeamList, input_method_dependency
 from service.admin_teams import AdminTeamsService
 # from service.admin_service import AdminServices
 
@@ -16,17 +24,17 @@ def admin_team_class(level_key: Tuple) -> "AdminTeamsService":
     return _instance_cache[level_key]
 
 
-# def admin_team_class(level_key: Tuple):
-#     from service.admin_teams import AdminTeamsService
-#     return AdminTeamsService(level_key)
-
-
-@router.post("/upload_csv", tags=["Admin"])
+@router.post("/upload-csv", tags=["Admin"])
 async def upload_csv(
     sports_input: InputMethod = Depends(input_method_dependency),
     csv_file: UploadFile = File()
 ):
     try:
+        if not csv_file.filename.endswith(".csv"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="File must be a csv"
+            )
         level_key = (
             sports_input.sport_type,
             sports_input.gender,
@@ -48,25 +56,20 @@ async def upload_csv(
         ) from exc
 
 
-@router.post("/add_teams", tags=["Admin"])
+@router.post("/add-teams", tags=["Admin"])
 async def add_missing_teams(
+    new_team: Annotated[NewTeamList, Body(embed=True)],
     sports_input: InputMethod = Depends(input_method_dependency)
 ):
     try:
+        teams = new_team.model_dump()
         level_key = (
                 sports_input.sport_type,
                 sports_input.gender,
                 sports_input.level
         )
         team_services = admin_team_class(level_key)
-        tmp_team = {
-                "team_name": "Sul Ross",
-                "division": None,
-                "conference": None,
-                "power_ranking": 286.53863361385584,
-                "state": "Texas"
-        }
-        results = await team_services.add_teams_to_db(tmp_team)
+        results = await team_services.add_teams_to_db(teams['teams'])
         return results
     except Exception as exc:
         traceback.print_exc()
@@ -76,9 +79,20 @@ async def add_missing_teams(
         ) from exc
 
 
-@router.post("/run_algorithm", tags=["Admin"])
-async def main_algorithm_exc(iterations: int):
-    pass
+@router.post("/run-algorithm", tags=["Admin"])
+async def main_algorithm_exc(
+    iterations: int,
+    sport_input: InputMethod = Depends(input_method_dependency)
+):
+    teams_service = admin_team_class(
+        (
+            sport_input.sport_type,
+            sport_input.gender,
+            sport_input.level
+        )
+    )
+    results = await teams_service.run_main_algorithm(iterations)
+    return results
 
 
 @router.put("/update_game", tags=["Admin"])
