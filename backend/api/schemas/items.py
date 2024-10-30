@@ -12,8 +12,15 @@ It includes:
 """
 
 from typing import List, Optional, Dict, Any
+import json
 from enum import Enum
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import (
+    BaseModel,
+    Field,
+    ValidationError,
+    field_validator,
+    model_validator
+)
 from config.config import LEVEL_CONSTANTS
 from fastapi import Form, Depends, HTTPException
 
@@ -151,13 +158,22 @@ class UpdateRequest(BaseModel):
 class TokenData(BaseModel):
     username: str | None = None
 
-class NewTeam(BaseModel):
-    team_name: Optional[str] = None
-    division: Optional[str] = None
-    conference: Optional[str] = None
-    power_ranking: Optional[float] = None
-    state: Optional[str] = None
-    
+class NewTeamData(BaseModel):
+    team_name: str = Field(...)
+    division: Optional[str] = Field(default=None)
+    conference: Optional[str] = Field(default=None)
+    power_ranking: float = Field(...)
+    state: Optional[str] = Field(default=None)
+
+class NewTeamList(BaseModel):
+    teams: Optional[List[NewTeamData]] = Field(default=List)
+
+    @model_validator(mode='before')
+    @classmethod
+    def parse_teams(cls, values):
+        if isinstance(values, str):
+            values = json.loads(values)
+        return values
 
 def ResponseModel(data, num_of_files, message):
     return {
