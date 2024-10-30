@@ -52,7 +52,6 @@ async def add_sports_data(query: Dict, team_data: Dict):
 
 async def find_teams(query: Dict, teams_search: List):
     try:
-        print(teams_search)
         results = sports_collection.find(
             {**query, "teams": {"$nin": teams_search}},
             {"_id": 0}

@@ -71,6 +71,7 @@ class MainAlgorithm():
             )
         csv_file = BytesIO(csv_content['filedata'])
         self.df = self.upload_csv(csv_file)
+        # print("After loading CSV:", self.df['neutral_site'].to_string())
 
     @property
     def team_collection(self) -> List:
@@ -93,21 +94,23 @@ class MainAlgorithm():
         return document.get("teams")
 
     def data_cleaning(self) -> None:
-        self.df = self.clean_data(self.df)
+        self.df = self.clean_data(self.df.copy(deep=True))
+        # print("After data cleaning:", self.df['neutral_site'].to_string())
 
     async def data_enrichment(self) -> None:
         self.team_data = await self.retrieve_teams()
         self.df = self.enrich_data(
-            self.df,
+            self.df.copy(deep=True),
             self.team_services.level_constant.get("k_value"),
             self.team_services.level_constant.get("home_advantage"),
             self.team_services.level_constant.get("average_game_score"),
             self.team_data
         )
+        # print("After data enrichment:", self.df['neutral_site'].to_string())
 
     def run_algorithm(self, itter: int) -> None:
         self.df = self.run_calculations(
-            self.df,
+            self.df.copy(deep=True),
             self.team_data,
             itter
         )

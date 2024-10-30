@@ -36,8 +36,7 @@ def enrich_data(df, k_value, home_advantage, average_game_score, teams):
 
     # Adjust home field advantage: set to 0 for neutral sites (999)
     df['home_field_advantage'] = df['neutral_site'].apply(
-        lambda x: home_advantage if x == 0 else 0)
-    print(team_data)
+        lambda x: 0 if x == 999 else home_advantage)
     # Map power rankings and win/loss ratios to home and away teams
     df['home_team_power_ranking'] = df['home_team'].map(
         lambda x: team_data[x]['power_ranking'])
