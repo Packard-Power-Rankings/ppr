@@ -7,10 +7,26 @@ const UploadForm = ({ initialSportType, initialGender, initialLevel }) => {
     const [showUpdateForm, setShowUpdateForm] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [isUploadDisabled, setIsUploadDisabled] = useState(false);
-    const [runCount, setRunCount] = useState(1); // For number of times to run the algorithm
-    const [showRunAlgorithm, setShowRunAlgorithm] = useState(false); // New state for running algorithm
+    const [runCount, setRunCount] = useState(1);
+    const [showRunAlgorithm, setShowRunAlgorithm] = useState(false);
 
-    const handleUploadSubmit = (e) => {
+    const fetchWithErrorHandling = async (url, options) => {
+        try {
+            const response = await fetch(url, options);
+            if (!response.ok) {
+                const errorData = await response.json();
+                setErrorMessage(errorData.detail || 'Upload failed.');
+                console.error('Error details:', errorData);
+                throw new Error(`Fetch error: ${response.statusText}`);
+            }
+            return response.json();
+        } catch (error) {
+            console.error('Fetch error:', error);
+            setErrorMessage('There was an issue with your request.');
+        }
+    };
+
+    const handleUploadSubmit = async (e) => {
         e.preventDefault();
         const formData = new FormData();
         formData.append('sport_type', initialSportType);
@@ -18,90 +34,85 @@ const UploadForm = ({ initialSportType, initialGender, initialLevel }) => {
         formData.append('level', initialLevel);
         formData.append('csv_file', file);
 
-        fetch('http://localhost:8000/admin/upload_csv/', {
+        const data = await fetchWithErrorHandling('http://localhost:8000/admin/upload_csv/', {
             method: 'POST',
             body: formData,
-        })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(errData => {
-                        setErrorMessage(errData.detail || 'Upload failed.');
-                        throw new Error('Network response was not ok');
-                    });
-                }
-                setErrorMessage('');
-                setIsUploadDisabled(true);
-                return response.json();
-            })
-            .then(data => {
-                setMissingTeams(data.missing_teams);
-                setTeamDetails(data.missing_teams.map(team => ({
-                    team_name: team,
-                    score: '',
-                    power_ranking: '',
-                    division: '',
-                    conference: '',
-                    state: '',
-                })));
-                setShowUpdateForm(true);
-            })
-            .catch(error => {
-                console.error('There was a problem with your fetch operation:', error);
-            });
+        });
+
+        if (data && data.missing_teams) {
+            setMissingTeams(data.missing_teams);
+            setTeamDetails(data.missing_teams.map((team) => ({
+                team_name: team,
+                score: '',
+                power_ranking: '',
+                division: '',
+                conference: '',
+                state: '',
+            })));
+            setShowUpdateForm(true);
+        }
     };
 
-    const handleUpdateSubmit = (e) => {
+    const handleUpdateSubmit = async (e) => {
         e.preventDefault();
-        fetch('http://localhost:8000/admin/add_teams/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(teamDetails),
-        })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(() => {
-                // After successful update, show the run algorithm step
-                setShowRunAlgorithm(true); // Update visibility state for run algorithm
-            })
-            .catch(error => console.error('There was a problem with your fetch operation:', error));
+        const teamsData = teamDetails.map((team) => ({
+            team_name: team.team_name,
+            power_ranking: parseFloat(team.power_ranking) || 0,
+            division: team.division || null,
+            conference: team.conference || null,
+            state: team.state || null,
+        }));
+    
+        const payload = {
+            teams: teamsData,
+            sport_type: initialSportType,
+            gender: initialGender,
+            level: initialLevel,
+        };
+    
+        try {
+            const response = await fetch('http://localhost:8000/admin/add_teams/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'accept': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            });
+    
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error('Error details:', errorData);
+                setErrorMessage(errorData.detail || 'Submission failed.');
+                throw new Error(`Fetch error: ${response.statusText}`);
+            }
+    
+            setErrorMessage('');
+            setShowRunAlgorithm(true);
+        } catch (error) {
+            console.error('Fetch error:', error);
+            setErrorMessage('There was an issue with your request.');
+        }
     };
 
-    const handleRunAlgorithm = () => {
+    const handleRunAlgorithm = async () => {
         if (runCount < 1 || runCount > 30) {
             setErrorMessage('Please enter a value between 1 and 30.');
             return;
         }
 
-        fetch('http://localhost:8000/run_algorithm/', {
+        await fetchWithErrorHandling('http://localhost:8000/run_algorithm/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ run_count: runCount }), // Pass the run count
-        })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                // Handle success response from /run_algorithm
-                console.log('Algorithm run successful:', data);
-                // Optionally reset or handle any state here
-            })
-            .catch(error => console.error('There was a problem with your fetch operation:', error));
+            body: JSON.stringify({ run_count: runCount }),
+        });
     };
 
     const handleDetailChange = (index, field, value) => {
         const newDetails = [...teamDetails];
-        newDetails[index][field] = value;
+        newDetails[index][field] = field === 'power_ranking' ? parseFloat(value) : value;
         setTeamDetails(newDetails);
     };
 
@@ -135,12 +146,6 @@ const UploadForm = ({ initialSportType, initialGender, initialLevel }) => {
                                     required
                                 />
                                 <input
-                                    type="number"
-                                    placeholder="Power Ranking"
-                                    value={team.power_ranking}
-                                    onChange={(e) => handleDetailChange(index, 'power_ranking', e.target.value)}
-                                />
-                                <input
                                     type="text"
                                     placeholder="Division"
                                     value={team.division}
@@ -151,6 +156,12 @@ const UploadForm = ({ initialSportType, initialGender, initialLevel }) => {
                                     placeholder="Conference"
                                     value={team.conference}
                                     onChange={(e) => handleDetailChange(index, 'conference', e.target.value)}
+                                />
+                                <input
+                                    type="number"
+                                    placeholder="Power Ranking"
+                                    value={team.power_ranking}
+                                    onChange={(e) => handleDetailChange(index, 'power_ranking', e.target.value)}
                                 />
                                 <input
                                     type="text"
