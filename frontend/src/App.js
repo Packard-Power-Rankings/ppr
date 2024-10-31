@@ -3,10 +3,10 @@ import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import Home from './components/Home';
 import About from './components/About';
 import Login from './components/Login';
-import AdminPage from './components/AdminPage';
 import TeamsPage from './components/TeamsPage';
 import TeamDetails from './components/TeamDetails';
 import ThemeToggle from './components/ThemeToggle';
+import AdminPage from './components/admin/AdminPage';
 import './Styles.css';
 import './Nav.css';
 
