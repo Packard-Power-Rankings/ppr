@@ -56,11 +56,11 @@ def json_file_builder(sport_type: str, gender: str, level: str) -> Dict:
                         'date': '1/15/2024'
                     }
                 ],
-                "prediction_info": {
-                    'expected_performance': 0.0,
-                    'actual_performance': 0,
-                    'predicted_score': 0.0
-                }
+                # "prediction_info": {
+                #     'expected_performance': 0.0,
+                #     'actual_performance': 0,
+                #     'predicted_score': 0.0
+                # }
             }
         ]
     }

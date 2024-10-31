@@ -1,7 +1,5 @@
-from typing import Tuple, Dict
-import json
+from typing import Tuple, Dict, Any
 from config.config import (
-    CONSTANTS_MAP,
     STATES,
     LEVEL_CONSTANTS
 )
@@ -40,20 +38,24 @@ async def update_or_add_teams(
         "teams.team_name": away_team['team_name']
     }
 
-    home_team_info = retrieve_sports(query_home)
-    away_team_info = retrieve_sports(query_away)
+    home_team_info = await retrieve_sports(query_home, None)
+    away_team_info = await retrieve_sports(query_away, None)
 
     if home_team_info:
         update_home = {
             "$set": {
-                "team.$.power_ranking": home_team.get('power_ranking'),
-                "team.$.win_ratio": home_team.get('win_ratio'),
-                "team.$.prediction_info": home_team.get('prediction_info')
+                "teams.$.power_ranking": home_team.get('power_ranking'),
+                "teams.$.win_ratio": home_team.get('win_ratio'),
+                "teams.$.prediction_info": home_team.get('prediction_info')
             },
             "$push": {
-                "team.$.season_opp": {
+                "teams.$.season_opp": {
                     "$each": home_team.get("season_opp")
                 }
+            },
+            "$inc": {
+                "teams.$.wins": home_team.get('wins'),
+                "teams.$.losses": home_team.get('losses')
             }
         }
         await update_sport(query_home, update_home)
@@ -63,13 +65,17 @@ async def update_or_add_teams(
     if away_team_info:
         update_away = {
             "$set": {
-                "team.$.power_ranking": away_team.get('power_ranking'),
-                "team.$.win_ratio": away_team.get('win_ratio'),
-                "team.$.prediction_info": away_team.get('prediction_info')
+                "teams.$.power_ranking": away_team.get('power_ranking'),
+                "teams.$.win_ratio": away_team.get('win_ratio'),
+                "teams.$.prediction_info": away_team.get('prediction_info')
             },
             "$push": {
-                "team.$.season_opp": {
+                "teams.$.season_opp": {
                     "$each": away_team.get("season_opp")}
+            },
+            "$inc": {
+                "teams.$.wins": away_team.get('wins'),
+                "teams.$.losses": away_team.get('losses'),
             }
         }
         await update_sport(query_away, update_away)
@@ -77,7 +83,7 @@ async def update_or_add_teams(
         await add_sports_data(query_base, away_team)
 
 
-def output_to_json(df, level_key: Tuple):
+async def output_to_json(df, level_key: Tuple):
     """
     Converts the final DataFrame to JSON format and saves it to a file.
     Reformats the output so that each team has its own section.
@@ -86,13 +92,14 @@ def output_to_json(df, level_key: Tuple):
     :return: None
     """
     # sport_type, gender, level = level_key
-
-    if level_key[2] == "college":
-        team_name_map, team_id_map, team_division, team_conf = \
-            CONSTANTS_MAP.get(level_key)
-    else:
-        team_name_map, team_id_map, team_division = \
-            CONSTANTS_MAP.get(level_key)
+    # team_state = TeamState()
+    # if level_key[2] == "college":
+    #     team_name_map, team_id_map, team_division, team_conf = \
+    #         CONSTANTS_MAP.get(level_key)
+    # else:
+    #     team_name_map, team_id_map, team_division = \
+    #         CONSTANTS_MAP.get(level_key)
+    #     team_conf = None
 
     # Need to calculate the wins and losses for
     # each team and store in the db
@@ -106,85 +113,86 @@ def output_to_json(df, level_key: Tuple):
         # easier and still store it into the database
 
         # Create a section for the home team
+        home_win, home_loss = 0, 0
+        away_win, away_loss = 0, 0
+
+        if row['home_score'] > row['away_score']:
+            home_win += 1
+            away_loss += 1
+        else:
+            home_loss += 1
+            away_win += 1
+
         home_team_data = {
-            "team_id": team_id_map.get(row['home_team']),
+            "team_id": team_state.team_id(level_key, row['home_team']),
             "team_name": row['home_team'],
             "city": '',
-            "state":
-                    STATES[team_name_map[team_id_map.get(
-                        row['home_team'])].get('state_id')].get('state_name'),
-            "division":
-                    team_division[
-                        team_name_map[
-                            team_id_map.get(row['home_team'])
-                        ].get('division_id')],
-            "conference":
-                    team_conf[
-                        team_name_map[
-                            team_id_map.get(row['home_team'])
-                        ].get('conference_id')
-                    ] if team_conf else None,
+            "state": STATES[
+                team_state.team_state_id(level_key, row['home_team'])
+            ],
+            "division": team_state.team_division(level_key, row['home_team']),
+            "conference": team_state.team_conference(
+                level_key, row['home_team']
+            ),
             "power_ranking": row['home_team_power_ranking'],
             "win_ratio": row['home_team_win_ratio'],
+            "wins": home_win,
+            "losses": home_loss,
             "date": game_date,
             "season_opp": [
                 {
-                    "opponent_id": team_id_map.get(row['away_team']),
+                    "opponent_id": team_state.team_id(
+                        level_key, row['away_team']),
                     "home_team": True,
                     "home_score": row['home_score'],
                     "away_score": row['away_score'],
-                    "power_difference": row['power_difference'],
                     "home_z_score": row['home_z_score'],
                     "away_z_score": row['away_z_score'],
                     "date": game_date
                 }
-            ],
-            "prediction_info": {
-                "expected_performance": row['expected_performance_home'],
-                "actual_performance": row['actual_performance_home'],
-                "predicted_score": row['predicted_home_score']
-            }
+            ]
+            # "prediction_info": {
+            #     "expected_performance": row['expected_performance_home'],
+            #     "actual_performance": row['actual_performance_home'],
+            #     "predicted_score": row['predicted_home_score']
+            # }
         }
 
         # Create a section for the away team
         away_team_data = {
-            "team_id": team_id_map.get(row['away_team']),
+            "team_id": team_state.team_id(level_key, row['away_team']),
             "team_name": row['away_team'],
             "city": "",
-            "state": STATES[team_name_map[team_id_map.get(
-                    row['away_team'])].get("state_id")].get("state_name"),
-            "division":
-                team_division[
-                    team_name_map[
-                        team_id_map.get(row['away_team'])
-                    ].get('division_id')
-                ],
-            "conference":
-                team_conf[
-                        team_name_map[
-                            team_id_map.get(row['away_team'])
-                        ].get('conference_id')
-                    ] if team_conf else None,
+            "state": STATES[
+                team_state.team_state_id(level_key, row['away_team'])
+            ],
+            "division": team_state.team_division(level_key, row['away_team']),
+            "conference": team_state.team_conference(
+                level_key, row['away_team']
+            ),
             "power_ranking": row['away_team_power_ranking'],
             "win_ratio": row['away_team_win_ratio'],
+            "wins": away_win,
+            "losses": away_loss,
             "date": game_date,
             "season_opp": [
                 {
-                    "opponent_id": team_id_map.get(row['home_team']),
+                    "opponent_id": team_state.team_id(
+                        level_key, row['home_team']
+                    ),
                     "home_team": False,
                     "home_score": row['home_score'],
                     "away_score": row['away_score'],
-                    "power_difference": row['power_difference'],
                     "home_z_score": row['home_z_score'],
                     "away_z_score": row['away_z_score'],
                     "date": game_date
                 }
-            ],
-            "prediction_info": {
-                "expected_performance": row['expected_performance_away'],
-                "actual_performance": row['actual_performance_away'],
-                "predicted_score": row['predicted_away_score']
-            }
+            ]
+            # "prediction_info": {
+            #     "expected_performance": row['expected_performance_away'],
+            #     "actual_performance": row['actual_performance_away'],
+            #     "predicted_score": row['predicted_away_score']
+            # }
         }
         # Changed this to add or update home and away team data
-        update_or_add_teams(home_team_data, away_team_data, level_key)
+        await update_or_add_teams(home_team_data, away_team_data, level_key)

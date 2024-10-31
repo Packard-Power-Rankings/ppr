@@ -12,37 +12,59 @@ It includes:
 """
 
 from typing import List, Optional, Dict, Any
+import json
 from enum import Enum
-from pydantic import BaseModel, Field
+from pydantic import (
+    BaseModel,
+    Field,
+    ValidationError,
+    field_validator,
+    model_validator
+)
+from config.config import LEVEL_CONSTANTS
+from fastapi import Form, Depends, HTTPException
 
 
 # Enum Definitions (fixed set of values)
 class Sport(str, Enum):
-    FOOTBALL = "football"
-    BASKETBALL = "basketball"
+    football = "football"
+    basketball = "basketball"
 
 
 class Gender(str, Enum):
-    MENS = "mens"
-    WOMENS = "womens"
+    mens = "mens"
+    womens = "womens"
 
 
 class Level(str, Enum):
-    HIGH_SCHOOL = "high_school"
-    COLLEGE = "college"
+    college = "college"
+    high_school = "high_school"
 
 
 class InputMethod(BaseModel):
     sport_type: Sport = Field(..., description="Sport Type")
     gender: Gender = Field(..., description="Gender Of Sport")
     level: Level = Field(..., description="Sport Level")
-    k_value: Optional[float] = 0.0
-    home_advantage: Optional[int] = 0
-    average_game_score: Optional[int] = 0
-    game_set_len: Optional[int] = 0
+
+
+async def input_method_dependency(
+    sport_type: Sport = Form(...),
+    gender: Gender = Form(...),
+    level: Level = Form(...),
+) -> InputMethod:
+    # Convert form inputs to the expected enum types
+    try:
+        return InputMethod(
+            sport_type=Sport(sport_type),
+            gender=Gender(gender),
+            level=Level(level),
+        )
+    except (ValueError, ValidationError) as e:
+        raise HTTPException(status_code=422, detail=f"Invalid input: {str(e)}")
 
 
 class GeneralInputMethod(BaseModel):
+    sport_type: Sport = Field(..., description="Type of Sport")
     gender: Gender = Field(..., description="Gender Of Sport")
     level: Level = Field(..., description="Sport Level")
 
@@ -63,16 +85,16 @@ class SeasonOpponent(BaseModel):
     )
 
 
-class PredictionInfo(BaseModel):
-    expected_performance: float = Field(
-        ..., description="Expected performance metrics"
-    )
-    actual_performance: float = Field(
-        ..., description="Actual performance metrics"
-    )
-    predicted_score: float = Field(
-        ..., description="Predicted score for the game"
-    )
+# class PredictionInfo(BaseModel):
+#     expected_performance: float = Field(
+#         ..., description="Expected performance metrics"
+#     )
+#     actual_performance: float = Field(
+#         ..., description="Actual performance metrics"
+#     )
+#     predicted_score: float = Field(
+#         ..., description="Predicted score for the game"
+#     )
 
 
 class Team(BaseModel):
@@ -89,8 +111,8 @@ class Team(BaseModel):
     season_opp: List[SeasonOpponent] = Field(
         ..., description="List of team opponents"
     )
-    prediction_info: List[PredictionInfo] = Field(
-        ..., description="List of predicted and actual performance metrics")
+    # prediction_info: List[PredictionInfo] = Field(
+    #     ..., description="List of predicted and actual performance metrics")
 
 
 class LevelData(BaseModel):
@@ -116,7 +138,7 @@ class TeamData(BaseModel):
     z_score: float
     power_ranking: float
     season_opp: List[Dict]
-    prediction_info: List[Dict[str, float]]
+    # prediction_info: List[Dict[str, float]]
 
 
 class OpponentData(BaseModel):
@@ -130,9 +152,33 @@ class OpponentData(BaseModel):
     date: Optional[int]
 
 
-def ResponseModel(data, message):
+class UpdateRequest(BaseModel):
+    added_teams: List[Team]
+
+class TokenData(BaseModel):
+    username: str | None = None
+
+class NewTeamData(BaseModel):
+    team_name: str = Field(...)
+    division: Optional[str] = Field(default=None)
+    conference: Optional[str] = Field(default=None)
+    power_ranking: float = Field(...)
+    state: Optional[str] = Field(default=None)
+
+class NewTeamList(BaseModel):
+    teams: Optional[List[NewTeamData]] = Field(default=List)
+
+    @model_validator(mode='before')
+    @classmethod
+    def parse_teams(cls, values):
+        if isinstance(values, str):
+            values = json.loads(values)
+        return values
+
+def ResponseModel(data, num_of_files, message):
     return {
-        'data': [data],
+        'data': data,
+        'files_uploaded': num_of_files,
         'code': 200,
         'message': message,
     }

@@ -24,6 +24,6 @@ def clean_data(df):
     df = df.dropna(subset=['date'])  # Drop rows with invalid dates
 
     # Ensure neutral site field is binary (0 or 1)
-    df['neutral_site'] = df['neutral_site'].apply(lambda x: 1 if x == 1 else 0)
+    # df['neutral_site'] = df['neutral_site'].apply(lambda x: 1 if x == 1 else 0)
 
     return df

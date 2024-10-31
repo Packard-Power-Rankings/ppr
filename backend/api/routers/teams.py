@@ -5,18 +5,28 @@
 # via Packard algorithm (utils).
 #
 # Returns JSON formatted info.
+# This will get reduced to very a smaller
+# structure versus what it is now
 #
 
-from fastapi import APIRouter, HTTPException
+import csv
+from io import StringIO
+from fastapi import APIRouter, HTTPException, Depends, UploadFile
+import traceback
 # from fastapi.encoders import jsonable_encoder
 # from datetime import datetime
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Tuple, List
 from utils.json_helper import json_file_builder, query_params_builder
 from utils.update_algo_vals import update_values
 from utils.algorithm.run import main
 from service.teams import (
     retrieve_sports,
-    clear_season
+    clear_season,
+    add_csv_file,
+    # delete_sport,
+    # update_sport,
+    # add_sports_data,
+    # find_teams
 )
 from config.config import LEVEL_CONSTANTS
 from schemas import items
@@ -34,7 +44,7 @@ async def add_sports(
         sport_type: str,
         gender: str,
         level: str,
-        csv_file: Any,
+        csv_file: UploadFile,
         algo_values: Dict
 ) -> Any:
 
@@ -48,136 +58,164 @@ async def add_sports(
     # Need to store the csv file in db instead of sending it to main
     # algorithm function
 
-    await main(
-        csv_file,
-        level_key
-    )
+    query_csv = {
+        "sport_type": sport_type,
+        "gender": gender,
+        "level": level
+    }
+    try:
+        await add_csv_file(
+            query_csv,
+            csv_file
+        )
+        csv_file.file.close()
+        await main(level_key)
+        return {"success": "Successful upload"}
+    except Exception as exc:
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=404, detail="Error has occurred"
+        ) from exc
     # I will add back the ResponseModel here just not a priority at the
     # moment
 
+
+@router.post(
+    "/upload_csv",
+    description="Upload and checks for missing teams in db"
+)
+async def upload_csv_check_teams(
+    sport_type: str,
+    gender: str,
+    level: str,
+    csv_file: UploadFile,
+):
+    pass
 
 # GET routes:
 #
 # Another get function just to retrieve all the sports for
 # a specific sport, gender, and level
 #
-@router.get("/sports/teams", response_description="Display Teams Data")
-async def list_teams(
-    sport_type: str,
-    gender: str,
-    level: str
-):
-    """
-    Retrieve all teams based on sport type, gender, and level.
+# @router.get("/sports/teams", response_description="Display Teams Data")
+# async def list_teams(
+#     search_params: items.GeneralInputMethod = Depends()
+# ):
+#     """
+#     Retrieve all teams based on sport type, gender, and level.
+    
+#     - **search_params**: Filter the teams based on input parameters (sport_type, gender, level).
+#     """
+#     level_key: Tuple = (
+#         search_params.sport_type,
+#         search_params.gender,
+#         search_params.level
+#     )
+#     mongo_id = LEVEL_CONSTANTS[level_key].get("_id")
 
-    - **search_params**: Filter the teams based on input parameters
-        (sport_type, gender, level).
-    """
-    # Need to add try blocks and exception handling below
+#     query: Dict = query_params_builder()
+#     query.update(
+#         _id=mongo_id,
+#         sport_type=search_params.sport_type,
+#         gender=search_params.gender,
+#         level=search_params.level
+#     )
 
-    # level_key: Tuple = (sport_type, gender, level)
-    # mongo_id = LEVEL_CONSTANTS[level_key].get("_id")
-    mongo_id = get_level_mongoid(
-        (sport_type, gender, level)
-    )
+#     projection = {"teams": 1, "_id": 0}
 
-    query: Dict = query_params_builder()
-    query.update(
-        _id=mongo_id,
-        sport_type=sport_type,
-        gender=gender,
-        level=level
-    )
-
-    projection = {"teams": 1, "_id": 0}
-
-    teams = await retrieve_sports(query, projection)
-    if teams and 'teams' in teams:
-        return teams['teams']
-    return "No teams found"
+#     teams = await retrieve_sports(query, projection)
+#     if teams and 'teams' in teams:
+#         return teams['teams']
+#     return "No teams found"
 
 
-@router.get(
-    "/sports/{sport_type}/teams",
-    response_description="Display Teams Data"
-)
-async def list_teams_by_sport(
-    sport_type: str,
-    gender: str = None,
-    level: str = None
-):
-    """
-    Retrieve all teams for a specific sport, with optional filters.
-    - **sport_type**: The type of sport (required).
-    - **gender**: Filter by gender.
-    - **level**: Filter by competition level.
-    """
-    # This function looks just like the one above
-    # but the query for it is incorrect
+# @router.get("/{sport_type}/", response_description="Display Teams Data")
+# async def list_teams(
+#     sport_type: str,
+#     search_params: items.GeneralInputMethod = Depends()
+# ):
+#     """
+#     Retrieve all teams for a specific sport, with optional filters.
+#     - **sport_type**: The type of sport (required).
+#     - **gender**: Filter by gender.
+#     - **level**: Filter by competition level.
+#     """
+#     try:
+#         level_key: Tuple = (
+#             sport_type,
+#             search_params.gender,
+#             search_params.level
+#         )
 
-    query: Dict = {"sport_type": sport_type}
+#         query: Dict = query_params_builder()
+#         mongo_id = LEVEL_CONSTANTS[level_key].get("_id")
+#         query.update(
+#             _id=mongo_id,
+#             sport_type=sport_type,
+#             gender=search_params.gender,
+#             level=search_params.level
+#         )
 
-    # Optionally filter by gender and level
-    if gender:
-        query["gender"] = gender
-    if level:
-        query["level"] = level
+#         projection = {"teams": 1, "_id": 0}
 
-    teams = await retrieve_sports(query, projection={"teams": 1, "_id": 0})
+#         # Fetch data from database
+#         teams = await retrieve_sports(query, projection)
 
-    if teams and 'teams' in teams:
-        return {
-            "message":
-                "Teams data retrieved successfully", "data": teams['teams']
-            }
-    else:
-        raise HTTPException(
-            status_code=404,
-            detail="No teams found for this sport"
-        )
+#         if teams and 'teams' in teams:
+#             return {"message": "Teams data retrieved successfully", "data": teams['teams']}
+#         else:
+#             raise HTTPException(status_code=404, detail="No teams found for this sport")
+
+#     except Exception as e:
+#         # Log the error and raise 500 Internal Server Error
+#         print(f"Error in fetching teams for sport_type={sport_type}: {str(e)}")
+#         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
 
-# Changed function parameters as they are required for
-# database query
+# @router.get("/{sport_type}/{team_name}/", response_description="Display Team Specific Data")
+# async def list_team_info(
+#     sport_type: str,
+#     team_name: str,
+#     search_params: items.GeneralInputMethod = Depends()
+# ):
+#     """
+#     Fetch sports or team data based on query parameters.
+#     - If `sport_type` is provided, fetch teams for that sport.
+#     - If `team_name` is provided, fetch specific team details.
+#     - If no params, fetch all available sports.
+#     """
+#     level_key: Tuple = (
+#         sport_type,
+#         search_params.gender,
+#         search_params.level
+#     )
 
-@router.get(
-    "/sports/{sport_type}/teams/{team_name}",
-    response_description="Display Sports Data"
-)
-async def list_sports(
-    sport_type: str,
-    team_name: str,
-    sport_input: items.GeneralInputMethod = Depends(...)
-):
-    """
-    Fetch sports or team data based on query parameters.
-    - If `sport_type` is provided, fetch teams for that sport.
-    - If `team_name` is provided, fetch specific team details.
-    - If no params, fetch all available sports.
-    """
-    query: Dict = query_params_builder()
-    mongo_id: str = get_level_mongoid(
-        (sport_type, sport_input.gender, sport_input.level)
-    )
-    query.update(
-        _id=mongo_id,
-        sport_type=sport_type,
-        gender=sport_input.gender,
-        level=sport_input.level
-    )
-    projection = {
-        "teams": {"team_name": team_name},
-        "_id": 0
-    }
+#     query: Dict = query_params_builder()
+#     mongo_id = LEVEL_CONSTANTS[level_key].get("_id")
+#     query.update(
+#         _id=mongo_id,
+#         sport_type=sport_type,
+#         gender=search_params.gender,
+#         level=search_params.level,
+#         teams={
+#             "$elemMatch": {
+#                 "team_name": {"$regex": f"^{team_name}$", "$options": "i"}
+#             }
+#         }
+#     )
 
-    # Fetch data from database
-    sports_data = await retrieve_sports(query, projection)
+#     projection = {
+#         "teams.$": 1,
+#         "_id": 0
+#     }
 
-    # Return the appropriate response
-    if sports_data:
-        return sports_data
-    else:
-        raise HTTPException(status_code=404, detail="No sports data found")
+#     # Fetch data from database
+#     team_data = await retrieve_sports(query, projection)
+
+#     if team_data:
+#         return team_data
+#     else:
+#         raise HTTPException(status_code=404, detail="No sports data found")
 
 
 # Update Sports (may involve some specifics but here is a start)
@@ -274,9 +312,6 @@ async def delete_teams(
                 "teams.$[team].win_ratio": 0.0,
                 "teams.$[team].wins": 0,
                 "teams.$[team].losses": 0,
-                "teams.$[team].prediction_info.expected_performance": 0.0,
-                "teams.$[team].prediction_info.actual_performance": 0.0,
-                "teams.$[team].prediction_info.predicted_score": 0
             },
             "$set": {
                 "teams.$[team].season_opp": []
