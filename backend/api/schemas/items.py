@@ -166,14 +166,18 @@ class NewTeamData(BaseModel):
     state: Optional[str] = Field(default=None)
 
 class NewTeamList(BaseModel):
-    teams: Optional[List[NewTeamData]] = Field(default=List)
+    teams: Optional[List[NewTeamData]] = None
 
-    @model_validator(mode='before')
+    @field_validator("teams", mode="before")
     @classmethod
-    def parse_teams(cls, values):
-        if isinstance(values, str):
-            values = json.loads(values)
-        return values
+    def parse_teams(cls, value):
+        # Handle cases where the `teams` field is passed as a JSON string
+        if isinstance(value, str):
+            try:
+                return json.loads(value)
+            except json.JSONDecodeError:
+                raise ValueError("Invalid JSON format for teams.")
+        return value
 
 def ResponseModel(data, num_of_files, message):
     return {
