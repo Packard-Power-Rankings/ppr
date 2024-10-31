@@ -1,3 +1,12 @@
+#
+# test_main.py
+#
+# Testing the base route functions for the FastAPI application.
+#
+# Takes in a .csv file and sends it to routers/teams.py
+# that parses it to JSON.
+#
+
 import unittest
 
 

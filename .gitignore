@@ -251,3 +251,5 @@ $RECYCLE.BIN/
 *.env
 data/
 .devcontainer
+.vscode
+temp/
