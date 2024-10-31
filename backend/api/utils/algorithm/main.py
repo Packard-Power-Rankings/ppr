@@ -71,7 +71,7 @@ def calculate_power_difference(df):
 
         actual_home_performance = \
             calculate_actual_performance(actual_home_wl)
-        actual_visitor_performance = \
+        actual_away_performance = \
             calculate_actual_performance(actual_away_wl)
         home_power_change = \
             power_change(
@@ -81,7 +81,7 @@ def calculate_power_difference(df):
             )
         away_power_change = \
             power_change(
-                actual_visitor_performance,
+                actual_away_performance,
                 expected_visitor_performance,
                 row['k_value']
             )
@@ -93,7 +93,7 @@ def calculate_power_difference(df):
                 row['home_team_power_ranking'],
                 row['away_team_power_ranking'],
                 home_power_change,
-                away_power_change
+                away_power_change,
             ]
         )
     df[
@@ -101,7 +101,7 @@ def calculate_power_difference(df):
             'home_team_power_ranking',
             'away_team_power_ranking',
             'home_power_change',
-            'away_power_change'
+            'away_power_change',
         ]
     ] = df.apply(power_differences, axis=1)
     return df
@@ -183,37 +183,34 @@ def process_team_opponents(
     teams_id_dict: Dict,
     recent_opp_id: int,
     team_power_change: float,
-    depth: int,
-    depth_exp: int
+    output_file
 ):
-    if depth > 5:
-        return
-    if recent_opp_id == 0:
-        return
+    # print(recent_opp_id)
+    processing_stack = [(recent_opp_id, 1, 0)]
 
-    current_team = teams_id_dict.get(recent_opp_id)
-    if not current_team:
-        return
-    depth_factor = (1.0 / 3.0) * (0.5 ** depth_exp)
-    current_change = depth_factor * team_power_change
+    while processing_stack:
+        team_id, depth, exp = processing_stack.pop()
+        output_file.write(f"Processing Stack: {processing_stack}\n")
 
-    old_pr = current_team['power_ranking'][-1]
-    new_pr = old_pr + current_change
-    current_team['power_ranking'][-1] = new_pr
-    # print(f"New PR: {new_pr}")
-    # current_team['power_ranking'][0] += new_pr
-
-    recent_opp = current_team.get('recent_opp')
-    for i, _ in enumerate(recent_opp):
-        if recent_opp[i] == 0:
+        if depth > 5 or team_id == 0:
             continue
-        process_team_opponents(
-            teams_id_dict,
-            recent_opp[i],
-            team_power_change,
-            depth + 1,
-            depth_exp + 1
-        )
+
+        current_team = teams_id_dict.get(team_id)
+        
+        output_file.write(f"Current Team: {current_team['team_name']}Current Team PR before change {current_team['power_ranking']}\n")
+
+        depth_factor = (1.0 / 3.0) * (0.5 ** exp)
+        current_change = depth_factor * team_power_change
+        current_team['power_ranking'][-1] += current_change
+        
+        output_file.write(f"Current Team: {current_team['team_name']}Current Team PR after change {current_team['power_ranking']}\n")
+
+        recent_opp = current_team.get('recent_opp')
+
+        for _, opp_id in enumerate(recent_opp):
+            if opp_id == 0:
+                continue
+            processing_stack.append((opp_id, depth + 1, exp + 1))
 
 
 def update_recent_opp_list(opp_list: List, team_num):
@@ -222,39 +219,39 @@ def update_recent_opp_list(opp_list: List, team_num):
     return opp_list
 
 
-def nested_power_change(df, teams_id_dict, teams_names_dict):
+def nested_power_change(df, teams_id_dict, teams_names_dict, output_file):
     def calculate_power_change(row):
-        home_team = teams_names_dict[row['home_team'].lower()] # not getting the current power_ranking it is only ever the original
+        home_team = teams_names_dict[row['home_team'].lower()]
         home_opponent_ids = home_team['recent_opp']
-        for i, opp_id in enumerate(home_opponent_ids):
-            if opp_id == 0:
-                continue
-            process_team_opponents(
-                teams_id_dict,
-                opp_id,
-                row['home_power_change'],
-                1,
-                i
-            )
+        home_team['power_ranking'][-1] += row['actual_home_performance']
 
         away_team = teams_names_dict[row['away_team'].lower()]
-        away_opponents_id = away_team['recent_opp']
-        for i, opp_id in enumerate(away_opponents_id):
+        away_team['power_ranking'][-1] += row['actual_away_performance']
+        
+        # print(f"Home Team PR before loop: {home_team['power_ranking']}")
+
+        for _, opp_id in enumerate(home_opponent_ids):
             if opp_id == 0:
                 continue
             process_team_opponents(
                 teams_id_dict,
                 opp_id,
-                row['away_power_change'],
-                1,
-                i
+                row['actual_home_performance'],
+                output_file
             )
-        # print(row['home_power_change'])
-        # print(row['away_power_change'])
-        # teams_names_dict[row['home_team'].lower()]['power_ranking'][-1] += \
-        #     row['home_power_change']
-        # teams_names_dict[row['away_team'].lower()]['power_ranking'][-1] += \
-        #     row['away_power_change']
+        # print(f"Home Team PR after loop: {home_team['power_ranking']}")
+        # away_opponents_id = away_team['recent_opp']
+        # for _, opp_id in enumerate(away_opponents_id):
+        #     if opp_id == 0:
+        #         continue
+        #     process_team_opponents(
+        #         teams_id_dict,
+        #         opp_id,
+        #         row['actual_away_performance'],
+        #         output_file
+        #     )
+        # print(f"Home Team PR: {home_team['power_ranking']}")
+        # print(f"Away Team PR: {away_team['power_ranking']}")
         teams_names_dict[row['home_team'].lower()]["recent_opp"] = \
             update_recent_opp_list(
                 teams_names_dict[row["home_team"].lower()].get("recent_opp"),
@@ -266,26 +263,11 @@ def nested_power_change(df, teams_id_dict, teams_names_dict):
                 teams_names_dict[row["away_team"].lower()].get("recent_opp"),
                 teams_names_dict[row["home_team"].lower()].get("team_id")
             )
-        # print(teams_names_dict[row['home_team'].lower()]["recent_opp"])
-        # print(teams_names_dict[row["away_team"].lower()]["recent_opp"])
+
     df.apply(calculate_power_change, axis=1)
 
 
-def update_power_rankings(df, teams_names_dict):
-    def recent_power_rankings(row):
-        teams_names_dict[row['home_team'].lower()]['power_ranking'][-1] += \
-            row['home_power_change']
-        teams_names_dict[row['away_team'].lower()]['power_ranking'][-1] += \
-            row['away_power_change']
-        # print(teams_names_dict[row['home_team'].lower()]['power_ranking'][-1])
-        # print(teams_names_dict[row['away_team'].lower()]['power_ranking'][-1])
-        # print(f"Home PR From DF: {row['home_team_power_ranking']}")
-        # print(f"Away PR From DF: {row['away_team_power_ranking']}")
-        # print(f"Home Field Advantage: {row['home_field_advantage']}")
-    df.apply(recent_power_rankings, axis=1)
-
-
-def run_calculations(df, teams_data, itter):
+def run_calculations(df, teams_data, iterations: int):
     """
     Run all the calculations for the algorithm.
     :param df: DataFrame containing enriched data.
@@ -297,13 +279,12 @@ def run_calculations(df, teams_data, itter):
     teams_names_dict = {
         team_name["team_name"].lower(): team_name for team_name in teams_data
     }
-
-    for _ in range(itter):
-        df = modify_game_scores(df)  # Modify the game scores
-        df = expected_wl(df)
-        df = calculate_power_difference(df)
-        update_power_rankings(df, teams_names_dict)
-        nested_power_change(df, teams_id_dict, teams_names_dict)
+    with open('output.txt', 'w', encoding='utf-8') as output_file:
+        for _ in range(iterations):
+            df = modify_game_scores(df)  # Modify the game scores
+            df = expected_wl(df)
+            df = calculate_power_difference(df)
+            # nested_power_change(df, teams_id_dict, teams_names_dict, output_file)
 
     # print(teams_data)
 

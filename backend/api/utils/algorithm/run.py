@@ -11,41 +11,6 @@ from .main import run_calculations
 # from service.teams import retrieve_csv_file
 
 
-# async def main(level_key: Tuple):
-#     """
-#     Main orchestration function to run the entire pipeline.
-#     :param file_path: Path to the input CSV file.
-#     :param output_file: Path to the output JSON file.
-#     """
-    
-#     # Step 1: Upload and validate CSV
-#     query = {
-#         "sport_type": level_key[0],
-#         "gender": level_key[1],
-#         "level": level_key[2]
-#     }
-#     csv_file = await retrieve_csv_file(query)
-#     if not csv_file:
-#         raise HTTPException(status_code=404, detail="No CSV file found")
-
-#     csv_content = BytesIO(csv_file['file_data'])
-#     df = upload_csv(csv_content)
-#     if df is None:
-#         raise HTTPException(status_code=400, detail='No CSV file found')
-
-#     # Step 2: Clean the data
-#     df = clean_data(df)
-
-#     # Step 3: Enrich the data with dummy values
-#     df = enrich_data(df, level_key)
-
-#     # Step 4: Run the core calculations (power difference, Z-scores, etc.)
-#     df = run_calculations(df, level_key)
-
-#     # Step 5: Output the final results to JSON
-#     await output_to_json(df, level_key)
-
-
 class MainAlgorithm():
     def __init__(
         self,
@@ -69,9 +34,7 @@ class MainAlgorithm():
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="CSV file was not found"
             )
-        csv_file = BytesIO(csv_content['filedata'])
-        self.df = self.upload_csv(csv_file)
-        # print("After loading CSV:", self.df['neutral_site'].to_string())
+        return csv_content
 
     @property
     def team_collection(self) -> List:
@@ -95,7 +58,6 @@ class MainAlgorithm():
 
     def data_cleaning(self) -> None:
         self.df = self.clean_data(self.df.copy(deep=True))
-        # print("After data cleaning:", self.df['neutral_site'].to_string())
 
     async def data_enrichment(self) -> None:
         self.team_data = await self.retrieve_teams()
@@ -106,7 +68,6 @@ class MainAlgorithm():
             self.team_services.level_constant.get("average_game_score"),
             self.team_data
         )
-        # print("After data enrichment:", self.df['neutral_site'].to_string())
 
     def run_algorithm(self, itter: int) -> None:
         self.df = self.run_calculations(
@@ -115,12 +76,15 @@ class MainAlgorithm():
             itter
         )
 
-    async def execute(self, itter: int):
-        await self.load_csv()
-        self.data_cleaning()
-        await self.data_enrichment()
-        await self.retrieve_teams()
-        self.run_algorithm(itter)
+    async def execute(self, iterations: int):
+        game_files = await self.load_csv()
+        for game_file in game_files:
+            csv_file = BytesIO(game_file["filedata"])
+            self.df = upload_csv(csv_file)
+            self.data_cleaning()
+            await self.data_enrichment()
+            await self.retrieve_teams()
+            self.run_algorithm(iterations)
 
 
 if __name__ == "__main__":
