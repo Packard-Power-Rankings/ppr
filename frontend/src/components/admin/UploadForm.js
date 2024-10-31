@@ -21,15 +21,15 @@ const UploadForm = ({ initialSportType, initialGender, initialLevel }) => {
         const formData = new FormData();
 
         // Append teams data
-        teamsData.forEach((team) => {
-            formData.append('teams[]', JSON.stringify({
-                team_name: team.team_name,
-                power_ranking: parseFloat(team.power_ranking),
-                division: team.division || null,
-                conference: team.conference || null,
-                state: team.state || null,
-            }));
-        });
+        const teamsArray = teamsData.map((team) => ({
+            team_name: team.team_name,
+            power_ranking: parseFloat(team.power_ranking),
+            division: team.division || null,
+            conference: team.conference || null,
+            state: team.state || null,
+        }));
+        
+        formData.append('teams', JSON.stringify(teamsArray));        
 
         // Append additional fields
         formData.append('sport_type', initialSportType);
