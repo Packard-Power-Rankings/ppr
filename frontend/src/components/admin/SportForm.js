@@ -23,6 +23,26 @@ const SportForm = ({ onSubmit, initialSportType = '', initialGender = '', initia
         }
     };
 
+    const handleSportTypeChange = (e) => {
+        const selectedSportType = e.target.value;
+        setSportType(selectedSportType);
+
+        // Auto-select 'Mens' only for Football
+        if (selectedSportType === 'football') {
+            setGender('mens');
+        } else if (selectedSportType === 'basketball') {
+            setGender(''); // Reset gender for Basketball
+        } else {
+            setGender(''); // Reset gender for any other sport type
+        }
+    };
+
+    const handleGenderChange = (e) => {
+        setGender(e.target.value);
+    };
+
+    const isLevelDisabled = !(sportType && gender); // Level is disabled if sport type or gender is not selected
+
     return (
         <form onSubmit={handleSubmit}>
             <div>
@@ -30,7 +50,7 @@ const SportForm = ({ onSubmit, initialSportType = '', initialGender = '', initia
                 <select
                     id="sportType"
                     value={sportType}
-                    onChange={(e) => setSportType(e.target.value)}
+                    onChange={handleSportTypeChange}
                 >
                     <option value="">Select a sport type</option>
                     <option value="football">Football</option>
@@ -43,11 +63,12 @@ const SportForm = ({ onSubmit, initialSportType = '', initialGender = '', initia
                 <select
                     id="gender"
                     value={gender}
-                    onChange={(e) => setGender(e.target.value)}
+                    onChange={handleGenderChange}
+                    disabled={sportType === ''} // Disable until a sport is selected
                 >
                     <option value="">Select a gender</option>
                     <option value="mens">Mens</option>
-                    <option value="womens">Womens</option>
+                    {sportType === 'basketball' && <option value="womens">Womens</option>}
                 </select>
             </div>
 
@@ -57,6 +78,7 @@ const SportForm = ({ onSubmit, initialSportType = '', initialGender = '', initia
                     id="level"
                     value={level}
                     onChange={(e) => setLevel(e.target.value)}
+                    disabled={isLevelDisabled} // Disable until both sport type and gender are selected
                 >
                     <option value="">Select a level</option>
                     <option value="high_school">High School</option>

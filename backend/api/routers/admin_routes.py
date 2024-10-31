@@ -24,7 +24,7 @@ def admin_team_class(level_key: Tuple) -> "AdminTeamsService":
     return _instance_cache[level_key]
 
 
-@router.post("/upload-csv", tags=["Admin"])
+@router.post("/upload_csv/", tags=["Admin"])
 async def upload_csv(
     sports_input: InputMethod = Depends(input_method_dependency),
     csv_file: UploadFile = File()
@@ -56,7 +56,7 @@ async def upload_csv(
         ) from exc
 
 
-@router.post("/add-teams", tags=["Admin"])
+@router.post("/add_teams/", tags=["Admin"])
 async def add_missing_teams(
     new_team: Annotated[NewTeamList, Body(embed=True)],
     sports_input: InputMethod = Depends(input_method_dependency)
