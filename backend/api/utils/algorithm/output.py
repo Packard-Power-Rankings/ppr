@@ -1,10 +1,13 @@
+from pymongo import UpdateOne
+
+
 async def update_teams(df, teams_data, mongo_collection, team_level):
     teams_names_dict = {
         team_name["team_name"].lower(): team_name for team_name in teams_data
     }
 
     # Need bulk update as well as need to update just power rankings
-    # and recent opponenet arrays
+    # and recent opponent arrays
 
     for _, row in df.iterrows():
         home_team = teams_names_dict[row['home_team'].lower()]
@@ -37,14 +40,12 @@ async def update_teams(df, teams_data, mongo_collection, team_level):
         if game_home_exists and game_away_exists:
             update_home_data = {
                 "$set": {
-                    "teams.$[team].power_ranking": home_team.get("power_ranking"),
                     "teams.$[team].recent_opp": home_team['recent_opp']
                 }
             }
 
             update_away_data = {
                 "$set": {
-                    "teams.$[team].power_ranking": away_team.get("power_ranking"),
                     "teams.$[team].recent_opp": away_team['recent_opp']
                 }
             }
@@ -84,7 +85,6 @@ async def update_teams(df, teams_data, mongo_collection, team_level):
         }
         update_home_data = {
             "$set": {
-                "teams.$[team].power_ranking": home_team.get("power_ranking"),
                 "teams.$[team].recent_opp": home_team['recent_opp']
             },
             "$inc": {
@@ -111,7 +111,7 @@ async def update_teams(df, teams_data, mongo_collection, team_level):
         }
         update_away_data = {
             "$set": {
-                "teams.$[team].power_ranking": away_team.get("power_ranking"),
+
                 "teams.$[team].recent_opp": away_team['recent_opp']
             },
             "$inc": {
@@ -137,3 +137,12 @@ async def update_teams(df, teams_data, mongo_collection, team_level):
             update_away_data,
             array_filters=[{"team.team_id": away_team['team_id']}]
         )
+    bulk_operation = []
+    for teams in teams_data:
+        bulk_operation.append(
+            UpdateOne(
+                {"_id": team_level.get("_id"), "teams.team_id": teams["team_id"]},
+                {"$set": {"teams.$.power_ranking": teams['power_ranking']}}
+            )
+        )
+    mongo_collection.bulk_write(bulk_operation)
