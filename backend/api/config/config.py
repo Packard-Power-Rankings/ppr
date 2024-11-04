@@ -1,12 +1,4 @@
 from bson import ObjectId
-from . import (
-    football_college,
-    football_hs
-    # mens_c_basketball,
-    # mens_hs_basketball,
-    # womens_c_basketball,
-    # womens_hs_basketball
-)
 
 
 LEVEL_CONSTANTS = {
@@ -354,40 +346,4 @@ CONFERENCE_CB = {
     124: 'American MW',
     125: 'North Star',
     126: 'Other',
-}
-
-CONSTANTS_MAP = {
-    ("football", "mens", "high_school"): (
-        football_hs.FOOTBALL_TEAMS_HS,
-        football_hs.FOOTBALL_TEAMS_IDS_HS,
-        DIVISION_FOOTBALL
-    ),
-    ("football", "mens", "college"): (
-        football_college.FOOTBALL_TEAMS_COLLEGE,
-        football_college.FOOTBALL_TEAMS_IDS_COLLEGE,
-        DIVISION_FOOTBALL,
-        FOOTBALL_COLLEGE_CONF
-    ),
-    ("basketball", "mens", "high_school"): (
-        # mens_hs_basketball.MHS_BB_TEAM_INFO,
-        # mens_hs_basketball.MHS_BB_IDS,
-        DIVISION_BASKETBALL
-    ),
-    ("basketball", "mens", "college"): (
-        # mens_c_basketball.MC_BB_TEAM_INFO,
-        # mens_c_basketball.MC_BB_IDS,
-        DIVISION_BASKETBALL,
-        CONFERENCE_CB
-    ),
-    ("basketball", "womens", "high_school"): (
-        # womens_hs_basketball.HS_WBB_TEAM_INFO,
-        # womens_hs_basketball.HS_WBB_IDS,
-        DIVISION_BASKETBALL
-    ),
-    ("basketball", "womens", "college"): (
-        # womens_c_basketball.C_WBB_TEAM_INFO,
-        # womens_c_basketball.C_WBB_IDS,
-        DIVISION_BASKETBALL,
-        CONFERENCE_CB
-    )
 }
