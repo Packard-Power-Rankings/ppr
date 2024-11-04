@@ -31,7 +31,7 @@ class AdminTeamsService():
             level_key (Tuple): Tuple that contains three
             strings: sport_type, gender, level
         """
-        self.sports_collection = database.get_collection('temp')
+        self.sports_collection = database.get_collection('temp2')
         self.csv_collection = database.get_collection('csv_files')
         self.previous_season = database.get_collection('previous_season')
         self.level_key = level_key
