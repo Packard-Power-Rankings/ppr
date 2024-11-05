@@ -12,9 +12,12 @@ from fastapi import (
 )
 from schemas.items import InputMethod, NewTeamList, input_method_dependency
 from service.admin_teams import AdminTeamsService
-# from service.admin_service import AdminServices
+from service.admin_service import AdminServices
+from fastapi.responses import JSONResponse
+from fastapi.security import OAuth2PasswordRequestForm
 
 router = APIRouter()
+admin_service = AdminServices()
 _instance_cache: Dict[Tuple, "AdminTeamsService"] = {}
 
 
@@ -22,6 +25,38 @@ def admin_team_class(level_key: Tuple) -> "AdminTeamsService":
     if level_key not in _instance_cache:
         _instance_cache[level_key] = AdminTeamsService(level_key)
     return _instance_cache[level_key]
+
+
+@router.post("/login/", tags=["Admin"])
+async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    """
+    Handles admin login by verifying credentials and generating an access token.
+    
+    Args:
+        form_data (OAuth2PasswordRequestForm): Form data with username and password.
+
+    Returns:
+        JSONResponse: Contains access token and token type if successful.
+    """
+    try:
+        # Use AdminServices to verify the username and password
+        token = await admin_service.verify_admin(form_data.username, form_data.password)
+        
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "access_token": token,
+                "token_type": "bearer"
+            }
+        )
+    except HTTPException as exc:
+        raise exc  # Reraise to propagate specific HTTP errors
+    except Exception as exc:
+        print(f"Unexpected error: {exc}")  # Log the exception for debugging
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Internal server error: {exc}"  # Show detailed error for testing
+        )
 
 
 @router.post("/upload_csv/", tags=["Admin"])

@@ -63,7 +63,7 @@ class AdminServices():
             ) from exc
 
     async def verify_admin(self, username: str, password: str) -> str:
-        admin = self.admin_collection.find_one({"username": username})
+        admin = await self.admin_collection.find_one({"username": username})
         if not admin:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,

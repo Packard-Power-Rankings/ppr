@@ -2,25 +2,26 @@ import React, { useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import Home from './components/Home';
 import About from './components/About';
-import Login from './components/Login';
-import TeamsPage from './components/TeamsPage';
-import TeamDetails from './components/TeamDetails';
 import ThemeToggle from './components/ThemeToggle';
+import TeamsPage from './components/user/TeamsPage';
+import TeamDetails from './components/user/TeamDetails';
+import Login from './components/admin/Login';
 import AdminPage from './components/admin/AdminPage';
 import './Styles.css';
 import './Nav.css';
 
 const App = () => {
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-    // Handle login
-    const handleLogin = (status) => {
-        setIsLoggedIn(status);
+    const handleLoginSuccess = (token) => {
+        setIsAuthenticated(true);
+        console.log('Logged in successfully, token:', token);
+        // Perform any additional setup after login (e.g., user info fetch)
     };
 
-    // Handle logout
     const handleLogout = () => {
-        setIsLoggedIn(false);
+        setIsAuthenticated(false);
+        localStorage.removeItem('access_token'); // Optionally remove the token if stored in localStorage
     };
 
     return (
@@ -29,8 +30,8 @@ const App = () => {
                 <Link to="/" className="nav-label">Packard Power Rankings</Link>
                 <Link to="/">Home</Link>
                 <Link to="/about">About</Link>
-                {isLoggedIn && <Link to="/admin">Admin</Link>}
-                {isLoggedIn ? (
+                {isAuthenticated && <Link to="/admin">Admin</Link>}
+                {isAuthenticated ? (
                     <button onClick={handleLogout}>Logout</button>
                 ) : (
                     <Link to="/login">Login</Link>
@@ -39,9 +40,12 @@ const App = () => {
             <ThemeToggle />
             <Routes>
                 <Route path="/" element={<Home />} />
-                <Route path="/admin" element={isLoggedIn ? <AdminPage /> : <Login onLogin={handleLogin} />} />
                 <Route path="/about" element={<About />} />
-                <Route path="/login" element={<Login onLogin={handleLogin} />} />
+                <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
+                <Route
+                    path="/admin"
+                    element={isAuthenticated ? <AdminPage /> : <Login onLoginSuccess={handleLoginSuccess} />}
+                />
                 <Route path="/:sportType" element={<TeamsPage />} />
                 <Route path="/user/:sportType/:teamName" element={<TeamDetails />} />
             </Routes>
