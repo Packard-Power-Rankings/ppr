@@ -11,15 +11,19 @@ const TeamDetails = () => {
     const fetchTeamDetails = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`http://localhost:8000/user/${sportType}/${teamName}`);
+            const response = await fetch(`http://localhost:8000/user/${sportType}/${teamName}/?gender=mens&level=college`);
             if (!response.ok) {
                 throw new Error(`${response.status} (HTTP not found)`);
             }
             const data = await response.json();
-            console.log("Fetched team data:", data);
+            console.log("Fetched team data:", data); // Logging the full response
 
-            // Assuming data contains the team information including the season_opp array
-            setTeamData(data); // Adjust based on the actual structure of the response
+            // Check if there are teams available and set the first one
+            if (data.data && data.data.teams && data.data.teams.length > 0) {
+                setTeamData(data.data.teams[0]); // Get the first team object
+            } else {
+                throw new Error('No team data available.');
+            }
         } catch (err) {
             console.error(err);
             setError(err.message);
@@ -38,17 +42,16 @@ const TeamDetails = () => {
 
     return (
         <div>
-            <h2>{teamName} Details</h2>
-            <p>Sport Type: {sportType}</p>
-            <h3>Season Opponents</h3>
-            {teamData.season_opp && teamData.season_opp.length > 0 ? (
+            <h2>{teamData.team_name} Details</h2>
+            <h3>Recent Opponents</h3>
+            {teamData.recent_opp && teamData.recent_opp.length > 0 ? (
                 <ul>
-                    {teamData.season_opp.map((opponent, index) => (
-                        <li key={index}>Opponent ID: {opponent}</li> // Adjust based on your opponent data structure
+                    {teamData.recent_opp.map((opponentId, index) => (
+                        <li key={index}>Opponent ID: {opponentId}</li>
                     ))}
                 </ul>
             ) : (
-                <p>No opponents found for this season.</p> // Message when the array is empty
+                <p>No opponents found for this season.</p>
             )}
         </div>
     );

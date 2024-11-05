@@ -16,9 +16,10 @@ const TeamsPage = () => {
                 throw new Error(`${response.status} (HTTP not found)`);
             }
             const data = await response.json();
-            if (data.data && Array.isArray(data.data)) {
-                setTeams(data.data);
+            if (data.data && Array.isArray(data.data.teams)) {
+                setTeams(data.data.teams);
             } else {
+                setTeams([]); // No teams found
                 throw new Error('Expected an array of teams');
             }
         } catch (err) {
