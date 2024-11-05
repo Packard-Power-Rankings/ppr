@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Login = ({ onLoginSuccess }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
+    const navigate = useNavigate(); // Get the navigate function
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -25,6 +27,7 @@ const Login = ({ onLoginSuccess }) => {
                 // Save token to local storage or context
                 localStorage.setItem('access_token', data.access_token);
                 onLoginSuccess(data.access_token); // Notify parent component of login success
+                navigate('/admin'); // Redirect to the admin page after login
                 setErrorMessage('');
             } else {
                 const errorData = await response.json();

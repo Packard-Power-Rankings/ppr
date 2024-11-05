@@ -14,7 +14,7 @@
 """
 
 import os
-from typing import Annotated
+from typing import Annotated, Optional
 from datetime import datetime, timedelta, timezone
 import motor.motor_asyncio
 from fastapi import HTTPException, Depends, status
@@ -103,17 +103,13 @@ class AdminServices():
     def generate_access_token(
         self,
         data: dict,
-        expires_delta = timedelta | None
+        expires_delta: Optional[timedelta] = None  # Correctly specify the type
     ) -> str:
         to_encode = data.copy()
         if expires_delta:
-            expire = \
-                datetime.now(timezone.utc) \
-                    + expires_delta
+            expire = datetime.now(timezone.utc) + expires_delta
         else:
-            expire = \
-                datetime.now(timezone.utc) \
-                    + timedelta(minutes=ACCESS_TOKEN_TIME)
+            expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_TIME)
 
         to_encode.update({'exp': expire})
         encode_jwt = jwt.encode(

@@ -1,4 +1,3 @@
-// src/components/UploadForm.js
 import React, { useState } from 'react';
 import UpdateTeam from './UpdateTeam';
 import RunAlgorithm from './RunAlgorithm';
@@ -8,7 +7,7 @@ const UploadForm = ({ initialSportType, initialGender, initialLevel }) => {
     const [missingTeams, setMissingTeams] = useState([]);
     const [showUpdateForm, setShowUpdateForm] = useState(false);
     const [isUploadDisabled, setIsUploadDisabled] = useState(false);
-    const [showRunAlgorithm, setShowRunAlgorithm] = useState(false);
+    const [showRunAlgorithm, setShowRunAlgorithm] = useState(true); // Always show Run Algorithm
     const [errorMessage, setErrorMessage] = useState('');
 
     const handleUploadComplete = (teams) => {
@@ -28,8 +27,8 @@ const UploadForm = ({ initialSportType, initialGender, initialLevel }) => {
             conference: team.conference || null,
             state: team.state || null,
         }));
-        
-        formData.append('teams', JSON.stringify(teamsArray));        
+
+        formData.append('teams', JSON.stringify(teamsArray));
 
         // Append additional fields
         formData.append('sport_type', initialSportType);
@@ -55,7 +54,6 @@ const UploadForm = ({ initialSportType, initialGender, initialLevel }) => {
             }
 
             setErrorMessage('');
-            setShowRunAlgorithm(true);
         } catch (error) {
             console.error('Fetch error:', error);
             setErrorMessage('There was an issue with your request.');
@@ -99,9 +97,8 @@ const UploadForm = ({ initialSportType, initialGender, initialLevel }) => {
                 />
             )}
 
-            {showRunAlgorithm && (
-                <RunAlgorithm onRun={handleRunAlgorithm} />
-            )}
+            {/* Always show RunAlgorithm component */}
+            <RunAlgorithm onRun={handleRunAlgorithm} />
         </div>
     );
 };

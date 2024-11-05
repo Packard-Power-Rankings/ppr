@@ -1,6 +1,6 @@
 from __future__ import annotations
 import traceback
-from typing import Tuple, Dict, Annotated
+from typing import Tuple, Dict, Annotated, Any
 from fastapi import (
     APIRouter,
     Depends,
@@ -15,6 +15,7 @@ from service.admin_teams import AdminTeamsService
 from service.admin_service import AdminServices
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
+from schemas.items import TokenData
 
 router = APIRouter()
 admin_service = AdminServices()
@@ -25,6 +26,53 @@ def admin_team_class(level_key: Tuple) -> "AdminTeamsService":
     if level_key not in _instance_cache:
         _instance_cache[level_key] = AdminTeamsService(level_key)
     return _instance_cache[level_key]
+
+
+@router.post("/add-admin/", tags=["Admin"])
+async def add_admin(
+    username: str, 
+    password: str
+) -> Any:
+    """
+    ___
+    DO NOT USE THIS METHOD IN PRODUCTION!
+    ___
+    A NEW ADMINISTRATOR WILL BE CREATED!
+    ___
+    
+    Adds a new admin to the database.
+    
+    Args:
+        username (str): The username of the new admin.
+        password (str): The password of the new admin.
+
+    Returns:
+        JSONResponse: Confirmation of the new admin creation along with an access token.
+    """
+    try:
+        # Create the new admin account
+        admin_id = await admin_service.create_admin(username, password)
+        
+        # Generate an access token for the newly created admin
+        token = admin_service.generate_access_token({"sub": username})
+
+        return JSONResponse(
+            status_code=status.HTTP_201_CREATED,
+            content={
+                "message": "Admin created successfully",
+                "admin_id": admin_id,
+                "access_token": token,
+                "token_type": "bearer"
+            }
+        )
+    except HTTPException as exc:
+        raise exc  # Reraise HTTP errors to propagate them
+    except Exception as exc:
+        print(f"Unexpected error: {exc}")  # Log the exception for debugging
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Internal server error: {exc}"
+        )
 
 
 @router.post("/login/", tags=["Admin"])

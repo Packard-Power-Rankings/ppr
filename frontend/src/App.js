@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Link, useNavigate } from 'react-router-dom';
 import Home from './components/Home';
 import About from './components/About';
 import ThemeToggle from './components/ThemeToggle';
@@ -11,17 +11,17 @@ import './Styles.css';
 import './Nav.css';
 
 const App = () => {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('access_token'));
 
     const handleLoginSuccess = (token) => {
         setIsAuthenticated(true);
+        localStorage.setItem('access_token', token); // Save the token for future use
         console.log('Logged in successfully, token:', token);
-        // Perform any additional setup after login (e.g., user info fetch)
     };
 
     const handleLogout = () => {
         setIsAuthenticated(false);
-        localStorage.removeItem('access_token'); // Optionally remove the token if stored in localStorage
+        localStorage.removeItem('access_token'); // Remove the token from local storage on logout
     };
 
     return (
@@ -41,7 +41,10 @@ const App = () => {
             <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/about" element={<About />} />
-                <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
+                <Route
+                    path="/login"
+                    element={<Login onLoginSuccess={handleLoginSuccess} />}
+                />
                 <Route
                     path="/admin"
                     element={isAuthenticated ? <AdminPage /> : <Login onLoginSuccess={handleLoginSuccess} />}
