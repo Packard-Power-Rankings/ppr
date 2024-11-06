@@ -65,6 +65,11 @@ class AdminTeamsService():
         try:
             file_name = csv_file.filename
             file_content = await csv_file.read()
+            decode_content = file_content.decode("utf-8")
+            csv_reader = csv.reader(StringIO(decode_content))
+            first_row = next(csv_reader, None)
+            date = first_row[0]
+
             query_csv = {
                 "sport_type": sport_type,
                 "gender": gender,
@@ -73,11 +78,10 @@ class AdminTeamsService():
             file_upload = await self._add_csv_file(
                 query_csv,
                 file_name,
-                file_content
+                file_content,
+                date
             )
 
-            decode_content = file_content.decode("utf-8")
-            csv_reader = csv.reader(StringIO(decode_content))
             # Creates a list for teams to check in db
             team_check: List[str] = []
             for team in csv_reader:
@@ -185,6 +189,16 @@ class AdminTeamsService():
         algorithm = MainAlgorithm(self, self.level_key)
         await algorithm.execute(iterations)
 
+    async def update_teams_info(
+        self,
+        home_team: str,
+        home_score: int,
+        away_team: str,
+        away_score: int,
+        date: str
+    ):
+        pass
+
     async def clear_season(self):
         """Clears the season at the end of a season
         and stores the previous season in a separate
@@ -230,7 +244,8 @@ class AdminTeamsService():
         self,
         query: dict,
         filename: str,
-        csv_file: Any
+        csv_file: Any,
+        date: str
     ) -> int:
         """Adds a csv file to the database for later
         processing
@@ -246,7 +261,8 @@ class AdminTeamsService():
         file_entry = {
             "filename": filename,
             "filedata": Binary(csv_file),
-            "upload_date": str(datetime.today())
+            "upload_date": str(datetime.today()),
+            "sports_week": date
         }
         results = await self.csv_collection.update_one(
             query,
