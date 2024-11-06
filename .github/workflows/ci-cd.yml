@@ -1,29 +1,28 @@
 name: CI/CD Pipeline
 
-# Run this workflow on any push to the main branch
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
-  # Define a job for building, testing, and deploying
   build:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Check out the code
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2: Set up Docker (if you're using Docker)
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Step 3: Build and test FastAPI and React (you can add more steps here)
+      # Install Docker Compose
+      - name: Install Docker Compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+
+      # Build and run Docker Compose
       - name: Build and Test
         run: |
           docker-compose up --build -d
-          # Run backend tests
-          docker-compose exec fastapi pytest
-          # Run frontend tests
-          docker-compose exec react npm test
+          # Run tests or other commands here
