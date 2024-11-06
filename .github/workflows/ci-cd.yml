@@ -23,6 +23,11 @@ jobs:
 
       # Build and run Docker Compose
       - name: Build and Test
+        env:
+          MONGO_DB_NAME: ${{ secrets.MONGO_DB_NAME }}
+          MONGO_USER: ${{ secrets.MONGO_USER }}
+          MONGO_PASS: ${{ secrets.MONGO_PASS }}
+          MONGO_PORT: ${{ secrets.MONGO_PORT }}
         run: |
           docker-compose up --build -d
           # Run tests or other commands here
