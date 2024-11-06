@@ -10,7 +10,13 @@ from fastapi import (
     status,
     Body
 )
-from schemas.items import InputMethod, NewTeamList, input_method_dependency
+from schemas.items import (
+    InputMethod,
+    NewTeamList,
+    UpdateTeamsData,
+    input_method_dependency,
+    update_method
+)
 from service.admin_teams import AdminTeamsService
 # from service.admin_service import AdminServices
 
@@ -95,11 +101,28 @@ async def main_algorithm_exc(
     return results
 
 
-@router.put("/update_game", tags=["Admin"])
-async def update_game():
-    pass
+@router.put("/update-game", tags=["Admin"])
+async def update_game(
+    update_data: UpdateTeamsData = Depends(update_method),
+    sport_input: InputMethod = Depends(input_method_dependency)
+):
+    team_service = admin_team_class(
+        (
+            sport_input.sport_type,
+            sport_input.gender,
+            sport_input.level
+        )
+    )
+    results = await team_service.update_teams_info(
+        update_data.home_team,
+        update_data.home_score,
+        update_data.away_team,
+        update_data.away_score,
+        update_data.date
+    )
+    return results
 
 
-@router.delete("/clear_season", tags=["Admin"])
+@router.delete("/clear-season", tags=["Admin"])
 async def clear_season():
     pass
