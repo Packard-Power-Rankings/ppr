@@ -2,7 +2,7 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: ["main"]
+    branches: [ "main" ]
 
 jobs:
   build:
@@ -15,19 +15,22 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Install Docker Compose
       - name: Install Docker Compose
         run: |
           sudo apt-get update
           sudo apt-get install -y docker-compose
 
-      # Build and run Docker Compose
+      # Create the .env file with environment variables from GitHub Secrets
+      - name: Create .env file
+        run: |
+          echo "MONGO_DB_NAME=${{ secrets.MONGO_DB_NAME }}" >> .env
+          echo "MONGO_USER=${{ secrets.MONGO_USER }}" >> .env
+          echo "MONGO_PASS=${{ secrets.MONGO_PASS }}" >> .env
+          echo "MONGO_PORT=${{ secrets.MONGO_PORT }}" >> .env
+          echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
+
+      # Run Docker Compose with the .env file
       - name: Build and Test
-        env:
-          MONGO_DB_NAME: ${{ secrets.MONGO_DB_NAME }}
-          MONGO_USER: ${{ secrets.MONGO_USER }}
-          MONGO_PASS: ${{ secrets.MONGO_PASS }}
-          MONGO_PORT: ${{ secrets.MONGO_PORT }}
         run: |
           docker-compose up --build -d
-          # Run tests or other commands here
+          # Additional test or build commands here
