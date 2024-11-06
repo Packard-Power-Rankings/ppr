@@ -7,7 +7,7 @@ from .upload import upload_csv
 from .data_cleaning import clean_data
 from .data_enrichment import enrich_data
 from .main import run_calculations
-# from .output import output_to_json
+from .output import update_teams
 # from service.teams import retrieve_csv_file
 
 
@@ -25,9 +25,9 @@ class MainAlgorithm():
         self.clean_data = clean_data
         self.enrich_data = enrich_data
         self.run_calculations = run_calculations
-        # self.output_to_db
+        self.output_to_db = update_teams
 
-    async def load_csv(self) -> None:
+    async def load_csv(self):
         csv_content = await self.team_services.retrieve_csv_file()
         if not csv_content:
             raise HTTPException(
@@ -57,34 +57,45 @@ class MainAlgorithm():
         return document.get("teams")
 
     def data_cleaning(self) -> None:
-        self.df = self.clean_data(self.df.copy(deep=True))
+        self.df = self.clean_data(self.df)
 
     async def data_enrichment(self) -> None:
         self.team_data = await self.retrieve_teams()
         self.df = self.enrich_data(
-            self.df.copy(deep=True),
+            self.df,
             self.team_services.level_constant.get("k_value"),
             self.team_services.level_constant.get("home_advantage"),
             self.team_services.level_constant.get("average_game_score"),
             self.team_data
         )
 
-    def run_algorithm(self, itter: int) -> None:
-        self.df = self.run_calculations(
-            self.df.copy(deep=True),
+    async def update_db(self):
+        await self.output_to_db(
+            self.df,
             self.team_data,
-            itter
+            self.team_services.sports_collection,
+            self.team_services.level_constant
         )
 
+    def run_algorithm(self):
+        self.df, self.team_data = self.run_calculations(
+            self.df,
+            self.team_data
+        )
+
+
     async def execute(self, iterations: int):
+        await self.retrieve_teams()
         game_files = await self.load_csv()
-        for game_file in game_files:
-            csv_file = BytesIO(game_file["filedata"])
-            self.df = upload_csv(csv_file)
-            self.data_cleaning()
-            await self.data_enrichment()
-            await self.retrieve_teams()
-            self.run_algorithm(iterations)
+        for _ in range(iterations):
+            for game_file in game_files:
+                csv_file = BytesIO(game_file["filedata"])
+                self.df = upload_csv(csv_file)
+                self.data_cleaning()
+                await self.data_enrichment()
+                self.run_algorithm()
+                await self.update_db()
+                self.df = self.df.iloc[0:0]
 
 
 if __name__ == "__main__":
