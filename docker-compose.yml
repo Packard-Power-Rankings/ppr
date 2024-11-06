@@ -28,7 +28,7 @@ services:
     depends_on:
       - db
     env_file:
-      - ${{secrets.ENV}} .
+      - .env
 
   frontend:
     build: ./frontend
