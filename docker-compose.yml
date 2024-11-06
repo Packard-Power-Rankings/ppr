@@ -28,8 +28,7 @@ services:
     depends_on:
       - db
     env_file:
-      - env:
-          .env
+      - .env
 
   frontend:
     build: ./frontend
