@@ -54,22 +54,20 @@ const UploadForm = ({ initialSportType, initialGender, initialLevel }) => {
 
     const handleRunAlgorithm = async (runCount) => {
         const formData = new FormData();
-        formData.append('iterations', runCount);                // Add runCount as iterations
         formData.append('sport_type', initialSportType);        // Add sport_type
         formData.append('gender', initialGender);               // Add gender
         formData.append('level', initialLevel);                 // Add level
 
         try {
-            const response = await fetch('http://localhost:8000/admin/run_algorithm/', {
+            const response = await fetch(`http://localhost:8000/admin/run_algorithm/?iterations=${runCount}`, {
                 method: 'POST',
-                body: formData,  // Pass FormData in the body
+                body: formData,  // Pass FormData in the body (for sport_type, gender, level)
             });
 
             const data = await response.json();
             console.log(data);  // Log the full response to see what's inside `detail`
 
             if (data && data.detail) {
-                // Check if detail is an array, and extract the error message from the object
                 const errorDetail = data.detail[0];
                 if (errorDetail && errorDetail.msg) {
                     setErrorMessage(errorDetail.msg);  // Display the msg from the error
