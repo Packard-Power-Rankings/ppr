@@ -3,8 +3,7 @@ name: CI/CD Pipeline
 # Run this workflow on any push to the main branch
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
 
 jobs:
   # Define a job for building, testing, and deploying
