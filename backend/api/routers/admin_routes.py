@@ -162,7 +162,7 @@ async def add_missing_teams(
         ) from exc
 
 
-@router.post("/run-algorithm", tags=["Admin"])
+@router.post("/run_algorithm/", tags=["Admin"])
 async def main_algorithm_exc(
     iterations: int,
     sport_input: InputMethod = Depends(input_method_dependency)
