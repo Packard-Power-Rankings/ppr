@@ -1,6 +1,6 @@
-// components/TeamDetails.js
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import './TeamDetails.css';
 
 const TeamDetails = () => {
     const { sportType, teamName } = useParams();
@@ -16,11 +16,8 @@ const TeamDetails = () => {
                 throw new Error(`${response.status} (HTTP not found)`);
             }
             const data = await response.json();
-            console.log("Fetched team data:", data); // Logging the full response
-
-            // Check if there are teams available and set the first one
             if (data.data && data.data.teams && data.data.teams.length > 0) {
-                setTeamData(data.data.teams[0]); // Get the first team object
+                setTeamData(data.data.teams[0]);
             } else {
                 throw new Error('No team data available.');
             }
@@ -42,17 +39,34 @@ const TeamDetails = () => {
 
     return (
         <div>
-            <h2>{teamData.team_name} Details</h2>
-            <h3>Recent Opponents</h3>
-            {teamData.recent_opp && teamData.recent_opp.length > 0 ? (
-                <ul>
-                    {teamData.recent_opp.map((opponentId, index) => (
-                        <li key={index}>Opponent ID: {opponentId}</li>
-                    ))}
-                </ul>
-            ) : (
-                <p>No opponents found for this season.</p>
-            )}
+            <h2>{teamData.team_name} Season Opponents</h2>
+            <div className="team-table-container">
+                <table className="team-table">
+                    {/* Table Header */}
+                    <thead>
+                        <tr className="table-header">
+                            <th>Game Date</th>
+                            <th>Team Name</th>
+                            <th>Score</th>
+                            <th>Opponent</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {teamData.season_opp && teamData.season_opp.length > 0 ? (
+                            teamData.season_opp.map((game, index) => (
+                                <tr key={index} className="team-row">
+                                    <td>{new Date(game.game_date).toLocaleDateString()}</td>
+                                    <td>{teamData.team_name}</td>
+                                    <td>{game.home_score} - {game.away_score}</td>
+                                    <td>{game.opponent_name}</td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr><td colSpan="4">No season opponents available.</td></tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 };

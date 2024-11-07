@@ -7,9 +7,8 @@
     overflow-y: auto;
     max-height: 500px;
     border: 1px solid #ddd;
-    border-radius: 8px;
-    background-color: #ffffff; /* Light background */
-    color: #333; /* Darker text for readability */
+    background-color: #ffffff;
+    color: #333;
 }
 
 .team-table {
@@ -31,7 +30,7 @@
     box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
     align-items: center;
     text-align: left;
-    color: #333; /* Dark text color */
+    color: #333;
 }
 
 .team-row {
@@ -43,11 +42,11 @@
     color: #333;
     text-decoration: none;
     align-items: center;
-    background-color: #ffffff; /* Light background */
+    background-color: #ffffff;
 }
 
 .team-row:hover {
-    background-color: #f5f5f5; /* Slightly darker hover background */
+    background-color: #f5f5f5;
 }
 
 .team-table span {
@@ -57,23 +56,23 @@
 
 /* Dark mode */
 [data-theme='dark'] .team-table-container {
-    background-color: #1e1e1e; /* Dark background */
-    border: 1px solid #444; /* Subtle border */
-    color: #e0e0e0; /* Lighter text color */
+    background-color: #1e1e1e;
+    border: 1px solid #444;
+    color: #e0e0e0;
 }
 
 [data-theme='dark'] .table-header {
-    background-color: #333; /* Darker background for header */
-    color: #e0e0e0; /* Light text color for contrast */
+    background-color: #333;
+    color: #e0e0e0;
     box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.5);
 }
 
 [data-theme='dark'] .team-row {
-    background-color: #2a2a2a; /* Darker background for rows */
+    background-color: #2a2a2a;
     border-bottom: 1px solid #444;
     color: #e0e0e0;
 }
 
 [data-theme='dark'] .team-row:hover {
-    background-color: #3a3a3a; /* Darker hover color */
+    background-color: #3a3a3a;
 }
