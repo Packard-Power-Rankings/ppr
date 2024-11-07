@@ -30,7 +30,7 @@ class UsersServices():
             level=self.level_key[2]
         )
         projection = {"teams": 1, "_id": 0}
-        return await self._sports_retrievial(query, projection)
+        return await self._sports_retrieval(query, projection)
 
     async def retrieve_team_info(self, team_name):
         query: Dict = query_params_builder()
@@ -50,7 +50,7 @@ class UsersServices():
             "teams.$": 1,
             "_id": 0
         }
-        return await self._sports_retrievial(query, projection)
+        return await self._sports_retrieval(query, projection)
 
     @property
     def sports_teams(self) -> List:
@@ -60,7 +60,7 @@ class UsersServices():
     def sports_teams(self, sports_data: List) -> None:
         self.sports_data = sports_data
         
-    async def _sports_retrievial(self, query: Dict, projection: Dict):
+    async def _sports_retrieval(self, query: Dict, projection: Dict):
         try:
             self.sports_data = await self.user_collection.find_one(
                 query,

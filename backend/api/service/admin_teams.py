@@ -1,5 +1,5 @@
 import os
-from io import StringIO
+from io import StringIO, BytesIO
 from typing import Any, List, Dict, Tuple
 import traceback
 import csv
@@ -65,39 +65,11 @@ class AdminTeamsService():
             # Read the uploaded CSV file
             file_name = csv_file.filename
             file_content = await csv_file.read()
-
-            # Decode the content to validate CSV format
             decode_content = file_content.decode("utf-8")
             csv_reader = csv.reader(StringIO(decode_content))
-            
-            # Check if the CSV file is empty
-            if not decode_content.strip():
-                raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                    detail="CSV file is empty."
-                )
+            first_row = next(csv_reader, None)
+            date = first_row[0]
 
-            # Validate CSV format by checking the first line
-            header = next(csv_reader, None)  # Read the first line for header
-            if header is None or len(header) < 3:
-                raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                    detail="CSV format is incorrect, insufficient columns."
-                )
-
-            # Create a list for teams to check in db
-            team_check: List[str] = []
-            for team in csv_reader:
-                # Ensure each row has enough columns
-                if len(team) < 3:
-                    raise HTTPException(
-                        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                        detail="CSV format is incorrect, each row must have at least three columns."
-                    )
-                team_check.append(team[1].lower())  # Assuming team name is in column 2
-                team_check.append(team[2].lower())  # Assuming additional data in column 3
-
-            # Prepare the query for the database
             query_csv = {
                 "sport_type": sport_type,
                 "gender": gender,
@@ -108,10 +80,16 @@ class AdminTeamsService():
             file_upload = await self._add_csv_file(
                 query_csv,
                 file_name,
-                file_content
+                file_content,
+                date
             )
 
-            # Query teams from the database
+            # Creates a list for teams to check in db
+            team_check: List[str] = []
+            for team in csv_reader:
+                team_check.append(team[1].lower())
+                team_check.append(team[2].lower())
+
             query_teams = {
                 "_id": self.level_constant.get('_id')
             }
@@ -212,6 +190,31 @@ class AdminTeamsService():
         algorithm = MainAlgorithm(self, self.level_key)
         await algorithm.execute(iterations)
 
+    async def update_teams_info(
+        self,
+        home_team: str,
+        home_score: int,
+        away_team: str,
+        away_score: int,
+        date: str
+    ):
+        query = {
+            "sport_type": self.level_key[0],
+            "gender": self.level_key[1],
+            "level": self.level_key[2]
+        }
+        csv_content = await self.csv_collection.find_one(
+            query,
+            {"csv_files": {"$elemMatch": {"sports_week": date}}}
+        )
+        print(csv_content)
+        csv_data = csv_content['csv_files'][0]
+        for row in BytesIO(csv_data['filedata']):
+            if row[1] == home_team and row[2] == away_team:
+                row[3] = home_score
+                row[4] = away_score
+        print(csv_data)
+
     async def clear_season(self):
         """Clears the season at the end of a season
         and stores the previous season in a separate
@@ -257,7 +260,8 @@ class AdminTeamsService():
         self,
         query: dict,
         filename: str,
-        csv_file: Any
+        csv_file: Any,
+        date: str
     ) -> int:
         """Adds a csv file to the database for later
         processing
@@ -273,7 +277,8 @@ class AdminTeamsService():
         file_entry = {
             "filename": filename,
             "filedata": Binary(csv_file),
-            "upload_date": str(datetime.today())
+            "upload_date": str(datetime.today()),
+            "sports_week": date
         }
         results = await self.csv_collection.update_one(
             query,

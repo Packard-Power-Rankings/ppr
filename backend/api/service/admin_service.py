@@ -1,13 +1,13 @@
 """Admin service class that creates a single admin,
     generates password hash and stores in database, checks
-    if password is correct, and genrates an access token
+    if password is correct, and generates an access token
 
     Raises:
-        HTTPException: 401 Unathorized Access
+        HTTPException: 401 Unauthorized Access
         HTTPException: 500 Server Error
         HTTPException: 404 Not Found
         HTTPException: 400 Bad Request
-        credentials_exception: 401 Unathorized Access
+        credentials_exception: 401 Unauthorized Access
 
     Returns:
         None
@@ -18,11 +18,11 @@ from typing import Annotated, Optional
 from datetime import datetime, timedelta, timezone
 import motor.motor_asyncio
 from fastapi import HTTPException, Depends, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 import bcrypt
 import jwt
 from jwt.exceptions import InvalidTokenError
-from schemas.items import TokenData
+from schemas.items import TokenData, Token
 
 ACCESS_TOKEN_TIME = 60.0
 ALGORITHM = "HS256"
@@ -34,7 +34,7 @@ client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_DETAILS)
 database = client['admin_details']
 admin = database.get_collection('admin')
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/admin/token")
 
 
 class AdminServices():
@@ -43,8 +43,8 @@ class AdminServices():
 
     async def create_admin(self, username: str, password: str) -> str:
         try:
-            exsisting_admin = await self.admin_collection.find_one({})
-            if exsisting_admin:
+            existing_admin = await self.admin_collection.find_one({})
+            if existing_admin:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail="Admin Already Exists"
@@ -59,8 +59,25 @@ class AdminServices():
         except Exception as exc:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Error has occured"
+                detail="Error has occurred"
             ) from exc
+
+    async def login(
+        self,
+        form_data: OAuth2PasswordRequestForm
+    ) -> Token:
+        access_token = await self.verify_admin(
+            form_data.username,
+            form_data.password
+        )
+        return Token(access_token=access_token, token_type="bearer")
+
+    @staticmethod
+    async def get_current_admin(
+        token: str = Depends(oauth2_scheme)
+    ):
+        admin_service = AdminServices()
+        return await admin_service.get_current_user(token)
 
     async def verify_admin(self, username: str, password: str) -> str:
         admin = await self.admin_collection.find_one({"username": username})

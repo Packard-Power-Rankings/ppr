@@ -10,12 +10,17 @@ from fastapi import (
     status,
     Body
 )
-from schemas.items import InputMethod, NewTeamList, input_method_dependency
+from fastapi.security import OAuth2PasswordRequestForm
+from schemas.items import (
+    InputMethod,
+    NewTeamList,
+    UpdateTeamsData,
+    Token,
+    input_method_dependency,
+    update_method
+)
 from service.admin_teams import AdminTeamsService
 from service.admin_service import AdminServices
-from fastapi.responses import JSONResponse
-from fastapi.security import OAuth2PasswordRequestForm
-from schemas.items import TokenData
 
 router = APIRouter()
 admin_service = AdminServices()
@@ -28,86 +33,20 @@ def admin_team_class(level_key: Tuple) -> "AdminTeamsService":
     return _instance_cache[level_key]
 
 
-@router.post("/add-admin/", tags=["Admin"])
-async def add_admin(
-    username: str, 
-    password: str
-) -> Any:
-    """
-    ___
-    DO NOT USE THIS METHOD IN PRODUCTION!
-    ___
-    A NEW ADMINISTRATOR WILL BE CREATED!
-    ___
-    
-    Adds a new admin to the database.
-    
-    Args:
-        username (str): The username of the new admin.
-        password (str): The password of the new admin.
-
-    Returns:
-        JSONResponse: Confirmation of the new admin creation along with an access token.
-    """
-    try:
-        # Create the new admin account
-        admin_id = await admin_service.create_admin(username, password)
-        
-        # Generate an access token for the newly created admin
-        token = admin_service.generate_access_token({"sub": username})
-
-        return JSONResponse(
-            status_code=status.HTTP_201_CREATED,
-            content={
-                "message": "Admin created successfully",
-                "admin_id": admin_id,
-                "access_token": token,
-                "token_type": "bearer"
-            }
-        )
-    except HTTPException as exc:
-        raise exc  # Reraise HTTP errors to propagate them
-    except Exception as exc:
-        print(f"Unexpected error: {exc}")  # Log the exception for debugging
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Internal server error: {exc}"
-        )
+@router.post("/token", response_model=Token, tags=["Admin"])
+async def login_generate_token(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    admin_service: AdminServices = Depends()
+):
+    return await admin_service.login(form_data)
 
 
-@router.post("/login/", tags=["Admin"])
-async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    """
-    Handles admin login by verifying credentials and generating an access token.
-    
-    Args:
-        form_data (OAuth2PasswordRequestForm): Form data with username and password.
-
-    Returns:
-        JSONResponse: Contains access token and token type if successful.
-    """
-    try:
-        # Use AdminServices to verify the username and password
-        token = await admin_service.verify_admin(form_data.username, form_data.password)
-        
-        return JSONResponse(
-            status_code=status.HTTP_200_OK,
-            content={
-                "access_token": token,
-                "token_type": "bearer"
-            }
-        )
-    except HTTPException as exc:
-        raise exc  # Reraise to propagate specific HTTP errors
-    except Exception as exc:
-        print(f"Unexpected error: {exc}")  # Log the exception for debugging
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Internal server error: {exc}"  # Show detailed error for testing
-        )
-
-
-@router.post("/upload_csv/", tags=["Admin"])
+@router.post(
+    "/upload-csv",
+    tags=["Admin"],
+    dependencies=[Depends(AdminServices.get_current_admin)],
+    description="Adds CSV File and Finds Missing Teams"
+)
 async def upload_csv(
     sports_input: InputMethod = Depends(input_method_dependency),
     csv_file: UploadFile = File()
@@ -139,7 +78,12 @@ async def upload_csv(
         ) from exc
 
 
-@router.post("/add_teams/", tags=["Admin"])
+@router.post(
+    "/add_teams/",
+    tags=["Admin"],
+    dependencies=[Depends(AdminServices.get_current_admin)],
+    description="Adds Missing Teams To Database"
+)
 async def add_missing_teams(
     new_team: Annotated[NewTeamList, Body(embed=True)],
     sports_input: InputMethod = Depends(input_method_dependency)
@@ -162,7 +106,12 @@ async def add_missing_teams(
         ) from exc
 
 
-@router.post("/run_algorithm/", tags=["Admin"])
+@router.post(
+    "/run_algorithm/",
+    tags=["Admin"],
+    dependencies=[Depends(AdminServices.get_current_admin)],
+    description="Runs Main Algorithm"
+)
 async def main_algorithm_exc(
     iterations: int,
     sport_input: InputMethod = Depends(input_method_dependency)
@@ -178,11 +127,38 @@ async def main_algorithm_exc(
     return results
 
 
-@router.put("/update_game", tags=["Admin"])
-async def update_game():
-    pass
+@router.put(
+    "/update-game",
+    tags=["Admin"],
+    dependencies=[Depends(AdminServices.get_current_admin)],
+    description="Updates Games and CSV File"
+)
+async def update_game(
+    update_data: UpdateTeamsData = Depends(update_method),
+    sport_input: InputMethod = Depends(input_method_dependency)
+):
+    team_service = admin_team_class(
+        (
+            sport_input.sport_type,
+            sport_input.gender,
+            sport_input.level
+        )
+    )
+    results = await team_service.update_teams_info(
+        update_data.home_team,
+        update_data.home_score,
+        update_data.away_team,
+        update_data.away_score,
+        update_data.date
+    )
+    return results
 
 
-@router.delete("/clear_season", tags=["Admin"])
+@router.delete(
+    "/clear-season",
+    tags=["Admin"],
+    dependencies=[Depends(AdminServices.get_current_admin)],
+    description="Clears Season"
+)
 async def clear_season():
     pass
