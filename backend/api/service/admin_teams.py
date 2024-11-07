@@ -1,5 +1,5 @@
 import os
-from io import StringIO
+from io import StringIO, BytesIO
 from typing import Any, List, Dict, Tuple
 import traceback
 import csv
@@ -197,7 +197,22 @@ class AdminTeamsService():
         away_score: int,
         date: str
     ):
-        pass
+        query = {
+            "sport_type": self.level_key[0],
+            "gender": self.level_key[1],
+            "level": self.level_key[2]
+        }
+        csv_content = await self.csv_collection.find_one(
+            query,
+            {"csv_files": {"$elemMatch": {"sports_week": date}}}
+        )
+        print(csv_content)
+        csv_data = csv_content['csv_files'][0]
+        for row in BytesIO(csv_data['filedata']):
+            if row[1] == home_team and row[2] == away_team:
+                row[3] = home_score
+                row[4] = away_score
+        print(csv_data)
 
     async def clear_season(self):
         """Clears the season at the end of a season
