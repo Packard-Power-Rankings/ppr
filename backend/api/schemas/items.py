@@ -168,11 +168,11 @@ async def update_method(
     # Convert form inputs to the expected enum types
     try:
         return UpdateTeamsData(
-            date,
-            home_team,
-            away_team,
-            home_score,
-            away_score
+            date=date,
+            home_team=home_team,
+            away_team=away_team,
+            home_score=home_score,
+            away_score=away_score
         )
     except (ValueError, ValidationError) as e:
         raise HTTPException(status_code=422, detail=f"Invalid input: {str(e)}")
@@ -182,6 +182,10 @@ class UpdateRequest(BaseModel):
 
 class TokenData(BaseModel):
     username: str | None = None
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
 
 class NewTeamData(BaseModel):
     team_name: str = Field(...)
