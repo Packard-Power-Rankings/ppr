@@ -11,7 +11,7 @@ const Login = ({ onLoginSuccess }) => {
         e.preventDefault();
 
         try {
-            const response = await fetch('http://localhost:8000/admin/login/', {
+            const response = await fetch('http://localhost:8000/admin/token/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',

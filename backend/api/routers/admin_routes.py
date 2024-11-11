@@ -33,7 +33,7 @@ def admin_team_class(level_key: Tuple) -> "AdminTeamsService":
     return _instance_cache[level_key]
 
 
-@router.post("/token", response_model=Token, tags=["Admin"])
+@router.post("/token/", response_model=Token, tags=["Admin"])
 async def login_generate_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
     admin_service: AdminServices = Depends()
@@ -42,7 +42,7 @@ async def login_generate_token(
 
 
 @router.post(
-    "/upload-csv",
+    "/upload_csv/",
     tags=["Admin"],
     dependencies=[Depends(AdminServices.get_current_admin)],
     description="Adds CSV File and Finds Missing Teams"
@@ -155,7 +155,7 @@ async def update_game(
 
 
 @router.delete(
-    "/clear-season",
+    "/clear_season/",
     tags=["Admin"],
     dependencies=[Depends(AdminServices.get_current_admin)],
     description="Clears Season"

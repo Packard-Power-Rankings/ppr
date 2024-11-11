@@ -9,7 +9,7 @@ const RankingTile = () => {
             link: '/football', // Link to the TeamsPage for football
         },
         {
-            title: 'High School Football',
+            title: 'Colorado High School Football',
             link: '/football',
         },
     ];
@@ -24,11 +24,11 @@ const RankingTile = () => {
             link: '/basketball',
         },
         {
-            title: 'Men’s High School Basketball',
+            title: 'Colorado Boy’s High School Basketball',
             link: '/basketball', // Link to the TeamsPage for basketball
         },
         {
-            title: 'Women’s High School Basketball',
+            title: 'Colorado Girl’s High School Basketball',
             link: '/basketball',
         },
     ];

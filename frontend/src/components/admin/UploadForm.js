@@ -87,7 +87,6 @@ const UploadForm = ({ initialSportType, initialGender, initialLevel }) => {
 
     return (
         <div>
-            <h2>Upload New Sports Data</h2>
             {/* CSV Upload Section */}
             <div style={{ marginBottom: '20px' }}>
                 <CsvUpload
@@ -119,7 +118,7 @@ const UploadForm = ({ initialSportType, initialGender, initialLevel }) => {
                 </div>
             )}
 
-            {/* Run Algorithm Section (always shown as separate) */}
+            {/* Run Algorithm Section */}
             <div style={{ borderTop: '1px solid #ccc', paddingTop: '20px' }}>
                 <RunAlgorithm onRun={handleRunAlgorithm} />
             </div>
