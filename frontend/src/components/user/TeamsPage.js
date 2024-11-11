@@ -11,7 +11,7 @@ const TeamsPage = () => {
     const [sortColumn, setSortColumn] = useState(null);
     const [sortOrder, setSortOrder] = useState("asc");
     const [currentPage, setCurrentPage] = useState(1);
-    const [teamsPerPage] = useState(20);
+    const [teamsPerPage] = useState(50);
     const [selectedDivision, setSelectedDivision] = useState(null);
 
     const fetchTeams = async () => {
@@ -78,6 +78,7 @@ const TeamsPage = () => {
 
     const handlePageChange = (pageNumber) => {
         setCurrentPage(pageNumber);
+        window.scrollTo(0, 0);  // Scroll to the top of the page
     };
 
     const handleDivisionClick = (division) => {

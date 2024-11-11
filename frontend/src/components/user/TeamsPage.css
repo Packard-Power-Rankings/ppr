@@ -9,6 +9,7 @@
     border: 1px solid #ddd;
     background-color: #ffffff;
     color: #333;
+    margin-bottom: 20px;
 }
 
 .team-table {
@@ -95,6 +96,11 @@
 }
 
 /* Pagination styling */
+.pagination {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
 .pagination button {
     margin: 5px;
     padding: 5px 10px;
