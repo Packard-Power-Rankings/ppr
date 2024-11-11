@@ -81,12 +81,12 @@
 .table-header span {
     cursor: pointer;
     position: relative;
-    padding-right: 20px; /* Leave space for the arrow */
+    padding-right: 20px; /* Leave space for the sorting indicator */
 }
 
-/* Default sorting arrow (ascending) */
+/* Sorting indicator */
 .table-header span::after {
-    content: "▲"; /* Default arrow */
+    content: "...";
     position: absolute;
     right: 5px;
     font-size: 12px;
@@ -94,16 +94,18 @@
     opacity: 0.5;
 }
 
-/* Descending arrow style */
-.table-header .sorted-desc::after {
-    content: "▼"; /* Descending arrow */
-    color: #333;
-    opacity: 1;
+/* Pagination styling */
+.pagination button {
+    margin: 5px;
+    padding: 5px 10px;
 }
 
-/* Ascending arrow style */
-.table-header .sorted-asc::after {
-    content: "▲"; /* Ascending arrow */
-    color: #333;
-    opacity: 1;
+.pagination .active {
+    background-color: #007bff;
+    color: white;
+}
+
+.pagination button:disabled {
+    background-color: #ddd;
+    cursor: not-allowed;
 }
