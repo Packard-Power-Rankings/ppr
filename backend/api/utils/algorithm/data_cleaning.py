@@ -18,12 +18,9 @@ def clean_data(df):
     df['away_team'] = df['away_team'].fillna("Unknown Team")
 
     # Clean date: Ensure it's in a valid date format
-    df['date'] = pd.to_datetime(df['date'], errors='coerce')
+    # df['date'] = pd.to_datetime(df['date'], errors='coerce')
 
     # Handle missing or invalid dates (drop or fill in with a default date)
-    df = df.dropna(subset=['date'])  # Drop rows with invalid dates
-
-    # Ensure neutral site field is binary (0 or 1)
-    # df['neutral_site'] = df['neutral_site'].apply(lambda x: 1 if x == 1 else 0)
+    # df = df.dropna(subset=['date'])  # Drop rows with invalid dates
 
     return df
