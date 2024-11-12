@@ -1,4 +1,4 @@
-// src/components/UpdateTeam.js
+// src/components/admin/UpdateTeam.js
 import React, { useState } from 'react';
 
 const UpdateTeam = ({ initialTeams, onUpdateSubmit }) => {

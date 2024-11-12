@@ -1,3 +1,4 @@
+// src/components/admin/UploadForm.js
 import React, { useState } from 'react';
 import UpdateTeam from './UpdateTeam';
 import RunAlgorithm from './RunAlgorithm';
@@ -15,75 +16,76 @@ const UploadForm = ({ initialSportType, initialGender, initialLevel }) => {
         setIsUploadDisabled(true); // Disable upload buttons after successful upload
     };
 
-    const handleUpdateSubmit = async (teamsData) => {
+    const getToken = () => {
+        // Get the JWT token from localStorage or wherever it is stored
+        return localStorage.getItem('access_token');  // Example for localStorage
+      };
+      
+      const handleUpdateSubmit = async (teams) => {
+          const token = getToken();
+          if (!token) {
+              setErrorMessage('Unauthorized: No token found');
+              return;
+          }
+      
+          const formData = new FormData();
+          formData.append('teams', JSON.stringify(teams));
+      
+          try {
+              const response = await fetch('http://localhost:8000/admin/add_teams/', {
+                  method: 'POST',
+                  headers: {
+                      'Authorization': `Bearer ${token}`,  // Include the token here
+                  },
+                  body: formData,
+              });
+      
+              if (!response.ok) {
+                  const errorData = await response.json();
+                  setErrorMessage(errorData.detail || 'Submission failed.');
+                  throw new Error(`Fetch error: ${response.statusText}`);
+              }
+      
+              setErrorMessage('');
+          } catch (error) {
+              setErrorMessage('There was an issue with your request.');
+          }
+      };      
+
+      const handleRunAlgorithm = async (runCount) => {
+        const token = getToken();
+        if (!token) {
+            setErrorMessage('Unauthorized: No token found');
+            return;
+        }
+    
         const formData = new FormData();
-
-        // Append teams data
-        const teamsArray = teamsData.map((team) => ({
-            team_name: team.team_name,
-            power_ranking: parseFloat(team.power_ranking),
-            division: team.division || null,
-            conference: team.conference || null,
-            state: team.state || null,
-        }));
-
-        formData.append('teams', JSON.stringify(teamsArray));
-
-        // Append additional fields
         formData.append('sport_type', initialSportType);
         formData.append('gender', initialGender);
         formData.append('level', initialLevel);
-
-        try {
-            const response = await fetch('http://localhost:8000/admin/add_teams/', {
-                method: 'POST',
-                body: formData,
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                setErrorMessage(errorData.detail || 'Submission failed.');
-                throw new Error(`Fetch error: ${response.statusText}`);
-            }
-
-            setErrorMessage('');
-        } catch (error) {
-            setErrorMessage('There was an issue with your request.');
-        }
-    };
-
-    const handleRunAlgorithm = async (runCount) => {
-        const formData = new FormData();
-        formData.append('sport_type', initialSportType);        // Add sport_type
-        formData.append('gender', initialGender);               // Add gender
-        formData.append('level', initialLevel);                 // Add level
-
+    
         try {
             const response = await fetch(`http://localhost:8000/admin/run_algorithm/?iterations=${runCount}`, {
                 method: 'POST',
-                body: formData,  // Pass FormData in the body (for sport_type, gender, level)
+                headers: {
+                    'Authorization': `Bearer ${token}`,  // Include the token here
+                },
+                body: formData,
             });
-
+    
             const data = await response.json();
-            console.log(data);  // Log the full response to see what's inside `detail`
-
-            if (data && data.detail) {
-                const errorDetail = data.detail[0];
-                if (errorDetail && errorDetail.msg) {
-                    setErrorMessage(errorDetail.msg);  // Display the msg from the error
-                } else {
-                    setErrorMessage('An unknown error occurred.');
-                }
+    
+            if (!response.ok) {
+                setErrorMessage(data.detail || 'An error occurred');
+                throw new Error('Error running algorithm');
             }
-
-            // Handle response data as needed
+    
             console.log('Algorithm run successful:', data);
-
         } catch (error) {
             setErrorMessage('There was an issue with your request.');
             console.error('Fetch Error:', error);
         }
-    };
+    };    
 
     return (
         <div>

@@ -1,4 +1,4 @@
-// src/components/RunAlgorithm.js
+// src/components/admin/RunAlgorithm.js
 import React, { useState } from 'react';
 
 const RunAlgorithm = ({ onRun }) => {

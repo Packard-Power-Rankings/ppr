@@ -1,12 +1,24 @@
-// src/components/CsvUpload.js
+// src/components/admin/CsvUpload.js
 import React, { useState } from 'react';
 
 const CsvUpload = ({ initialSportType, initialGender, initialLevel, onUploadComplete, isUploadDisabled }) => {
     const [file, setFile] = useState(null);
     const [errorMessage, setErrorMessage] = useState('');
 
+    const getToken = () => {
+        // Retrieve the JWT token from localStorage (or other storage if used)
+        return localStorage.getItem('access_token');  // Example for localStorage
+    };
+
     const handleUploadSubmit = async (e) => {
         e.preventDefault();
+
+        const token = getToken(); // Retrieve the token
+        if (!token) {
+            setErrorMessage('Unauthorized: No token found');
+            return;
+        }
+
         const formData = new FormData();
         formData.append('sport_type', initialSportType);
         formData.append('gender', initialGender);
@@ -16,14 +28,17 @@ const CsvUpload = ({ initialSportType, initialGender, initialLevel, onUploadComp
         try {
             const response = await fetch('http://localhost:8000/admin/upload_csv/', {
                 method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,  // Include the JWT token in the headers
+                },
                 body: formData,
             });
             const data = await response.json();
 
-            if (data && data.missing_teams) {
+            if (response.ok && data && data.missing_teams) {
                 onUploadComplete(data.missing_teams); // Call the callback with missing teams
             } else {
-                setErrorMessage('Upload failed. Please try again.');
+                setErrorMessage(data.detail || 'Upload failed. Please try again.');
             }
         } catch (error) {
             console.error('Upload error:', error);

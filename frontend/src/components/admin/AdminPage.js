@@ -1,3 +1,4 @@
+// src/components/admin/AdminPage.js
 import React, { useState } from 'react';
 import SportForm from './SportForm';
 import UploadForm from './UploadForm';

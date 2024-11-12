@@ -1,4 +1,4 @@
-// DeleteSeason.js
+// src/components/admin/DeleteSeason.js
 import React from 'react';
 
 const DeleteSeason = ({ seasonName, onComplete }) => {

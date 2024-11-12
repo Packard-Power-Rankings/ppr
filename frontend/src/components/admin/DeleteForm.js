@@ -1,4 +1,4 @@
-// DeleteForm.js
+// src/components/admin/DeleteForm.js
 import React, { useState } from 'react';
 import DeleteSeason from './DeleteSeason';
 
