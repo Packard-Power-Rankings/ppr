@@ -6,8 +6,8 @@ const CsvUpload = ({ initialSportType, initialGender, initialLevel, onUploadComp
     const [errorMessage, setErrorMessage] = useState('');
 
     const getToken = () => {
-        // Retrieve the JWT token from localStorage (or other storage if used)
-        return localStorage.getItem('access_token');  // Example for localStorage
+        // Retrieve the JWT token from localStorage
+        return localStorage.getItem('access_token');
     };
 
     const handleUploadSubmit = async (e) => {

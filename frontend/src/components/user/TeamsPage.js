@@ -12,7 +12,10 @@ const TeamsPage = () => {
     const [sortOrder, setSortOrder] = useState("asc");
     const [currentPage, setCurrentPage] = useState(1);
     const [teamsPerPage] = useState(50);
-    const [selectedDivision, setSelectedDivision] = useState(null);
+    const [selectedDivision, setSelectedDivision] = useState("");
+    const [selectedConference, setSelectedConference] = useState("");
+    const [divisions, setDivisions] = useState([]);
+    const [conferences, setConferences] = useState([]);
 
     const fetchTeams = async () => {
         setLoading(true);
@@ -24,6 +27,8 @@ const TeamsPage = () => {
             const data = await response.json();
             if (data.data && Array.isArray(data.data.teams)) {
                 setTeams(data.data.teams);
+                setDivisions([...new Set(data.data.teams.map(team => team.division).filter(Boolean))]);
+                setConferences([...new Set(data.data.teams.map(team => team.conference).filter(Boolean))]);
             } else {
                 setTeams([]);
                 throw new Error('Expected an array of teams');
@@ -49,6 +54,10 @@ const TeamsPage = () => {
             filteredTeams = filteredTeams.filter(team => team.division === selectedDivision);
         }
 
+        if (selectedConference) {
+            filteredTeams = filteredTeams.filter(team => team.conference === selectedConference);
+        }
+
         return filteredTeams.sort((a, b) => {
             if (!sortColumn) return 0;
             const valA = a[sortColumn];
@@ -70,6 +79,14 @@ const TeamsPage = () => {
         setSortOrder(order);
     };
 
+    const handleDivisionChange = (e) => {
+        setSelectedDivision(e.target.value);
+    };
+
+    const handleConferenceChange = (e) => {
+        setSelectedConference(e.target.value);
+    };
+
     const indexOfLastTeam = currentPage * teamsPerPage;
     const indexOfFirstTeam = indexOfLastTeam - teamsPerPage;
     const currentTeams = applySortingAndFiltering().slice(indexOfFirstTeam, indexOfLastTeam);
@@ -79,14 +96,6 @@ const TeamsPage = () => {
     const handlePageChange = (pageNumber) => {
         setCurrentPage(pageNumber);
         window.scrollTo(0, 0);  // Scroll to the top of the page
-    };
-
-    const handleDivisionClick = (division) => {
-        setSelectedDivision(division);
-    };
-
-    const handleClearDivisionFilter = () => {
-        setSelectedDivision(null);
     };
 
     if (loading) return <p>Loading...</p>;
@@ -104,11 +113,21 @@ const TeamsPage = () => {
                 className="search-input"
             />
 
-            {selectedDivision && (
-                <button onClick={handleClearDivisionFilter} className="clear-filter">
-                    Clear Division Filter
-                </button>
-            )}
+            <div className="filters">
+                <select onChange={handleDivisionChange} value={selectedDivision}>
+                    <option value="">All Divisions</option>
+                    {divisions.map((division, index) => (
+                        <option key={index} value={division}>{division}</option>
+                    ))}
+                </select>
+
+                <select onChange={handleConferenceChange} value={selectedConference}>
+                    <option value="">All Conferences</option>
+                    {conferences.map((conference, index) => (
+                        <option key={index} value={conference}>{conference}</option>
+                    ))}
+                </select>
+            </div>
 
             <div className="team-table">
                 <div className="table-header">
@@ -129,10 +148,10 @@ const TeamsPage = () => {
                         <span>{team.team_name}</span>
                         <span>{team.power_ranking?.[0]?.toFixed(2) ?? 'N/A'}</span>
                         <span>
-                            {team.division_rank ?? 'N/A'} - 
-                            <span 
-                                onClick={(e) => { e.preventDefault(); handleDivisionClick(team.division); }} 
-                                style={{ cursor: 'pointer', color: 'blue', marginLeft: '5px' }}
+                            {team.division_rank ?? 'N/A'} -
+                            <span
+                                onClick={(e) => { e.preventDefault(); }}
+                                className="division-link"
                             >
                                 {team.division ?? 'N/A'}
                             </span>
