@@ -1,5 +1,5 @@
 import os
-from io import StringIO, BytesIO
+from io import StringIO
 from typing import Any, List, Dict, Tuple
 import traceback
 import csv
@@ -7,9 +7,7 @@ from datetime import datetime
 from fastapi import HTTPException, status, UploadFile
 from bson.binary import Binary
 import motor.motor_asyncio
-# from utils.algorithm.run import MainAlgorithm
 from config.config import LEVEL_CONSTANTS
-from schemas import items
 
 MONGO_DETAILS = \
     f"mongodb+srv://{os.getenv("MONGO_USER")}:{os.getenv("MONGO_PASS")}@" \
@@ -189,6 +187,88 @@ class AdminTeamsService():
         algorithm = MainAlgorithm(self, self.level_key)
         await algorithm.execute(iterations)
 
+    async def update_db_data(
+        self,
+        home_team: str,
+        home_score: int,
+        away_team: str,
+        away_score: int,
+        game_id: str
+    ):
+        home_team_data = await self.sports_collection.find_one(
+            {"teams.team_name": home_team, "teams.season_opp.game_id": game_id},
+            {"teams.$": 1}
+        )
+
+        away_team_data = await self.sports_collection.find_one(
+            {"teams.team_name": away_team, "teams.season_opp.game_id": game_id},
+            {"teams.$": 1}
+        )
+
+        current_home_score = \
+            home_team_data['teams'][0]['season_opp'][0]['home_score']
+        current_away_score = \
+            away_team_data['teams'][0]['season_opp'][0]['away_score']
+
+        current_home_wins = \
+            home_team_data['teams'][0]['wins']
+        current_home_losses = \
+            home_team_data['teams'][0]['losses']
+        current_away_wins = \
+            away_team_data['teams'][0]['wins']
+        current_away_losses = \
+            away_team_data['teams'][0]['losses']
+
+        home_won_current = current_home_score > current_away_score
+        home_won_now = home_score > away_score
+
+        if home_won_current != home_won_now:
+            update_home_wins = \
+                current_home_wins + (1 if home_won_now else -1)
+            updated_home_losses = \
+                current_home_losses + (-1 if home_won_now else 1)
+            updated_away_wins = \
+                current_away_wins + (-1 if home_won_now else 1)
+            updated_away_losses = \
+                current_away_losses + (1 if home_won_now else -1)
+
+            await self.sports_collection.find_one_and_update(
+                {
+                    "teams.team_name": home_team,
+                    "teams.season_opp.game_id": game_id
+                },
+                {
+                    "$set": {
+                        "teams.$[team].season_opp.$[game].home_score": home_score,
+                        "teams.$[team].season_opp.$[game].away_score": away_score,
+                        "teams.$[team].wins": update_home_wins,
+                        "teams.$[team].losses": updated_home_losses,
+                    }
+                },
+                array_filters=[
+                    {"team.team_name": home_team},
+                    {"game.game_id": game_id}
+                ]
+            )
+            await self.sports_collection.find_one_and_update(
+                {
+                    "teams.team_name": away_team,
+                    "teams.season_opp.game_id": game_id
+                },
+                {
+                    "$set": {
+                        "teams.$[team].season_opp.$[game].home_score": home_score,
+                        "teams.$[team].season_opp.$[game].away_score": away_score,
+                        "teams.$[team].wins": updated_away_wins,
+                        "teams.$[team].losses": updated_away_losses
+                    }
+                },
+                array_filters=[
+                    {"team.team_name": away_team},
+                    {"game.game_id": game_id}
+                ]
+            )
+
     async def update_teams_info(
         self,
         home_team: str,
@@ -208,11 +288,36 @@ class AdminTeamsService():
         )
         print(csv_content)
         csv_data = csv_content['csv_files'][0]
-        for row in BytesIO(csv_data['filedata']):
+        csv_file_data = csv_data['filedata']
+        csv_stream = StringIO(csv_file_data.decode('utf-8'))
+
+        csv_reader = csv.reader(csv_stream)
+        rows = list(csv_reader)
+
+        for row in rows:
             if row[1] == home_team and row[2] == away_team:
                 row[3] = home_score
                 row[4] = away_score
-        print(csv_data)
+                break
+
+        output_stream = StringIO()
+        csv_writer = csv.writer(output_stream)
+        csv_writer.writerows(rows)
+
+        updated_csv_file = output_stream.getvalue().encode('utf-8')
+        updated_results = await self.csv_collection.update_one(
+            query,
+            {"$set": {"csv_files.$[elem].filedata": updated_csv_file}},
+            array_filters=[{"elem.sports_week": date}]
+        )
+        # print(updated_results.modified_count)
+        await self.update_db_data(
+            home_team,
+            home_score,
+            away_team,
+            away_score,
+            f"{home_team}_{away_team}_{date}"
+        )
 
     async def clear_season(self):
         """Clears the season at the end of a season
@@ -340,5 +445,4 @@ class AdminTeamsService():
             },
             {"csv_files": 1}
         )
-        # print(csv_document['csv_files'])
         return csv_document['csv_files']
