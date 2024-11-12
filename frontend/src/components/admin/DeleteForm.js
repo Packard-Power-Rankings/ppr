@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import DeleteSeason from './DeleteSeason';
 
 const DeleteForm = ({ seasonName, onComplete }) => {
-    const [deleteOption, setDeleteOption] = useState(null);
+    // Set initial state to an empty string
+    const [deleteOption, setDeleteOption] = useState('');
 
     const handleOptionChange = (e) => {
         setDeleteOption(e.target.value);

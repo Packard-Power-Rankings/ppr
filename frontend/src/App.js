@@ -25,7 +25,12 @@ const App = () => {
     };
 
     return (
-        <Router>
+        <Router
+            future={{
+                v7_startTransition: true,  // Opt into startTransition
+                v7_relativeSplatPath: true,  // Opt into relative splat path resolution
+            }}
+        >
             <nav>
                 <Link to="/" className="nav-label">Packard Power Rankings</Link>
                 <Link to="/">Home</Link>
