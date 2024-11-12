@@ -1,12 +1,43 @@
-// src/components/admin/Login.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import jwtDecode from 'jwt-decode';
 
 const Login = ({ onLoginSuccess }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
     const navigate = useNavigate(); // Get the navigate function
+
+    const logout = () => {
+        localStorage.removeItem('access_token'); // Clear token
+        navigate('/login'); // Redirect to login page
+    };
+
+    // Function to check if the token is expired
+    const isTokenExpired = (token) => {
+        if (!token) return true;
+        const decoded = jwtDecode(token);
+        const currentTime = Date.now() / 1000; // Current time in seconds
+        return decoded.exp < currentTime; // Token expired check
+    };
+
+    // Automatically check the token's validity and handle logout
+    useEffect(() => {
+        const token = localStorage.getItem('access_token');
+        if (token && isTokenExpired(token)) {
+            logout(); // Log out if the token is expired
+        }
+
+        // Optional: Set a timer to periodically check the token's validity
+        const intervalId = setInterval(() => {
+            const token = localStorage.getItem('access_token');
+            if (token && isTokenExpired(token)) {
+                logout();
+            }
+        }, 60000); // Check every minute
+
+        return () => clearInterval(intervalId); // Clean up interval on component unmount
+    }, []);
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -25,7 +56,6 @@ const Login = ({ onLoginSuccess }) => {
 
             if (response.ok) {
                 const data = await response.json();
-                // Save token to local storage or context
                 localStorage.setItem('access_token', data.access_token);
                 onLoginSuccess(data.access_token); // Notify parent component of login success
                 navigate('/admin'); // Redirect to the admin page after login

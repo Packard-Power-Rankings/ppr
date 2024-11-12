@@ -54,7 +54,7 @@ const App = () => {
                     path="/admin"
                     element={isAuthenticated ? <AdminPage /> : <Login onLoginSuccess={handleLoginSuccess} />}
                 />
-                <Route path="/:sportType" element={<TeamsPage />} />
+                <Route path="/user/:sportType" element={<TeamsPage />} />
                 <Route path="/user/:sportType/:teamName" element={<TeamDetails />} />
             </Routes>
         </Router>
