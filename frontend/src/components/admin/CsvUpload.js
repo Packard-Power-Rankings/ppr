@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import UpdateTeam from './UpdateTeam';
 
-const CsvUpload = ({ initialSportType, initialGender, initialLevel, isUploadDisabled }) => {
+const CsvUpload = ({ SportType, Gender, Level, isUploadDisabled }) => {
     const [file, setFile] = useState(null);
     const [errorMessage, setErrorMessage] = useState('');
     const [missingTeams, setMissingTeams] = useState([]);
@@ -21,9 +21,9 @@ const CsvUpload = ({ initialSportType, initialGender, initialLevel, isUploadDisa
         }
 
         const formData = new FormData();
-        formData.append('sport_type', initialSportType);
-        formData.append('gender', initialGender);
-        formData.append('level', initialLevel);
+        formData.append('sport_type', SportType);
+        formData.append('gender', Gender);
+        formData.append('level', Level);
         formData.append('csv_file', file);
 
         try {
@@ -34,47 +34,52 @@ const CsvUpload = ({ initialSportType, initialGender, initialLevel, isUploadDisa
                 },
                 body: formData,
             });
+
             const data = await response.json();
 
-            if (response.ok && data && data.missing_teams) {
+            if (response.ok && data?.missing_teams) {
                 setMissingTeams(data.missing_teams);
                 setShowUpdateForm(true);
             } else {
-                setErrorMessage(data.detail || 'Upload failed. Please try again.');
+                const errorText = typeof data.detail === 'object'
+                    ? JSON.stringify(data.detail)
+                    : data.detail || 'Upload failed. Please try again.';
+                setErrorMessage(errorText);
             }
         } catch (error) {
             setErrorMessage('There was an issue with the upload. Please try again.');
         }
     };
 
-    const handleUpdateSubmit = async (teams) => {
+    const handleUpdateSubmit = async (updatedTeams) => {
         const token = getToken();
         if (!token) {
             setErrorMessage('Unauthorized: No token found');
             return;
         }
-
-        const formData = new FormData();
-        formData.append('teams', JSON.stringify(teams));
-
+    
+        console.log("Payload being sent to server:", updatedTeams); // Log the payload to check its structure
+    
         try {
             const response = await fetch('http://localhost:8000/admin/add_teams/', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
                 },
-                body: formData,
+                body: JSON.stringify({ teams: updatedTeams }), // Ensure the structure matches backend expectations
             });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                setErrorMessage(errorData.detail || 'Submission failed.');
-                throw new Error(`Fetch error: ${response.statusText}`);
+    
+            if (response.ok) {
+                setMissingTeams([]);  // Clear missing teams after successful update
+                setShowUpdateForm(false);
+                alert('Teams updated successfully!');
+            } else {
+                const data = await response.json();
+                setErrorMessage(data.detail || 'Update failed. Please try again.');
             }
-
-            setErrorMessage('');
         } catch (error) {
-            setErrorMessage('There was an issue with your request.');
+            setErrorMessage('There was an issue with updating teams. Please try again.');
         }
     };
 
@@ -90,16 +95,19 @@ const CsvUpload = ({ initialSportType, initialGender, initialLevel, isUploadDisa
                     disabled={isUploadDisabled}
                 />
                 <button type="submit" disabled={isUploadDisabled}>Upload</button>
-                {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
+                {errorMessage && (
+                    <p style={{ color: 'red' }}>
+                        {typeof errorMessage === 'object' ? JSON.stringify(errorMessage) : errorMessage}
+                    </p>
+                )}
             </form>
 
             {/* Update Teams Section (conditionally shown) */}
             {showUpdateForm && (
-                <div style={{ marginTop: '20px' }}>
+                <div style={{ marginBottom: '20px' }}>
                     <UpdateTeam
                         initialTeams={missingTeams.map((team) => ({
                             team_name: team,
-                            score: '',
                             power_ranking: '',
                             division: '',
                             conference: '',
