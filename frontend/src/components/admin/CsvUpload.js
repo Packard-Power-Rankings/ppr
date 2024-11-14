@@ -58,24 +58,30 @@ const CsvUpload = ({ SportType, Gender, Level, isUploadDisabled }) => {
             return;
         }
     
-        console.log("Payload being sent to server:", updatedTeams); // Log the payload to check its structure
+        // Serialize the 'teams' object to a URL-encoded string
+        const formData = new URLSearchParams();
+        formData.append('new_team', JSON.stringify({ teams: updatedTeams }));
+        formData.append('sport_type', SportType);
+        formData.append('gender', Gender);
+        formData.append('level', Level);
     
         try {
             const response = await fetch('http://localhost:8000/admin/add_teams/', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                 },
-                body: JSON.stringify({ teams: updatedTeams }), // Ensure the structure matches backend expectations
+                body: formData, // Send as URL-encoded
             });
+    
+            const data = await response.json();
     
             if (response.ok) {
                 setMissingTeams([]);  // Clear missing teams after successful update
                 setShowUpdateForm(false);
                 alert('Teams updated successfully!');
             } else {
-                const data = await response.json();
                 setErrorMessage(data.detail || 'Update failed. Please try again.');
             }
         } catch (error) {
