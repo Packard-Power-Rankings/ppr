@@ -19,51 +19,51 @@ const UploadForm = ({ initialSportType, initialGender, initialLevel }) => {
     const getToken = () => {
         // Get the JWT token from localStorage
         return localStorage.getItem('access_token');
-      };
-      
-      const handleUpdateSubmit = async (teams) => {
-          const token = getToken();
-          if (!token) {
-              setErrorMessage('Unauthorized: No token found');
-              return;
-          }
-      
-          const formData = new FormData();
-          formData.append('teams', JSON.stringify(teams));
-      
-          try {
-              const response = await fetch('http://localhost:8000/admin/add_teams/', {
-                  method: 'POST',
-                  headers: {
-                      'Authorization': `Bearer ${token}`,  // Include the token here
-                  },
-                  body: formData,
-              });
-      
-              if (!response.ok) {
-                  const errorData = await response.json();
-                  setErrorMessage(errorData.detail || 'Submission failed.');
-                  throw new Error(`Fetch error: ${response.statusText}`);
-              }
-      
-              setErrorMessage('');
-          } catch (error) {
-              setErrorMessage('There was an issue with your request.');
-          }
-      };      
+    };
 
-      const handleRunAlgorithm = async (runCount) => {
+    const handleUpdateSubmit = async (teams) => {
         const token = getToken();
         if (!token) {
             setErrorMessage('Unauthorized: No token found');
             return;
         }
-    
+
+        const formData = new FormData();
+        formData.append('teams', JSON.stringify(teams));
+
+        try {
+            const response = await fetch('http://localhost:8000/admin/add_teams/', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,  // Include the token here
+                },
+                body: formData,
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                setErrorMessage(errorData.detail || 'Submission failed.');
+                throw new Error(`Fetch error: ${response.statusText}`);
+            }
+
+            setErrorMessage('');
+        } catch (error) {
+            setErrorMessage('There was an issue with your request.');
+        }
+    };
+
+    const handleRunAlgorithm = async (runCount) => {
+        const token = getToken();
+        if (!token) {
+            setErrorMessage('Unauthorized: No token found');
+            return;
+        }
+
         const formData = new FormData();
         formData.append('sport_type', initialSportType);
         formData.append('gender', initialGender);
         formData.append('level', initialLevel);
-    
+
         try {
             const response = await fetch(`http://localhost:8000/admin/run_algorithm/?iterations=${runCount}`, {
                 method: 'POST',
@@ -72,20 +72,20 @@ const UploadForm = ({ initialSportType, initialGender, initialLevel }) => {
                 },
                 body: formData,
             });
-    
+
             const data = await response.json();
-    
+
             if (!response.ok) {
                 setErrorMessage(data.detail || 'An error occurred');
                 throw new Error('Error running algorithm');
             }
-    
+
             console.log('Algorithm run successful:', data);
         } catch (error) {
             setErrorMessage('There was an issue with your request.');
             console.error('Fetch Error:', error);
         }
-    };    
+    };
 
     return (
         <div>

@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import SportForm from './SportForm';
 import UploadForm from './UploadForm';
 import DeleteForm from './DeleteForm';
+import RunAlgorithm from './RunAlgorithm';
 
 const AdminPage = () => {
     const [showUploadForm, setShowUploadForm] = useState(false);
@@ -27,9 +28,9 @@ const AdminPage = () => {
         <div>
             <h1>Packard Power Rankings Admin Page</h1>
 
-            {/* Step 1: Sport Form Section */}
-            <div style={{ borderTop: '1px solid #ccc', paddingTop: '10px', marginBottom: '20px' }}>
-                <h2>Upload New Sports Data & Run Algorithm</h2>
+            {/* Sport Form Section */}
+            <div style={{ borderTop: '1px solid #ccc', paddingTop: '20px', marginBottom: '20px' }}>
+                <h2>Upload New Sports Data</h2>
                 {!showUploadForm ? (
                     <SportForm onSubmit={handleSportFormSubmit} />
                 ) : (
@@ -53,8 +54,14 @@ const AdminPage = () => {
                 </div>
             )}
 
-            {/* Step 3: Delete Form Section */}
-            <div style={{ borderTop: '1px solid #ccc', paddingTop: '10px' }}>
+            {/* Run Algorithm Section */}
+            <div style={{ borderTop: '1px solid #ccc', paddingTop: '20px', marginBottom: '20px' }}>
+                <h2>Run Algorithm</h2>
+                <RunAlgorithm />
+            </div>
+
+            {/* Delete Form Section */}
+            <div style={{ borderTop: '1px solid #ccc', paddingTop: '20px', marginBottom: '20px' }}>
                 <h2>Delete Sports Data</h2>
                 <DeleteForm />
             </div>

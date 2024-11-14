@@ -22,7 +22,6 @@ const RunAlgorithm = ({ onRun }) => {
 
     return (
         <div>
-            <h2>Run Algorithm</h2>
             <input
                 type="number"
                 placeholder="Number of Times to Run (1-30)"
