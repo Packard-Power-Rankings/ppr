@@ -7,12 +7,39 @@ const UpdateTeam = ({ initialTeams, onUpdateSubmit }) => {
 
     const handleDetailChange = (index, field, value) => {
         const newDetails = [...teamDetails];
-        newDetails[index][field] = field === 'power_ranking' ? parseFloat(value) : value;
+        
+        // Check for 'power_ranking' to ensure valid number
+        if (field === 'power_ranking') {
+            const parsedValue = parseFloat(value);
+            newDetails[index][field] = isNaN(parsedValue) ? '' : parsedValue; // Ensure no NaN value is set
+        } else {
+            newDetails[index][field] = value;
+        }
+        
         setTeamDetails(newDetails);
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        
+        // Check for required fields
+        for (const team of teamDetails) {
+            if (!team.team_name || !team.division || !team.conference || !team.state) {
+                setErrorMessage('Please fill in all required fields.');
+                return;
+            }
+    
+            // Validate power_ranking to ensure it's a valid number
+            if (isNaN(team.power_ranking) || team.power_ranking === '') {
+                setErrorMessage('Please provide a valid Power Ranking.');
+                return;
+            }
+        }
+    
+        // Log the payload before submitting
+        console.log("Submitting teams data:", teamDetails);
+    
+        // Submit data if valid
         onUpdateSubmit(teamDetails);
     };
 
