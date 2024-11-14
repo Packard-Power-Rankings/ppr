@@ -10,19 +10,19 @@ const RunAlgorithm = ({ onRun, sportType, gender, level }) => {
             setErrorMessage('Please enter a value between 1 and 30.');
             return;
         }
-    
+
         const token = localStorage.getItem('access_token');
         if (!token) {
             setErrorMessage('Unauthorized: No token found');
             return;
         }
-    
+
         const formData = new FormData();
         formData.append('sport_type', sportType);
         formData.append('gender', gender);
         formData.append('level', level);
         formData.append('iterations', runCount); // Add `iterations` to the form data
-    
+
         try {
             const response = await fetch(`http://localhost:8000/admin/run_algorithm/`, {
                 method: 'POST',
@@ -32,14 +32,14 @@ const RunAlgorithm = ({ onRun, sportType, gender, level }) => {
                 },
                 body: formData,
             });
-    
+
             const data = await response.json();
-    
+
             if (!response.ok) {
                 setErrorMessage(data.detail || 'An error occurred');
                 throw new Error('Error running algorithm');
             }
-    
+
             console.log('Algorithm run successful:', data);
             if (onRun) onRun(data);
         } catch (error) {

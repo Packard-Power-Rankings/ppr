@@ -1,62 +1,61 @@
 // src/components/admin/CsvTable.js
 import React from 'react';
+import './CsvTable.css';
 
 const CSVTable = ({ headers, data, setData }) => {
   const handleCellChange = (rowIndex, fieldName, value) => {
     const updatedData = [...data];
-    updatedData[rowIndex][fieldName] = value;
+    updatedData[rowIndex][fieldName] = value ? Number(value) : 0;
     setData(updatedData);
   };
 
-  // Filter the headers to only include the relevant fields (team names and scores)
-  const filteredHeaders = headers.filter(header =>
-    header === 'home_team_id' || header === 'visitor_team_id' ||
-    header === 'original_home_score' || header === 'original_visitor_score'
+  const headerLabels = {
+    home_team_id: 'Home Team',
+    original_home_score: 'Home Score',
+    visitor_team_id: 'Away Team',
+    original_visitor_score: 'Away Score'
+  };
+
+  // Filter out rows that don't have required IDs
+  const filteredData = data.filter(row =>
+    row['home_team_id'] && row['visitor_team_id']
   );
 
   return (
-    <table>
-      <thead>
-        <tr>
-          {filteredHeaders.map((header, idx) => (
-            <th key={idx}>{header}</th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {data.map((row, rowIndex) => (
-          <tr key={rowIndex}>
-            {filteredHeaders.map((field, cellIndex) => {
-              // Editable fields for the scores
-              if (field === 'original_home_score' || field === 'original_visitor_score') {
-                return (
-                  <td key={cellIndex}>
-                    <input
-                      type="number"
-                      value={row[field] || ''}
-                      onChange={(e) =>
-                        handleCellChange(rowIndex, field, e.target.value)
-                      }
-                    />
-                  </td>
-                );
-              }
-
-              // Non-editable team names
-              if (field === 'home_team_id' || field === 'visitor_team_id') {
-                return (
-                  <td key={cellIndex}>
-                    {row[field]}
-                  </td>
-                );
-              }
-
-              return null; // If it's not one of the desired fields, return nothing
-            })}
+    <div className="csv-table-container">
+      <table className="csv-table">
+        <thead>
+          <tr className="table-header">
+            <th>{headerLabels['home_team_id']}</th>
+            <th>{headerLabels['original_home_score']}</th>
+            <th>{headerLabels['visitor_team_id']}</th>
+            <th>{headerLabels['original_visitor_score']}</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {filteredData.map((row, rowIndex) => (
+            <tr key={rowIndex} className="team-row">
+              <td>{row['home_team_id'] || '-'}</td>
+              <td>
+                <input
+                  type="number"
+                  value={row['original_home_score'] ?? 0}
+                  onChange={(e) => handleCellChange(rowIndex, 'original_home_score', e.target.value)}
+                />
+              </td>
+              <td>{row['visitor_team_id'] || '-'}</td>
+              <td>
+                <input
+                  type="number"
+                  value={row['original_visitor_score'] ?? 0}
+                  onChange={(e) => handleCellChange(rowIndex, 'original_visitor_score', e.target.value)}
+                />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 };
 
