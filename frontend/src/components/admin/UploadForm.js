@@ -17,8 +17,8 @@ const UploadForm = ({ initialSportType, initialGender, initialLevel }) => {
     };
 
     const getToken = () => {
-        // Get the JWT token from localStorage or wherever it is stored
-        return localStorage.getItem('access_token');  // Example for localStorage
+        // Get the JWT token from localStorage
+        return localStorage.getItem('access_token');
       };
       
       const handleUpdateSubmit = async (teams) => {
