@@ -1,45 +1,61 @@
-// src/App.js
-// Main application component
-
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Link, useNavigate } from 'react-router-dom';
 import Home from './components/Home';
 import About from './components/About';
-import Login from './components/Login';
-//import SportForm from './components/SportForm';
-import AdminPage from './components/AdminPage';
+import ThemeToggle from './components/ThemeToggle';
+import TeamsPage from './components/user/TeamsPage';
+import TeamDetails from './components/user/TeamDetails';
+import Login from './components/admin/Login';
+import AdminPage from './components/admin/AdminPage';
+import './Styles.css';
 import './Nav.css';
 
 const App = () => {
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('access_token'));
 
-    // Handle login
-    const handleLogin = (status) => {
-        setIsLoggedIn(status);
+    const handleLoginSuccess = (token) => {
+        setIsAuthenticated(true);
+        localStorage.setItem('access_token', token); // Save the token for future use
+        console.log('Logged in successfully, token:', token);
     };
 
-    // Handle logout
     const handleLogout = () => {
-        setIsLoggedIn(false);
+        setIsAuthenticated(false);
+        localStorage.removeItem('access_token'); // Remove the token from local storage on logout
     };
 
     return (
-        <Router>
+        <Router
+            future={{
+                v7_startTransition: true,  // Opt into startTransition
+                v7_relativeSplatPath: true,  // Opt into relative splat path resolution
+            }}
+        >
             <nav>
+                <Link to="/" className="nav-label">Packard Power Rankings</Link>
                 <Link to="/">Home</Link>
                 <Link to="/about">About</Link>
-                {isLoggedIn && <Link to="/admin">Admin</Link>}
-                {isLoggedIn ? (
+                {isAuthenticated && <Link to="/admin">Admin</Link>}
+                {isAuthenticated ? (
                     <button onClick={handleLogout}>Logout</button>
                 ) : (
                     <Link to="/login">Login</Link>
                 )}
             </nav>
+            <ThemeToggle />
             <Routes>
                 <Route path="/" element={<Home />} />
-                <Route path="/admin" element={isLoggedIn ? <AdminPage /> : <Login onLogin={handleLogin} />} />
                 <Route path="/about" element={<About />} />
-                <Route path="/login" element={<Login onLogin={handleLogin} />} />
+                <Route
+                    path="/login"
+                    element={<Login onLoginSuccess={handleLoginSuccess} />}
+                />
+                <Route
+                    path="/admin"
+                    element={isAuthenticated ? <AdminPage /> : <Login onLoginSuccess={handleLoginSuccess} />}
+                />
+                <Route path="/user/:sportType" element={<TeamsPage />} />
+                <Route path="/user/:sportType/:teamName" element={<TeamDetails />} />
             </Routes>
         </Router>
     );
