@@ -127,6 +127,25 @@ async def main_algorithm_exc(
     return results
 
 
+@router.post(
+    "/calc-z-scores",
+    tags=["Admin"],
+    dependencies=[Depends(AdminServices.get_current_admin)],
+    description="Calculate z Scores"
+)
+async def calc_z_scores(
+    sport_input: InputMethod = Depends(input_method_dependency)
+):
+    teams_service = admin_team_class(
+        (
+            sport_input.sport_type,
+            sport_input.gender,
+            sport_input.level
+        )
+    )
+    await teams_service.calculate_z_scores()
+
+
 @router.put(
     "/update-game",
     tags=["Admin"],
