@@ -29,7 +29,7 @@ class AdminTeamsService():
             level_key (Tuple): Tuple that contains three
             strings: sport_type, gender, level
         """
-        self.sports_collection = database.get_collection('temp2')
+        self.sports_collection = database.get_collection('temp')
         self.csv_collection = database.get_collection('csv_files_temp')
         self.previous_season = database.get_collection('previous_season')
         self.level_key = level_key
@@ -132,7 +132,7 @@ class AdminTeamsService():
             teams (List[Dict[str, Any]]): List of new teams to add 
 
         Returns:
-            Any: Succesfull storage of new teams or an
+            Any: Successful storage of new teams or an
             that the team already exists in the db
         """
         message = {}
@@ -148,7 +148,7 @@ class AdminTeamsService():
                 "conference": team.get('conference'),
                 "division_rank": 0,
                 "overall_rank": 0,
-                "power_ranking": [team.get('power_ranking')],
+                "power_ranking": [{"initial": team.get('power_ranking')}],
                 "win_ratio": 0.0,
                 "wins": 0,
                 "losses": 0,
@@ -187,6 +187,11 @@ class AdminTeamsService():
         from utils.algorithm.run import MainAlgorithm
         algorithm = MainAlgorithm(self, self.level_key)
         await algorithm.execute(iterations)
+
+    async def calculate_z_scores(self):
+        from utils.algorithm.run import MainAlgorithm
+        z_scores = MainAlgorithm(self, self.level_key)
+        await z_scores.execute_z_score_calc()
 
     async def update_db_data(
         self,
