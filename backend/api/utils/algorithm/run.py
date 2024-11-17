@@ -6,9 +6,8 @@ from service.admin_teams import AdminTeamsService
 from .upload import upload_csv
 from .data_cleaning import clean_data
 from .data_enrichment import enrich_data
-from .main import run_calculations
-from .output import update_teams
-# from service.teams import retrieve_csv_file
+from .main import run_calculations, calculate_z_scores
+from .output import update_teams, set_season_opp
 
 
 class MainAlgorithm():
@@ -26,6 +25,8 @@ class MainAlgorithm():
         self.enrich_data = enrich_data
         self.run_calculations = run_calculations
         self.output_to_db = update_teams
+        self.set_season_opp = set_season_opp
+        self.calculate_z_scores = calculate_z_scores
 
     async def load_csv(self):
         csv_content = await self.team_services.retrieve_csv_file()
@@ -69,12 +70,13 @@ class MainAlgorithm():
             self.team_data
         )
 
-    async def update_db(self):
+    async def update_db(self, date: str):
         await self.output_to_db(
             self.df,
             self.team_data,
             self.team_services.sports_collection,
-            self.team_services.level_constant
+            self.team_services.level_constant,
+            date
         )
 
     def run_algorithm(self):
@@ -83,10 +85,28 @@ class MainAlgorithm():
             self.team_data
         )
 
+    async def execute_z_score_calc(self, game_files):
+        await self.retrieve_teams()
+        for game_file in game_files:
+            csv_file = BytesIO(game_file["filedata"])
+            self.df = upload_csv(csv_file)
+            self.data_cleaning()
+            await self.data_enrichment()
+        n = 2 * len(self.df.index)
+        self.df = self.calculate_z_scores(self.df, n)
+        await self.set_season_opp(
+            self.df,
+            self.team_data,
+            self.team_services.sports_collection,
+            self.team_services.level_constant
+        )
+        self.df = self.df.iloc[0:0]
 
     async def execute(self, iterations: int):
         await self.retrieve_teams()
         game_files = await self.load_csv()
+        self.execute_z_score_calc(game_files)
+        date = game_files[-1]['sports_week']
         for _ in range(iterations):
             for game_file in game_files:
                 csv_file = BytesIO(game_file["filedata"])
@@ -94,7 +114,7 @@ class MainAlgorithm():
                 self.data_cleaning()
                 await self.data_enrichment()
                 self.run_algorithm()
-                await self.update_db()
+                await self.update_db(date)
                 self.df = self.df.iloc[0:0]
 
 
