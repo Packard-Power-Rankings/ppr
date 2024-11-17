@@ -1,13 +1,14 @@
 # Import the necessary functions from each module
 from io import BytesIO
 from typing import Tuple, List, Dict
+import asyncio
 from fastapi import HTTPException, status
 from service.admin_teams import AdminTeamsService
 from .upload import upload_csv
 from .data_cleaning import clean_data
 from .data_enrichment import enrich_data
 from .main import run_calculations, calculate_z_scores
-from .output import update_teams, set_season_opp
+from .output import update_teams, set_z_scores
 
 
 class MainAlgorithm():
@@ -25,7 +26,7 @@ class MainAlgorithm():
         self.enrich_data = enrich_data
         self.run_calculations = run_calculations
         self.output_to_db = update_teams
-        self.set_season_opp = set_season_opp
+        self.set_z_scores = set_z_scores
         self.calculate_z_scores = calculate_z_scores
 
     async def load_csv(self):
@@ -85,8 +86,9 @@ class MainAlgorithm():
             self.team_data
         )
 
-    async def execute_z_score_calc(self, game_files):
+    async def execute_z_score_calc(self):
         await self.retrieve_teams()
+        game_files = await self.load_csv()
         for game_file in game_files:
             csv_file = BytesIO(game_file["filedata"])
             self.df = upload_csv(csv_file)
@@ -94,7 +96,7 @@ class MainAlgorithm():
             await self.data_enrichment()
         n = 2 * len(self.df.index)
         self.df = self.calculate_z_scores(self.df, n)
-        await self.set_season_opp(
+        await self.set_z_scores(
             self.df,
             self.team_data,
             self.team_services.sports_collection,
@@ -105,7 +107,6 @@ class MainAlgorithm():
     async def execute(self, iterations: int):
         await self.retrieve_teams()
         game_files = await self.load_csv()
-        self.execute_z_score_calc(game_files)
         date = game_files[-1]['sports_week']
         for _ in range(iterations):
             for game_file in game_files:
@@ -116,6 +117,7 @@ class MainAlgorithm():
                 self.run_algorithm()
                 await self.update_db(date)
                 self.df = self.df.iloc[0:0]
+            asyncio.sleep(1)
 
 
 if __name__ == "__main__":
