@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link, useNavigate } from 'react-router-dom';
 import Home from './components/Home';
 import About from './components/About';
@@ -7,11 +7,29 @@ import TeamsPage from './components/user/TeamsPage';
 import TeamDetails from './components/user/TeamDetails';
 import Login from './components/admin/Login';
 import AdminPage from './components/admin/AdminPage';
+import jwtDecode from 'jwt-decode';
 import './Styles.css';
 import './Nav.css';
 
 const App = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('access_token'));
+
+    const isTokenExpired = (token) => {
+        try {
+            const decoded = jwtDecode(token);
+            const currentTime = Date.now() / 1000; // Current time in seconds
+            return decoded.exp < currentTime;
+        } catch (error) {
+            return true; // Treat invalid or missing token as expired
+        }
+    };
+
+    useEffect(() => {
+        const token = localStorage.getItem('access_token');
+        if (!token || isTokenExpired(token)) {
+            handleLogout(); // Logout if token is expired or missing
+        }
+    }, []);
 
     const handleLoginSuccess = (token) => {
         setIsAuthenticated(true);
@@ -27,8 +45,8 @@ const App = () => {
     return (
         <Router
             future={{
-                v7_startTransition: true,  // Opt into startTransition
-                v7_relativeSplatPath: true,  // Opt into relative splat path resolution
+                v7_startTransition: true, // Opt into startTransition
+                v7_relativeSplatPath: true, // Opt into relative splat path resolution
             }}
         >
             <nav>
@@ -52,7 +70,13 @@ const App = () => {
                 />
                 <Route
                     path="/admin"
-                    element={isAuthenticated ? <AdminPage /> : <Login onLoginSuccess={handleLoginSuccess} />}
+                    element={
+                        isAuthenticated ? (
+                            <AdminPage />
+                        ) : (
+                            <Login onLoginSuccess={handleLoginSuccess} />
+                        )
+                    }
                 />
                 <Route path="/user/:sportType" element={<TeamsPage />} />
                 <Route path="/user/:sportType/:teamName" element={<TeamDetails />} />

@@ -1,8 +1,9 @@
 // src/components/admin/CsvUpload.js
 import React, { useState } from 'react';
 import UpdateTeam from './UpdateTeam';
-import CSVTable from './CsvTable'; // Import the existing CSVTable
-import { parseCsvFile } from './CsvParser'; // Import the CSV parsing utility
+import CSVTable from './CsvTable';
+import { parseCsvFile } from './CsvParser';
+import { useNavigate } from 'react-router-dom'; // Assuming React Router for navigation
 
 const CsvUpload = ({ SportType, Gender, Level, isUploadDisabled }) => {
     const [file, setFile] = useState(null);
@@ -11,9 +12,21 @@ const CsvUpload = ({ SportType, Gender, Level, isUploadDisabled }) => {
     const [headers, setHeaders] = useState([]); // For holding CSV headers
     const [missingTeams, setMissingTeams] = useState([]);
     const [showUpdateForm, setShowUpdateForm] = useState(false);
+    const navigate = useNavigate(); // To handle redirection
 
     const getToken = () => {
-        return localStorage.getItem('access_token');
+        return sessionStorage.getItem('authToken');
+    };
+
+    const handleAuthError = (response) => {
+        if (response.status === 401) {
+            sessionStorage.removeItem('authToken'); // Clear expired token
+            navigate('/login'); // Redirect to login page
+        } else {
+            response.text().then((text) => {
+                setErrorMessage(text || 'An error occurred. Please try again.');
+            });
+        }
     };
 
     const handleFileChange = (e) => {
@@ -43,6 +56,7 @@ const CsvUpload = ({ SportType, Gender, Level, isUploadDisabled }) => {
         const token = getToken();
         if (!token) {
             setErrorMessage('Unauthorized: No token found');
+            navigate('/login');
             return;
         }
 
@@ -61,16 +75,16 @@ const CsvUpload = ({ SportType, Gender, Level, isUploadDisabled }) => {
                 body: formData,
             });
 
-            const data = await response.json();
-
-            if (response.ok && data?.missing_teams) {
-                setMissingTeams(data.missing_teams);
-                setShowUpdateForm(true);
+            if (response.ok) {
+                const data = await response.json();
+                if (data.missing_teams) {
+                    setMissingTeams(data.missing_teams);
+                    setShowUpdateForm(true);
+                } else {
+                    setErrorMessage('Upload completed successfully, but no missing teams were found.');
+                }
             } else {
-                const errorText = typeof data.detail === 'object'
-                    ? JSON.stringify(data.detail)
-                    : data.detail || 'Upload failed. Please try again.';
-                setErrorMessage(errorText);
+                handleAuthError(response);
             }
         } catch (error) {
             setErrorMessage('There was an issue with the upload. Please try again.');
@@ -81,6 +95,7 @@ const CsvUpload = ({ SportType, Gender, Level, isUploadDisabled }) => {
         const token = getToken();
         if (!token) {
             setErrorMessage('Unauthorized: No token found');
+            navigate('/login');
             return;
         }
 
@@ -95,19 +110,17 @@ const CsvUpload = ({ SportType, Gender, Level, isUploadDisabled }) => {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
-                    'Accept': 'application/json',
+                    'Content-Type': 'application/x-www-form-urlencoded',
                 },
                 body: formData,
             });
-
-            const data = await response.json();
 
             if (response.ok) {
                 setMissingTeams([]);
                 setShowUpdateForm(false);
                 alert('Teams updated successfully!');
             } else {
-                setErrorMessage(data.detail || 'Update failed. Please try again.');
+                handleAuthError(response);
             }
         } catch (error) {
             setErrorMessage('There was an issue with updating teams. Please try again.');
@@ -133,7 +146,7 @@ const CsvUpload = ({ SportType, Gender, Level, isUploadDisabled }) => {
 
             {/* Editable CSV Table */}
             {parsedData.length > 0 && (
-                <div style={{ marginTop: '20px' }}> {/* Adjust margin size as needed */}
+                <div style={{ marginTop: '20px' }}>
                     <CSVTable headers={headers} data={parsedData} setData={setParsedData} />
                     <button onClick={handleServerUploadSubmit}>Submit to Server</button>
                 </div>
