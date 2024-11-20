@@ -8,7 +8,7 @@
 """
 
 from typing import Any, Tuple, Dict
-from config.config import LEVEL_CONSTANTS
+from config.constants import LEVEL_CONSTANTS
 
 
 def update_values(
