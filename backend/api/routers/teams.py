@@ -28,7 +28,7 @@ from service.teams import (
     # add_sports_data,
     # find_teams
 )
-from config.config import LEVEL_CONSTANTS
+from config.constants import LEVEL_CONSTANTS
 from schemas import items
 
 router = APIRouter()
