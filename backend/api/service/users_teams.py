@@ -3,7 +3,7 @@ from typing import Tuple, Dict, List
 from math import e
 import motor.motor_asyncio
 from fastapi import status, HTTPException
-from config.config import LEVEL_CONSTANTS
+from config.constants import LEVEL_CONSTANTS
 from utils.json_helper import query_params_builder
 
 
