@@ -1,6 +1,9 @@
 from __future__ import annotations
 import traceback
 from typing import Tuple, Dict, Annotated, Any
+from celery.result import AsyncResult
+from celery import states
+from service.tasks import run_main_algorithm
 from fastapi import (
     APIRouter,
     Depends,
@@ -11,6 +14,7 @@ from fastapi import (
     Body
 )
 from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.responses import JSONResponse
 from schemas.items import (
     InputMethod,
     NewTeamList,
@@ -21,6 +25,7 @@ from schemas.items import (
 )
 from service.admin_teams import AdminTeamsService
 from service.admin_service import AdminServices
+from service.celery import celery
 
 router = APIRouter()
 admin_service = AdminServices()
@@ -116,34 +121,56 @@ async def main_algorithm_exc(
     iterations: int,
     sport_input: InputMethod = Depends(input_method_dependency)
 ):
-    teams_service = admin_team_class(
-        (
+    try:
+        level_key = [
             sport_input.sport_type,
             sport_input.gender,
             sport_input.level
-        )
-    )
-    results = await teams_service.run_main_algorithm(iterations)
-    return results
+        ]
+        task = run_main_algorithm.delay(level_key=level_key, iterations=iterations)
+        return {"task_id": task.id, "message": "Task has been started."}
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Server Error"
+        ) from exc
 
 
-@router.post(
-    "/calc-z-scores",
+@router.get(
+    "/task-status/{task_id}",
     tags=["Admin"],
     dependencies=[Depends(AdminServices.get_current_admin)],
-    description="Calculate z Scores"
+    description="Checks Status of Task"
 )
-async def calc_z_scores(
-    sport_input: InputMethod = Depends(input_method_dependency)
-):
-    teams_service = admin_team_class(
-        (
-            sport_input.sport_type,
-            sport_input.gender,
-            sport_input.level
-        )
-    )
-    await teams_service.calculate_z_scores()
+async def task_checker(task_id: str):
+    try:
+        task_result = AsyncResult(task_id, app=celery)
+        state = task_result.state
+
+        result = {
+            "task_id": task_id,
+            "status": state,
+        }
+
+        if state == states.SUCCESS:
+            result["result"] = task_result.get()
+        elif state == states.FAILURE:
+            result["error"] = str(task_result.result)
+        elif state == states.PENDING:
+            if not task_result.ready():
+                result["status"] = "PENDING"
+                result["message"] = "Task is in queue or processing"
+            else:
+                result["status"] = "NOT_FOUND"
+                result["message"] = "Task not found"
+        
+        return result
+    except Exception as exc:
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Server Error"
+        ) from exc
 
 
 @router.put(
