@@ -117,7 +117,7 @@ class MainAlgorithm():
                 self.run_algorithm()
                 await self.update_db(date)
                 self.df = self.df.iloc[0:0]
-            asyncio.sleep(1)
+            asyncio.sleep(0.5)
 
 
 if __name__ == "__main__":
