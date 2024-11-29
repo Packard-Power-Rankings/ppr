@@ -16,12 +16,12 @@ const CsvUpload = ({ SportType, Gender, Level, isUploadDisabled }) => {
     const navigate = useNavigate(); // To handle redirection
 
     const getToken = () => {
-        return sessionStorage.getItem('authToken');
-    };
+        return localStorage.getItem('access_token');
+    };    
 
     const handleAuthError = (response) => {
         if (response.status === 401) {
-            sessionStorage.removeItem('authToken'); // Clear expired token
+            localStorage.removeItem('authToken'); // Clear expired token
             navigate('/login'); // Redirect to login page
         } else {
             response.text().then((text) => {
