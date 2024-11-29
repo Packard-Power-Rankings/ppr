@@ -146,7 +146,7 @@ const TeamsPage = () => {
                     >
                         <span>{team.overall_rank ?? 'N/A'}</span>
                         <span>{team.team_name}</span>
-                        <span>{team.power_ranking?.[0]?.toFixed(2) ?? 'N/A'}</span>
+                        <span>{team.power_ranking?.[0] != null ? Number(team.power_ranking[0]).toFixed(2) : 'N/A'}</span>
                         <span>
                             {team.division_rank ?? 'N/A'} -
                             <span
