@@ -1,8 +1,11 @@
 // src/components/admin/CsvTable.js
-import React from 'react';
+import React, { useState } from 'react';
 import './CsvTable.css';
 
 const CSVTable = ({ headers, data, setData }) => {
+  const [currentPage, setCurrentPage] = useState(1); // Track the current page
+  const rowsPerPage = 10; // Define how many rows per page
+
   const handleCellChange = (rowIndex, fieldName, value) => {
     const updatedData = [...data];
     updatedData[rowIndex][fieldName] = value ? Number(value) : 0;
@@ -21,6 +24,17 @@ const CSVTable = ({ headers, data, setData }) => {
     row['home_team_id'] && row['visitor_team_id']
   );
 
+  // Calculate pagination indices
+  const indexOfLastRow = currentPage * rowsPerPage;
+  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
+  const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
+
+  // Handle pagination
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  // Calculate total pages
+  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+
   return (
     <div className="csv-table-container">
       <table className="csv-table">
@@ -33,7 +47,7 @@ const CSVTable = ({ headers, data, setData }) => {
           </tr>
         </thead>
         <tbody>
-          {filteredData.map((row, rowIndex) => (
+          {currentRows.map((row, rowIndex) => (
             <tr key={rowIndex} className="team-row">
               <td>{row['home_team_id'] || '-'}</td>
               <td>
@@ -55,6 +69,31 @@ const CSVTable = ({ headers, data, setData }) => {
           ))}
         </tbody>
       </table>
+
+      {/* Pagination Controls */}
+      <div className="pagination">
+        <button
+          onClick={() => paginate(currentPage - 1)}
+          disabled={currentPage === 1}
+        >
+          Previous
+        </button>
+        {Array.from({ length: totalPages }, (_, index) => (
+          <button
+            key={index}
+            className={currentPage === index + 1 ? 'active' : ''}
+            onClick={() => paginate(index + 1)}
+          >
+            {index + 1}
+          </button>
+        ))}
+        <button
+          onClick={() => paginate(currentPage + 1)}
+          disabled={currentPage === totalPages}
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 };

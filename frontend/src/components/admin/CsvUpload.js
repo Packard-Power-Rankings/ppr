@@ -12,6 +12,7 @@ const CsvUpload = ({ SportType, Gender, Level, isUploadDisabled }) => {
     const [headers, setHeaders] = useState([]); // For holding CSV headers
     const [missingTeams, setMissingTeams] = useState([]);
     const [showUpdateForm, setShowUpdateForm] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false); // Track submission state
     const navigate = useNavigate(); // To handle redirection
 
     const getToken = () => {
@@ -49,6 +50,7 @@ const CsvUpload = ({ SportType, Gender, Level, isUploadDisabled }) => {
 
     const handleUploadSubmit = (e) => {
         e.preventDefault();
+        setIsSubmitting(true); // Disable the submit button
         handleParseFile();
     };
 
@@ -88,6 +90,8 @@ const CsvUpload = ({ SportType, Gender, Level, isUploadDisabled }) => {
             }
         } catch (error) {
             setErrorMessage('There was an issue with the upload. Please try again.');
+        } finally {
+            setIsSubmitting(false); // Re-enable the submit button
         }
     };
 
@@ -136,9 +140,9 @@ const CsvUpload = ({ SportType, Gender, Level, isUploadDisabled }) => {
                     onChange={handleFileChange}
                     accept=".csv"
                     required
-                    disabled={isUploadDisabled}
+                    disabled={isUploadDisabled || isSubmitting} // Disable if uploading
                 />
-                <button type="submit" disabled={isUploadDisabled}>Upload</button>
+                <button type="submit" disabled={isUploadDisabled || isSubmitting}>Upload</button>
                 {errorMessage && (
                     <p style={{ color: 'red' }}>{errorMessage}</p>
                 )}
