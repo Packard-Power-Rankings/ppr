@@ -1,4 +1,5 @@
 // src/components/admin/CsvUpload.js
+// src/components/admin/CsvUpload.js
 import React, { useState } from 'react';
 import UpdateTeam from './UpdateTeam';
 import CSVTable from './CsvTable';
@@ -17,7 +18,7 @@ const CsvUpload = ({ SportType, Gender, Level, isUploadDisabled }) => {
 
     const getToken = () => {
         return localStorage.getItem('access_token');
-    };    
+    };
 
     const handleAuthError = (response) => {
         if (response.status === 401) {
@@ -31,6 +32,10 @@ const CsvUpload = ({ SportType, Gender, Level, isUploadDisabled }) => {
     };
 
     const handleFileChange = (e) => {
+        setErrorMessage(''); // Clear any previous error
+        setParsedData([]); // Reset the parsed data
+        setHeaders([]); // Reset headers
+        setMissingTeams([]); // Reset missing teams
         setFile(e.target.files[0]);
     };
 
@@ -84,6 +89,11 @@ const CsvUpload = ({ SportType, Gender, Level, isUploadDisabled }) => {
                     setShowUpdateForm(true);
                 } else {
                     setErrorMessage('Upload completed successfully, but no missing teams were found.');
+                    // Clear the table and reset state
+                    setParsedData([]);
+                    setHeaders([]);
+                    setFile(null); // Clear the file input as well
+                    alert('Data uploaded successfully!');
                 }
             } else {
                 handleAuthError(response);
@@ -152,7 +162,7 @@ const CsvUpload = ({ SportType, Gender, Level, isUploadDisabled }) => {
             {parsedData.length > 0 && (
                 <div style={{ marginTop: '20px' }}>
                     <CSVTable headers={headers} data={parsedData} setData={setParsedData} />
-                    <button onClick={handleServerUploadSubmit}>Submit to Server</button>
+                    <button onClick={handleServerUploadSubmit}>Verify Content</button>
                 </div>
             )}
 

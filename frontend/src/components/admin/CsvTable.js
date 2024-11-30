@@ -1,16 +1,24 @@
 // src/components/admin/CsvTable.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './CsvTable.css';
 
-const CSVTable = ({ headers, data, setData }) => {
-  const [currentPage, setCurrentPage] = useState(1); // Track the current page
-  const rowsPerPage = 10; // Define how many rows per page
+const CSVTable = ({ headers, data, setData, onTableComplete = () => { } }) => { // Default empty function
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 10;
 
   const handleCellChange = (rowIndex, fieldName, value) => {
     const updatedData = [...data];
     updatedData[rowIndex][fieldName] = value ? Number(value) : 0;
     setData(updatedData);
   };
+
+  // Check if the table is complete (all required fields are filled)
+  useEffect(() => {
+    const isComplete = data.every((row) =>
+      row['original_home_score'] !== undefined && row['original_visitor_score'] !== undefined
+    );
+    onTableComplete(isComplete); // Notify parent component
+  }, [data, onTableComplete]);
 
   const headerLabels = {
     home_team_id: 'Home Team',
@@ -19,20 +27,16 @@ const CSVTable = ({ headers, data, setData }) => {
     original_visitor_score: 'Away Score'
   };
 
-  // Filter out rows that don't have required IDs
   const filteredData = data.filter(row =>
     row['home_team_id'] && row['visitor_team_id']
   );
 
-  // Calculate pagination indices
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
   const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
 
-  // Handle pagination
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  // Calculate total pages
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
   return (
@@ -70,12 +74,8 @@ const CSVTable = ({ headers, data, setData }) => {
         </tbody>
       </table>
 
-      {/* Pagination Controls */}
       <div className="pagination">
-        <button
-          onClick={() => paginate(currentPage - 1)}
-          disabled={currentPage === 1}
-        >
+        <button onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1}>
           Previous
         </button>
         {Array.from({ length: totalPages }, (_, index) => (
@@ -87,10 +87,7 @@ const CSVTable = ({ headers, data, setData }) => {
             {index + 1}
           </button>
         ))}
-        <button
-          onClick={() => paginate(currentPage + 1)}
-          disabled={currentPage === totalPages}
-        >
+        <button onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages}>
           Next
         </button>
       </div>
