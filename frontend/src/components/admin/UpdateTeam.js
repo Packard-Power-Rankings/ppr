@@ -87,7 +87,7 @@ const UpdateTeam = ({ initialTeams, onUpdateSubmit }) => {
                         />
                     </div>
                 ))}
-                <button type="submit">Submit to Server</button>
+                <button type="submit">Update Teams</button>
                 {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
             </form>
         </div>
