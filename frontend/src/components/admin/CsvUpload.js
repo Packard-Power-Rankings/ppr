@@ -14,6 +14,7 @@ const CsvUpload = ({ SportType, Gender, Level, isUploadDisabled }) => {
     const [showUpdateForm, setShowUpdateForm] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false); // Track submission state
     const navigate = useNavigate(); // To handle redirection
+    const [successMessage, setSuccessMessage] = useState('');
 
     const getToken = () => {
         return localStorage.getItem('access_token');
@@ -85,6 +86,7 @@ const CsvUpload = ({ SportType, Gender, Level, isUploadDisabled }) => {
                 } else {
                     setErrorMessage('Upload completed successfully, but no missing teams were found.');
                 }
+                setSuccessMessage('CSV uploaded successfully!');
             } else {
                 handleAuthError(response);
             }
@@ -153,11 +155,14 @@ const CsvUpload = ({ SportType, Gender, Level, isUploadDisabled }) => {
                 <div style={{ marginTop: '20px' }}>
                     <CSVTable headers={headers} data={parsedData} setData={setParsedData} />
                     <button onClick={handleServerUploadSubmit}>Submit to Server</button>
+                    {successMessage && (
+                        <p style={{ color: 'green' }}>{successMessage}</p>
+                    )}
                 </div>
             )}
 
-            {/* Update Teams Section (conditionally shown) */}
-            {showUpdateForm && (
+            {/* Show Update Team Information only if there are missing teams */}
+            {missingTeams.length > 0 && showUpdateForm && (
                 <div style={{ marginBottom: '20px' }}>
                     <UpdateTeam
                         initialTeams={missingTeams.map((team) => ({
