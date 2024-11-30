@@ -17,13 +17,24 @@ const Login = ({ onLoginSuccess, onLogout }) => {
         return decoded.exp < currentTime; // Token expired check
     };
 
+    // Automatically check the token's validity and handle logout
     useEffect(() => {
         const token = localStorage.getItem('access_token');
         if (token && isTokenExpired(token)) {
-            handleLogout(); // Logout if token is expired
+            handleLogout(); // Log out if the token is expired
         }
-    }, []); // Run once on mount
-    
+
+        // Optional: Set a timer to periodically check the token's validity
+        const intervalId = setInterval(() => {
+            const token = localStorage.getItem('access_token');
+            if (token && isTokenExpired(token)) {
+                handleLogout();
+            }
+        }, 60000); // Check every minute
+
+        return () => clearInterval(intervalId); // Clean up interval on component unmount
+    }, []);
+
     const handleLogin = async (e) => {
         e.preventDefault();
 
@@ -42,7 +53,7 @@ const Login = ({ onLoginSuccess, onLogout }) => {
             if (response.ok) {
                 const data = await response.json();
                 localStorage.setItem('access_token', data.access_token);
-                onLoginSuccess(data.access_token); // Pass the token to App
+                onLoginSuccess(); // Notify parent component of login success
                 navigate('/admin'); // Redirect to the admin page after login
                 setErrorMessage('');
             } else {
