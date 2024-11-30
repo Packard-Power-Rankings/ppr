@@ -151,12 +151,41 @@ class OpponentData(BaseModel):
     away_zscore: float
     date: Optional[int]
 
+class UpdateTeamsData(BaseModel):
+    date: str = Field(..., description="Week Played")
+    home_team: str = Field(..., description="Home Team Name")
+    away_team: str = Field(..., description="Away Team Name")
+    home_score: int = Field(..., description="Home Team Score")
+    away_score: int = Field(..., description="Away Team Score")
+
+async def update_method(
+    date: str = Form(...),
+    home_team: str = Form(...),
+    away_team: str = Form(...),
+    home_score: int = Form(...),
+    away_score: int = Form(...)
+) -> UpdateTeamsData:
+    # Convert form inputs to the expected enum types
+    try:
+        return UpdateTeamsData(
+            date=date,
+            home_team=home_team,
+            away_team=away_team,
+            home_score=home_score,
+            away_score=away_score
+        )
+    except (ValueError, ValidationError) as e:
+        raise HTTPException(status_code=422, detail=f"Invalid input: {str(e)}")
 
 class UpdateRequest(BaseModel):
     added_teams: List[Team]
 
 class TokenData(BaseModel):
     username: str | None = None
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
 
 class NewTeamData(BaseModel):
     team_name: str = Field(...)

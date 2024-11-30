@@ -1,4 +1,4 @@
-// src/components/SportForm.js
+// src/components/admin/SportForm.js
 import React, { useState, useEffect } from 'react';
 
 const SportForm = ({ onSubmit, initialSportType = '', initialGender = '', initialLevel = '' }) => {

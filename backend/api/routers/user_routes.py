@@ -1,15 +1,16 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from schemas.items import GeneralInputMethod
 from schemas import items
-from utils.json_helper import query_params_builder
 from typing import Dict, Tuple
-from config.config import LEVEL_CONSTANTS
-from service.teams import (
-    retrieve_sports
-)
+from service.users_teams import UsersServices
 
 router = APIRouter()
+_instance_cache: Dict[Tuple, "UsersServices"] = {}
 
+def users_class(level_key: Tuple) -> "UsersServices":
+    if level_key not in _instance_cache:
+        _instance_cache[level_key] = UsersServices(level_key)
+    return _instance_cache[level_key]
 
 @router.get("/{sport_type}/", response_description="Display Teams Data")
 async def list_teams(
@@ -22,88 +23,39 @@ async def list_teams(
     - **gender**: Filter by gender.
     - **level**: Filter by competition level.
     """
-    try:
-        level_key: Tuple = (
-            sport_type,
-            search_params.gender,
-            search_params.level
-        )
-
-        query: Dict = query_params_builder()
-        mongo_id = LEVEL_CONSTANTS[level_key].get("_id")
-        query.update(
-            _id=mongo_id,
-            sport_type=sport_type,
-            gender=search_params.gender,
-            level=search_params.level
-        )
-
-        projection = {"teams": 1, "_id": 0}
-
-        # Fetch data from database
-        teams = await retrieve_sports(query, projection)
-
-        if teams and 'teams' in teams:
-            return {"message": "Teams data retrieved successfully", "data": teams['teams']}
-        else:
-            raise HTTPException(status_code=404, detail="No teams found for this sport")
-
-    except Exception as e:
-        # Log the error and raise 500 Internal Server Error
-        print(f"Error in fetching teams for sport_type={sport_type}: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
-
-
-@router.get("/{sport_type}/{team_name}/", response_description="Display Team Specific Data")
-async def list_team_info(
-    sport_type: str,
-    team_name: str,
-    search_params: items.GeneralInputMethod = Depends()
-):
-    """
-    Fetch sports or team data based on query parameters.
-    - If `sport_type` is provided, fetch teams for that sport.
-    - If `team_name` is provided, fetch specific team details.
-    - If no params, fetch all available sports.
-    """
     level_key: Tuple = (
         sport_type,
         search_params.gender,
         search_params.level
     )
+    sports_data = users_class(level_key)
+    results = await sports_data.retrieve_sports_info()  # Await the async method
+    return results
 
-    query: Dict = query_params_builder()
-    mongo_id = LEVEL_CONSTANTS[level_key].get("_id")
-    query.update(
-        _id=mongo_id,
-        sport_type=sport_type,
-        gender=search_params.gender,
-        level=search_params.level,
-        teams={
-            "$elemMatch": {
-                "team_name": {"$regex": f"^{team_name}$", "$options": "i"}
-            }
-        }
+@router.get("/{sport_type}/{team_name}/", response_description="Display Team Specific Data")
+async def list_team_info(
+    sport_type: str,
+    team_name: str,
+    search_params: GeneralInputMethod = Depends()
+):
+    """
+    Fetch sports or team data based on query parameters.
+    """
+    level_key: Tuple = (
+        search_params.sport_type,
+        search_params.gender,
+        search_params.level
     )
-
-    projection = {
-        "teams.$": 1,
-        "_id": 0
-    }
-
-    # Fetch data from database
-    team_data = await retrieve_sports(query, projection)
-
-    if team_data:
-        return team_data
-    else:
-        raise HTTPException(status_code=404, detail="No sports data found")
-
+    sports_data = users_class(level_key)
+    results = await sports_data.retrieve_team_info(team_name)
+    
+    if results is None:
+        raise HTTPException(status_code=404, detail="Team not found")
+    return results
 
 # @router.get("/teams_data", tags=["User"])
 # async def get_teams_data(sport_input: GeneralInputMethod):
 #     pass
-
 
 # @router.get("/team_data/{team_name}", tags=["User"])
 # async def get_team_data(
@@ -112,9 +64,8 @@ async def list_team_info(
 # ):
 #     pass
 
-
 @router.get("/predictions/{team_one}/{team_two}/{home_field_adv}", tags=["User"])
-async def get_game_predicitions(
+async def get_game_predictions(
     team_one: str,
     team_two: str,
     home_field_adv: float,

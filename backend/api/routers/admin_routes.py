@@ -1,6 +1,6 @@
 from __future__ import annotations
 import traceback
-from typing import Tuple, Dict, Annotated
+from typing import Tuple, Dict, Annotated, Any
 from fastapi import (
     APIRouter,
     Depends,
@@ -10,11 +10,20 @@ from fastapi import (
     status,
     Body
 )
-from schemas.items import InputMethod, NewTeamList, input_method_dependency
+from fastapi.security import OAuth2PasswordRequestForm
+from schemas.items import (
+    InputMethod,
+    NewTeamList,
+    UpdateTeamsData,
+    Token,
+    input_method_dependency,
+    update_method
+)
 from service.admin_teams import AdminTeamsService
-# from service.admin_service import AdminServices
+from service.admin_service import AdminServices
 
 router = APIRouter()
+admin_service = AdminServices()
 _instance_cache: Dict[Tuple, "AdminTeamsService"] = {}
 
 
@@ -24,7 +33,20 @@ def admin_team_class(level_key: Tuple) -> "AdminTeamsService":
     return _instance_cache[level_key]
 
 
-@router.post("/upload_csv/", tags=["Admin"])
+@router.post("/token/", response_model=Token, tags=["Admin"])
+async def login_generate_token(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    admin_service: AdminServices = Depends()
+):
+    return await admin_service.login(form_data)
+
+
+@router.post(
+    "/upload_csv/",
+    tags=["Admin"],
+    dependencies=[Depends(AdminServices.get_current_admin)],
+    description="Adds CSV File and Finds Missing Teams"
+)
 async def upload_csv(
     sports_input: InputMethod = Depends(input_method_dependency),
     csv_file: UploadFile = File()
@@ -56,7 +78,12 @@ async def upload_csv(
         ) from exc
 
 
-@router.post("/add_teams/", tags=["Admin"])
+@router.post(
+    "/add_teams/",
+    tags=["Admin"],
+    dependencies=[Depends(AdminServices.get_current_admin)],
+    description="Adds Missing Teams To Database"
+)
 async def add_missing_teams(
     new_team: Annotated[NewTeamList, Body(embed=True)],
     sports_input: InputMethod = Depends(input_method_dependency)
@@ -79,7 +106,12 @@ async def add_missing_teams(
         ) from exc
 
 
-@router.post("/run-algorithm", tags=["Admin"])
+@router.post(
+    "/run_algorithm/",
+    tags=["Admin"],
+    dependencies=[Depends(AdminServices.get_current_admin)],
+    description="Runs Main Algorithm"
+)
 async def main_algorithm_exc(
     iterations: int,
     sport_input: InputMethod = Depends(input_method_dependency)
@@ -95,11 +127,38 @@ async def main_algorithm_exc(
     return results
 
 
-@router.put("/update_game", tags=["Admin"])
-async def update_game():
-    pass
+@router.put(
+    "/update_game/",
+    tags=["Admin"],
+    dependencies=[Depends(AdminServices.get_current_admin)],
+    description="Updates Games and CSV File"
+)
+async def update_game(
+    update_data: UpdateTeamsData = Depends(update_method),
+    sport_input: InputMethod = Depends(input_method_dependency)
+):
+    team_service = admin_team_class(
+        (
+            sport_input.sport_type,
+            sport_input.gender,
+            sport_input.level
+        )
+    )
+    results = await team_service.update_teams_info(
+        update_data.home_team,
+        update_data.home_score,
+        update_data.away_team,
+        update_data.away_score,
+        update_data.date
+    )
+    return results
 
 
-@router.delete("/clear_season", tags=["Admin"])
+@router.delete(
+    "/clear_season/",
+    tags=["Admin"],
+    dependencies=[Depends(AdminServices.get_current_admin)],
+    description="Clears Season"
+)
 async def clear_season():
     pass

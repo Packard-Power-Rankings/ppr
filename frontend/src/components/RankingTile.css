@@ -36,16 +36,16 @@
     display: inline-block;
     margin-top: 5px;
     padding: 6px 10px;
-    background-color: #860037; /* Background color for dark mode */
+    background-color: #860037;
     color: white;
-    border: 1px solid #ffffff; /* White border for contrast */
+    border: 1px solid #ffffff;
     border-radius: 4px;
     text-decoration: none;
-    transition: background-color 0.3s, color 0.3s; /* Smooth transition */
+    transition: background-color 0.3s, color 0.3s;
 }
 
 .tile-link:hover {
-    background-color: #6F0023; /* Hover background color */
-    color: white; /* Ensure text color is still visible */
-    border-color: #f0f0f0; /* Slightly lighter border on hover */
+    background-color: #6F0023;
+    color: white;
+    border-color: #f0f0f0;
 }

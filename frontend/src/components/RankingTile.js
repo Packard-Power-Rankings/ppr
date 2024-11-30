@@ -6,30 +6,30 @@ const RankingTile = () => {
     const footballSports = [
         {
             title: 'College Football',
-            link: '/football', // Link to the TeamsPage for football
+            link: '/user/football',
         },
         {
-            title: 'High School Football',
-            link: '/football',
+            title: 'Colorado High School Football',
+            link: '/user/football',
         },
     ];
 
     const basketballSports = [
         {
             title: 'Men’s College Basketball',
-            link: '/basketball',
+            link: '/user/basketball',
         },
         {
             title: 'Women’s College Basketball',
-            link: '/basketball',
+            link: '/user/basketball',
         },
         {
-            title: 'Men’s High School Basketball',
-            link: '/basketball', // Link to the TeamsPage for basketball
+            title: 'Colorado Boy’s High School Basketball',
+            link: '/user/basketball',
         },
         {
-            title: 'Women’s High School Basketball',
-            link: '/basketball',
+            title: 'Colorado Girl’s High School Basketball',
+            link: '/user/basketball',
         },
     ];
 

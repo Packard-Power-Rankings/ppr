@@ -76,6 +76,7 @@ async def update_teams(df, teams_data, mongo_collection, team_level):
         season_home_opp = {
             "opponent_id": away_team.get("team_id"),
             "opponent_name": away_team.get("team_name"),
+            "home_team": 1,
             "home_score": row['home_score'],
             "away_score": row['away_score'],
             "home_z_score": row['home_z_score'],
@@ -102,6 +103,7 @@ async def update_teams(df, teams_data, mongo_collection, team_level):
         season_away_opp = {
             "opponent_id": home_team.get("team_id"),
             "opponent_name": home_team.get("team_name"),
+            "home_team": 0,
             "home_score": row['home_score'],
             "away_score": row['away_score'],
             "home_z_score": row['home_z_score'],
