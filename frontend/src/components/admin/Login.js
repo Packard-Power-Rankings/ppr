@@ -23,16 +23,6 @@ const Login = ({ onLoginSuccess, onLogout }) => {
         if (token && isTokenExpired(token)) {
             handleLogout(); // Log out if the token is expired
         }
-
-        // Optional: Set a timer to periodically check the token's validity
-        const intervalId = setInterval(() => {
-            const token = localStorage.getItem('access_token');
-            if (token && isTokenExpired(token)) {
-                handleLogout();
-            }
-        }, 60000); // Check every minute
-
-        return () => clearInterval(intervalId); // Clean up interval on component unmount
     }, []);
 
     const handleLogin = async (e) => {
@@ -52,8 +42,9 @@ const Login = ({ onLoginSuccess, onLogout }) => {
 
             if (response.ok) {
                 const data = await response.json();
-                localStorage.setItem('access_token', data.access_token);
-                onLoginSuccess(); // Notify parent component of login success
+                const token = data.access_token; // Token returned from the server
+                localStorage.setItem('access_token', token);
+                onLoginSuccess(token); // Pass token to the parent (App)
                 navigate('/admin'); // Redirect to the admin page after login
                 setErrorMessage('');
             } else {
