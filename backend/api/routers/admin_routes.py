@@ -304,7 +304,7 @@ async def task_checker(task_id: str):
 
 
 @router.put(
-    "/update-game",
+    "/update_game/",
     tags=["Admin"],
     dependencies=[Depends(AdminServices.get_current_admin)],
     description="Updates Games and CSV File"

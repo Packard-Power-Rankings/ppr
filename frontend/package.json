@@ -10,7 +10,8 @@
     "react-dom": "^18.3.1",
     "react-scripts": "^5.0.1",
     "react-router-dom": "^6.0.0",
-    "jwt-decode": "^3.1.2"
+    "jwt-decode": "^3.1.2",
+    "papaparse": "5.0.0"
   },
   "scripts": {
     "start": "WATCHPACK_POLLING=true react-scripts start",

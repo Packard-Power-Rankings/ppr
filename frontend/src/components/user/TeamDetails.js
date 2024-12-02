@@ -49,6 +49,7 @@ const TeamDetails = () => {
                             <th>Team Name</th>
                             <th>Score</th>
                             <th>Opponent</th>
+                            <th>Home/Away</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -59,10 +60,11 @@ const TeamDetails = () => {
                                     <td>{teamData.team_name}</td>
                                     <td>{game.home_score} - {game.away_score}</td>
                                     <td>{game.opponent_name}</td>
+                                    <td>{game.home_team === 1 ? 'Home' : 'Away'}</td>
                                 </tr>
                             ))
                         ) : (
-                            <tr><td colSpan="4">No season opponents available.</td></tr>
+                            <tr><td colSpan="5">No season opponents available.</td></tr>
                         )}
                     </tbody>
                 </table>

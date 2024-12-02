@@ -1,17 +1,13 @@
+// src/components/admin/Login.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import jwtDecode from 'jwt-decode';
 
-const Login = ({ onLoginSuccess }) => {
+const Login = ({ onLoginSuccess, onLogout }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
     const navigate = useNavigate(); // Get the navigate function
-
-    const logout = () => {
-        localStorage.removeItem('access_token'); // Clear token
-        navigate('/login'); // Redirect to login page
-    };
 
     // Function to check if the token is expired
     const isTokenExpired = (token) => {
@@ -25,18 +21,8 @@ const Login = ({ onLoginSuccess }) => {
     useEffect(() => {
         const token = localStorage.getItem('access_token');
         if (token && isTokenExpired(token)) {
-            logout(); // Log out if the token is expired
+            handleLogout(); // Log out if the token is expired
         }
-
-        // Optional: Set a timer to periodically check the token's validity
-        const intervalId = setInterval(() => {
-            const token = localStorage.getItem('access_token');
-            if (token && isTokenExpired(token)) {
-                logout();
-            }
-        }, 60000); // Check every minute
-
-        return () => clearInterval(intervalId); // Clean up interval on component unmount
     }, []);
 
     const handleLogin = async (e) => {
@@ -56,8 +42,9 @@ const Login = ({ onLoginSuccess }) => {
 
             if (response.ok) {
                 const data = await response.json();
-                localStorage.setItem('access_token', data.access_token);
-                onLoginSuccess(data.access_token); // Notify parent component of login success
+                const token = data.access_token; // Token returned from the server
+                localStorage.setItem('access_token', token);
+                onLoginSuccess(token); // Pass token to the parent (App)
                 navigate('/admin'); // Redirect to the admin page after login
                 setErrorMessage('');
             } else {
@@ -68,6 +55,12 @@ const Login = ({ onLoginSuccess }) => {
             setErrorMessage('An error occurred during login');
             console.error('Error during login:', error);
         }
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('access_token'); // Clear token
+        onLogout(); // Notify parent component
+        navigate('/login'); // Redirect to login page
     };
 
     return (

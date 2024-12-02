@@ -24,7 +24,7 @@ const DeleteForm = ({ seasonName, onComplete }) => {
         <div>
             <select onChange={handleOptionChange} value={deleteOption}>
                 <option value="">Select an option</option>
-                <option value="deleteSeason">Delete Season</option>
+                <option value="deleteSeason">New Season</option>
                 {/* Additional delete options can be added here */}
             </select>
 
