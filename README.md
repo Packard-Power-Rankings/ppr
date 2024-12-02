@@ -16,9 +16,10 @@ Below are some commands that will need to be ran to get it working. The line bel
 Once it is completed you will see
 
 ```
- ✔ Container ppr-db-1        Running
- ✔ Container ppr-frontend-1  Started
- ✔ Container ppr-backend-1   Started 
+✔ Network ppr_app-network   Created
+ ✔ Container ppr-db-1       Started
+ ✔ Container ppr-backend-1  Started
+ ✔ Container ppr-frontend-1 Started 
 ```
 
 Once the above command has been ran the first time, you only need to run the following command the next time just to bring the containers back online

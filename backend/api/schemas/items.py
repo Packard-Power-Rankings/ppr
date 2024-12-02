@@ -21,7 +21,7 @@ from pydantic import (
     field_validator,
     model_validator
 )
-from config.config import LEVEL_CONSTANTS
+from config.constants import LEVEL_CONSTANTS
 from fastapi import Form, Depends, HTTPException
 
 
@@ -151,12 +151,14 @@ class OpponentData(BaseModel):
     away_zscore: float
     date: Optional[int]
 
+
 class UpdateTeamsData(BaseModel):
     date: str = Field(..., description="Week Played")
     home_team: str = Field(..., description="Home Team Name")
     away_team: str = Field(..., description="Away Team Name")
     home_score: int = Field(..., description="Home Team Score")
     away_score: int = Field(..., description="Away Team Score")
+
 
 async def update_method(
     date: str = Form(...),
@@ -177,15 +179,19 @@ async def update_method(
     except (ValueError, ValidationError) as e:
         raise HTTPException(status_code=422, detail=f"Invalid input: {str(e)}")
 
+
 class UpdateRequest(BaseModel):
     added_teams: List[Team]
+
 
 class TokenData(BaseModel):
     username: str | None = None
 
+
 class Token(BaseModel):
     access_token: str
     token_type: str
+
 
 class NewTeamData(BaseModel):
     team_name: str = Field(...)
@@ -193,6 +199,7 @@ class NewTeamData(BaseModel):
     conference: Optional[str] = Field(default=None)
     power_ranking: float = Field(...)
     state: Optional[str] = Field(default=None)
+
 
 class NewTeamList(BaseModel):
     teams: Optional[List[NewTeamData]] = Field(default=List)
@@ -203,6 +210,7 @@ class NewTeamList(BaseModel):
         if isinstance(values, str):
             values = json.loads(values)
         return values
+
 
 def ResponseModel(data, num_of_files, message):
     return {
