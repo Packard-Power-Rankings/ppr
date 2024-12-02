@@ -1,3 +1,15 @@
+"""Routes for Admin CRUD operations
+
+    Raises:
+        HTTPException: 500_INTERNAL_SERVER_ERROR
+        HTTPException: 500_INTERNAL_SERVER_ERROR
+        HTTPException: 500_INTERNAL_SERVER_ERROR
+        HTTPException: 500_INTERNAL_SERVER_ERROR
+        HTTPException: 500_INTERNAL_SERVER_ERROR
+        HTTPException: 500_INTERNAL_SERVER_ERROR
+"""
+
+
 from __future__ import annotations
 import traceback
 from typing import Tuple, Dict, Annotated, Any
@@ -33,6 +45,15 @@ _instance_cache: Dict[Tuple, "AdminTeamsService"] = {}
 
 
 def admin_team_class(level_key: Tuple) -> "AdminTeamsService":
+    """Admin singleton for queueing instances of Admin
+    Teams Service.
+
+    Args:
+        level_key (Tuple): Tuple with level key
+
+    Returns:
+        AdminTeamsService: The cached object
+    """
     if level_key not in _instance_cache:
         _instance_cache[level_key] = AdminTeamsService(level_key)
     return _instance_cache[level_key]
@@ -43,6 +64,17 @@ async def login_generate_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
     admin_service: AdminServices = Depends()
 ):
+    """Generates the login token based on the verification
+
+    Args:
+        form_data (OAuth2PasswordRequestForm, optional): Password and Username.
+        Defaults to Depends().
+        admin_service (AdminServices, optional): Admin Services Object.
+        Defaults to Depends().
+
+    Returns:
+        TokenData: Login token
+    """
     return await admin_service.login(form_data)
 
 
@@ -56,6 +88,22 @@ async def upload_csv(
     sports_input: InputMethod = Depends(input_method_dependency),
     csv_file: UploadFile = File()
 ):
+    """Endpoint for uploading a csv file and checking if teams are missing
+
+    Args:
+        sports_input (InputMethod, optional): Input for specific sports info.
+        Defaults to Depends(input_method_dependency).
+        csv_file (UploadFile, optional): CSV File to upload.
+        Defaults to File().
+
+    Raises:
+        HTTPException: BAD_REQUEST
+        HTTPException: INTERNAL_SERVER_ERROR
+
+    Returns:
+        dict: Successful CSV file upload and list
+        of missing teams from the database
+    """
     try:
         if not csv_file.filename.endswith(".csv"):
             raise HTTPException(
@@ -93,6 +141,20 @@ async def add_missing_teams(
     new_team: Annotated[NewTeamList, Body(embed=True)],
     sports_input: InputMethod = Depends(input_method_dependency)
 ):
+    """Endpoint for adding the missing teams to the database
+
+    Args:
+        new_team (Annotated[NewTeamList, Body, optional):
+        New teams to enter to db. Defaults to True)].
+        sports_input (InputMethod, optional): Team specifics.
+        Defaults to Depends(input_method_dependency).
+
+    Raises:
+        HTTPException: INTERNAL_SERVER_ERROR
+
+    Returns:
+        dict: Success message
+    """
     try:
         teams = new_team.model_dump()
         level_key = (
@@ -121,14 +183,69 @@ async def main_algorithm_exc(
     iterations: int,
     sport_input: InputMethod = Depends(input_method_dependency)
 ):
+    """Runs main algorithm for computing power rankings gathering teams
+    and updating their power as needed
+
+    Args:
+        iterations (int): Number of runs for the algorithm
+        sport_input (InputMethod, optional):
+        The specific key for db interactions.
+        Defaults to Depends(input_method_dependency).
+
+    Raises:
+        HTTPException: Internal Server Error
+
+    Returns:
+        dict: The task id for checking if a task is running
+        and a message that the task has started
+    """
     try:
         level_key = [
             sport_input.sport_type,
             sport_input.gender,
             sport_input.level
         ]
-        task = run_main_algorithm.delay(level_key=level_key, iterations=iterations)
+        task = run_main_algorithm.delay(
+            level_key=level_key,
+            iterations=iterations
+        )
         return {"task_id": task.id, "message": "Task has been started."}
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Server Error"
+        ) from exc
+
+
+@router.post(
+    "/calc_z_scores/",
+    tags=["Admin"],
+    dependencies=[Depends(AdminServices.get_current_admin)],
+    description="Calculates z Scores"
+)
+async def calc_z_scores(
+    sport_input: InputMethod = Depends(input_method_dependency)
+):
+    """Calculates the z scores and updates it as more games are played
+    also it changes past games. This should be ran after the main algorithm
+    has been ran.
+
+    Args:
+        sport_input (InputMethod, optional):
+        The specific key for db interactions.
+        Defaults to Depends(input_method_dependency).
+
+    Raises:
+        HTTPException: Internal Server Error
+    """
+    try:
+        level_key = (
+            sport_input.sport_type,
+            sport_input.gender,
+            sport_input.level
+        )
+        team_services = admin_team_class(level_key)
+        await team_services.calculate_z_scores()
     except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -143,6 +260,19 @@ async def main_algorithm_exc(
     description="Checks Status of Task"
 )
 async def task_checker(task_id: str):
+    """Checks the status of background task (main algorithm)
+    to give the user an update on the status of the task
+
+    Args:
+        task_id (str): Task id value
+
+    Raises:
+        HTTPException: Internal Server Error
+
+    Returns:
+        dict: returns the task id and the state of that specific
+        task.
+    """
     try:
         task_result = AsyncResult(task_id, app=celery)
         state = task_result.state
@@ -183,6 +313,21 @@ async def update_game(
     update_data: UpdateTeamsData = Depends(update_method),
     sport_input: InputMethod = Depends(input_method_dependency)
 ):
+    """Updates teams information if in the case a game has incorrect
+    scores input. This updates the teams in the db as well as the 
+    stored csv file.
+
+    Args:
+        update_data (UpdateTeamsData, optional): 
+        Required information for updating the teams.
+        Defaults to Depends(update_method).
+        sport_input (InputMethod, optional):
+        The specific key for db interactions.
+        Defaults to Depends(input_method_dependency).
+
+    Returns:
+        dict: The status and a message of success
+    """
     team_service = admin_team_class(
         (
             sport_input.sport_type,
@@ -207,4 +352,6 @@ async def update_game(
     description="Clears Season"
 )
 async def clear_season():
+    """Needs to be implemented
+    """
     pass
