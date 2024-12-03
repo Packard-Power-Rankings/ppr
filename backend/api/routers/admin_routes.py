@@ -15,7 +15,7 @@ import traceback
 from typing import Tuple, Dict, Annotated, Any
 from celery.result import AsyncResult
 from celery import states
-from service.tasks import run_main_algorithm
+# from service.tasks import run_main_algorithm
 from fastapi import (
     APIRouter,
     Depends,
@@ -37,7 +37,7 @@ from schemas.items import (
 )
 from service.admin_teams import AdminTeamsService
 from service.admin_service import AdminServices
-from service.celery import celery
+# from service.celery import celery
 
 router = APIRouter()
 admin_service = AdminServices()

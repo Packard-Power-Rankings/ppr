@@ -5,6 +5,7 @@ import About from './components/About';
 import ThemeToggle from './components/ThemeToggle';
 import TeamsPage from './components/user/TeamsPage';
 import TeamDetails from './components/user/TeamDetails';
+import PredictionsPage from './components/user/PredictionsPage';
 import Login from './components/admin/Login';
 import AdminPage from './components/admin/AdminPage';
 import jwtDecode from 'jwt-decode';
@@ -43,12 +44,7 @@ const App = () => {
     };
 
     return (
-        <Router
-            future={{
-                v7_startTransition: true, // Opt into startTransition
-                v7_relativeSplatPath: true, // Opt into relative splat path resolution
-            }}
-        >
+        <Router>
             <nav>
                 <Link to="/" className="nav-label">Packard Power Rankings</Link>
                 <Link to="/">Home</Link>
@@ -80,6 +76,10 @@ const App = () => {
                 />
                 <Route path="/user/:sportType" element={<TeamsPage />} />
                 <Route path="/user/:sportType/:teamName" element={<TeamDetails />} />
+                <Route
+                    path="/predictions/:teamOne/:teamTwo/:homeFieldAdv"
+                    element={<PredictionsPage />}
+                />
             </Routes>
         </Router>
     );

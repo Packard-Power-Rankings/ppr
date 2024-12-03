@@ -17,6 +17,11 @@ const TeamsPage = () => {
     const [divisions, setDivisions] = useState([]);
     const [conferences, setConferences] = useState([]);
 
+    // Prediction-related state
+    const [teamOne, setTeamOne] = useState("");
+    const [teamTwo, setTeamTwo] = useState("");
+    const [homeFieldAdv, setHomeFieldAdv] = useState('false');
+
     const fetchTeams = async () => {
         setLoading(true);
         try {
@@ -87,6 +92,14 @@ const TeamsPage = () => {
         setSelectedConference(e.target.value);
     };
 
+    const handleTeamSelection = (teamName, teamSelect) => {
+        if (teamSelect === 'teamOne') {
+            setTeamOne(teamName);
+        } else {
+            setTeamTwo(teamName);
+        }
+    };
+
     const indexOfLastTeam = currentPage * teamsPerPage;
     const indexOfFirstTeam = indexOfLastTeam - teamsPerPage;
     const currentTeams = applySortingAndFiltering().slice(indexOfFirstTeam, indexOfLastTeam);
@@ -105,15 +118,14 @@ const TeamsPage = () => {
         <div>
             <h2>{sportType.charAt(0).toUpperCase() + sportType.slice(1)} Teams</h2>
 
-            <input
-                type="text"
-                placeholder="Search teams..."
-                value={searchQuery}
-                onChange={handleSearchChange}
-                className="search-input"
-            />
-
             <div className="filters">
+                <input
+                    type="text"
+                    placeholder="Search teams..."
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    className="search-input"
+                />
                 <select onChange={handleDivisionChange} value={selectedDivision}>
                     <option value="">All Divisions</option>
                     {divisions.map((division, index) => (
@@ -185,6 +197,50 @@ const TeamsPage = () => {
                 >
                     Next
                 </button>
+            </div>
+
+            <div className="prediction-section">
+                <h3>Prediction</h3>
+                <div>
+                    <select onChange={(e) => handleTeamSelection(e.target.value, 'teamOne')} value={teamOne}>
+                        <option value="">Select Team 1</option>
+                        {teams.map((team) => (
+                            <option key={team.team_id} value={team.team_name}>
+                                {team.team_name}
+                            </option>
+                        ))}
+                    </select>
+                    <select onChange={(e) => handleTeamSelection(e.target.value, 'teamTwo')} value={teamTwo}>
+                        <option value="">Select Team 2</option>
+                        {teams.map((team) => (
+                            <option key={team.team_id} value={team.team_name}>
+                                {team.team_name}
+                            </option>
+                        ))}
+                    </select>
+
+                    <label>
+                        Home Field Advantage:
+                        <input
+                            type="checkbox"
+                            checked={homeFieldAdv === 'true'}
+                            onChange={() => setHomeFieldAdv(homeFieldAdv === 'true' ? 'false' : 'true')}
+                        />
+                    </label>
+                </div>
+
+                {/* Button to navigate to PredictionsPage if both teams are selected */}
+                {teamOne && teamTwo && (
+                    <button
+                        onClick={() => {
+                            // Navigate to the predictions page
+                            window.location.href = `/predictions/${teamOne}/${teamTwo}/${homeFieldAdv}`;
+                        }}
+                        className="prediction-button"
+                    >
+                        Get Prediction
+                    </button>
+                )}
             </div>
         </div>
     );
