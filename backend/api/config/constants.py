@@ -1,3 +1,9 @@
+"""Constants based on specific details
+that accesses algorithm constants and ID's
+for database
+"""
+
+
 from bson import ObjectId
 
 

@@ -16,9 +16,10 @@ Below are some commands that will need to be ran to get it working. The line bel
 Once it is completed you will see
 
 ```
- ✔ Container ppr-db-1        Running
- ✔ Container ppr-frontend-1  Started
- ✔ Container ppr-backend-1   Started 
+✔ Network ppr_app-network   Created
+ ✔ Container ppr-db-1       Started
+ ✔ Container ppr-backend-1  Started
+ ✔ Container ppr-frontend-1 Started 
 ```
 
 Once the above command has been ran the first time, you only need to run the following command the next time just to bring the containers back online
@@ -55,6 +56,13 @@ When you are finished working on something related to the project and want to tu
 This command turns off all the active containers that are attached to this stack and removes any images that are still there, so docker is not just continuously running in the background.
 
 Sometimes docker desktop needs to be refreshed and restarted to build the images. I noticed it will lag in the terminal and not do anything so if you try one of those things it will help get it going again.
+
+
+## Local Testing
+
+For local testing, the React frontend is set up to communicate with the FastAPI backend. Once the Docker containers are up, in VSCode, you can click on the `Open Remote Window` button and then `Attach to Runnning Container...` then choose `ppr-backend-1`. Open a terminal in the `ppr-backend-1` container and run the command `python api/main.py` to start the FastAPI local server.
+
+You can now visit [localhost:8000](http://localhost:8000/docs) to view FastAPI's Swagger UI for backend testing and visit [localhost:3000](http://localhost:3000) to view React's locally hosted frontend for testing.
 
 
 ## FastAPI File Structure

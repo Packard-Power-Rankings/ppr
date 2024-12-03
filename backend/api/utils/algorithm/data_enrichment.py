@@ -17,7 +17,10 @@ def enrich_data(df, k_value, home_advantage, average_game_score, teams):
     for team in pd.concat([df['home_team'], df['away_team']]).unique():
         if team.lower() in team_dict:
             team_data[team] = {
-                "power_ranking": team_dict[team.lower()]['power_ranking'][-1],
+                "power_ranking": next(iter(
+                    team_dict[team.lower()]['power_ranking'][-1].values()
+                    )
+                ),
                 # Random win ratio between 30% and 90%
                 "win_ratio": round(random.uniform(0.3, 0.9), 2)
             }

@@ -12,6 +12,7 @@ def users_class(level_key: Tuple) -> "UsersServices":
         _instance_cache[level_key] = UsersServices(level_key)
     return _instance_cache[level_key]
 
+
 @router.get("/{sport_type}/", response_description="Display Teams Data")
 async def list_teams(
     sport_type: str,
@@ -31,6 +32,7 @@ async def list_teams(
     sports_data = users_class(level_key)
     results = await sports_data.retrieve_sports_info()  # Await the async method
     return results
+
 
 @router.get("/{sport_type}/{team_name}/", response_description="Display Team Specific Data")
 async def list_team_info(
@@ -64,11 +66,20 @@ async def list_team_info(
 # ):
 #     pass
 
+
 @router.get("/predictions/{team_one}/{team_two}/{home_field_adv}", tags=["User"])
 async def get_game_predictions(
     team_one: str,
     team_two: str,
-    home_field_adv: float,
-    sport_input: GeneralInputMethod
+    home_field_adv: bool,
+    sport_input: GeneralInputMethod = Depends()
 ):
-    pass
+    level_key: Tuple = (
+        sport_input.sport_type,
+        sport_input.gender,
+        sport_input.level
+    )
+    sports_data = users_class(level_key)
+    score_predictions = \
+        await sports_data.score_predictions(team_one, team_two, home_field_adv)
+    return score_predictions

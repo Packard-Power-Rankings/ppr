@@ -1,3 +1,7 @@
+"""Logical operations for Admin
+"""
+
+
 import os
 from io import StringIO
 from typing import Any, List, Dict, Tuple
@@ -7,7 +11,7 @@ from datetime import datetime
 from fastapi import HTTPException, status, UploadFile
 from bson.binary import Binary
 import motor.motor_asyncio
-from config.config import LEVEL_CONSTANTS
+from api.config.constants import LEVEL_CONSTANTS
 
 MONGO_DETAILS = \
     f"mongodb+srv://{os.getenv("MONGO_USER")}:{os.getenv("MONGO_PASS")}@" \
@@ -29,8 +33,8 @@ class AdminTeamsService():
             level_key (Tuple): Tuple that contains three
             strings: sport_type, gender, level
         """
-        self.sports_collection = database.get_collection('temp2')
-        self.csv_collection = database.get_collection('csv_files')
+        self.sports_collection = database.get_collection('temp')
+        self.csv_collection = database.get_collection('csv_files_temp')
         self.previous_season = database.get_collection('previous_season')
         self.level_key = level_key
         self.level_constant = LEVEL_CONSTANTS[level_key]
@@ -132,7 +136,7 @@ class AdminTeamsService():
             teams (List[Dict[str, Any]]): List of new teams to add 
 
         Returns:
-            Any: Succesfull storage of new teams or an
+            Any: Successful storage of new teams or an
             that the team already exists in the db
         """
         message = {}
@@ -148,7 +152,7 @@ class AdminTeamsService():
                 "conference": team.get('conference'),
                 "division_rank": 0,
                 "overall_rank": 0,
-                "power_ranking": [team.get('power_ranking')],
+                "power_ranking": [{"initial": team.get('power_ranking')}],
                 "win_ratio": 0.0,
                 "wins": 0,
                 "losses": 0,
@@ -188,6 +192,13 @@ class AdminTeamsService():
         algorithm = MainAlgorithm(self, self.level_key)
         await algorithm.execute(iterations)
 
+    async def calculate_z_scores(self):
+        """Calculates z scores from the potential power changes
+        """
+        from utils.algorithm.run import MainAlgorithm
+        z_scores = MainAlgorithm(self, self.level_key)
+        await z_scores.execute_z_score_calc()
+
     async def update_db_data(
         self,
         home_team: str,
@@ -196,6 +207,16 @@ class AdminTeamsService():
         away_score: int,
         game_id: str
     ):
+        """Updates teams scores in the csv file as well as
+        the teams in the database along with the wins/losses
+
+        Args:
+            home_team (str): Name of home team
+            home_score (int): Home team Score
+            away_team (str): Name of away team
+            away_score (int): Away team Score
+            game_id (str): Game ID based on 
+        """
         home_team_data = await self.sports_collection.find_one(
             {"teams.team_name": home_team, "teams.season_opp.game_id": game_id},
             {"teams.$": 1}
@@ -278,6 +299,17 @@ class AdminTeamsService():
         away_score: int,
         date: str
     ):
+        """Updates the CSV file and database based
+        on the new data that has been passed in.
+        Does not run algorithm.
+
+        Args:
+            home_team (str): Home Team Name
+            home_score (int): Updated Home Score
+            away_team (str): Away Team Name
+            away_score (int): Updated Away Score
+            date (str): Game Date The Two Teams played
+        """
         query = {
             "sport_type": self.level_key[0],
             "gender": self.level_key[1],
@@ -435,7 +467,7 @@ class AdminTeamsService():
         """Retrieves the CSV file from the database
 
         Returns:
-            Dict: Returns the contents recieved from
+            Dict: Returns the contents received from
             MongoDB
         """
         csv_document = await self.csv_collection.find_one(
