@@ -4,6 +4,22 @@ import React, { useState } from 'react';
 const RunAlgorithm = ({ onRun, sportType, gender, level }) => {
     const [runCount, setRunCount] = useState(1);
     const [errorMessage, setErrorMessage] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const getToken = () => {
+        return localStorage.getItem('access_token');
+    };
+
+    const handleAuthError = (response) => {
+        if (response.status === 401) {
+            localStorage.removeItem('access_token'); // Clear expired token
+            window.location.href = '/login'; // Redirect to login page
+        } else {
+            response.text().then((text) => {
+                setErrorMessage(text || 'An error occurred. Please try again.');
+            });
+        }
+    };
 
     const handleRunAlgorithm = async () => {
         if (runCount < 1 || runCount > 30) {
@@ -11,40 +27,43 @@ const RunAlgorithm = ({ onRun, sportType, gender, level }) => {
             return;
         }
 
-        const token = localStorage.getItem('access_token');
+        const token = getToken();
         if (!token) {
             setErrorMessage('Unauthorized: No token found');
+            window.location.href = '/login'; // Redirect to login page
             return;
         }
 
-        const formData = new FormData();
-        formData.append('sport_type', sportType);
-        formData.append('gender', gender);
-        formData.append('level', level);
-        formData.append('iterations', runCount);
+        const params = new URLSearchParams();
+        params.append('sport_type', sportType);
+        params.append('gender', gender);
+        params.append('level', level);
+        params.append('iterations', runCount);
+
+        setIsSubmitting(true); // Disable the button while submitting
 
         try {
-            const response = await fetch(`http://localhost:8000/run_algorithm/`, {
+            const response = await fetch(`http://localhost:8000/run_algorithm/?${params.toString()}`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
-                    // Do not set 'Content-Type'; fetch will set it automatically for FormData
+                    'Content-Type': 'application/x-www-form-urlencoded',
                 },
-                body: formData,
+                body: params.toString(),
             });
 
-            const data = await response.json();
-
-            if (!response.ok) {
-                setErrorMessage(data.detail || 'An error occurred');
-                throw new Error('Error running algorithm');
+            if (response.ok) {
+                const data = await response.json();
+                console.log('Algorithm run successful:', data);
+                if (onRun) onRun(data);
+            } else {
+                handleAuthError(response);
             }
-
-            console.log('Algorithm run successful:', data);
-            if (onRun) onRun(data);
         } catch (error) {
-            setErrorMessage('There was an issue with your request.');
+            setErrorMessage('There was an issue with the algorithm request. Please try again.');
             console.error('Fetch Error:', error);
+        } finally {
+            setIsSubmitting(false); // Re-enable the button
         }
     };
 
@@ -58,7 +77,7 @@ const RunAlgorithm = ({ onRun, sportType, gender, level }) => {
                 min="1"
                 max="30"
             />
-            <button onClick={handleRunAlgorithm}>Run Algorithm</button>
+            <button onClick={handleRunAlgorithm} disabled={isSubmitting}>Run Algorithm</button>
             {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
         </div>
     );

@@ -40,7 +40,12 @@ const AdminPage = () => {
             {/* Run Algorithm Section */}
             <div style={{ borderTop: '1px solid #ccc', paddingTop: '20px', marginBottom: '20px' }}>
                 <h2>Run Algorithm</h2>
-                <RunAlgorithm />
+                {/* Pass sportData as props to RunAlgorithm */}
+                <RunAlgorithm
+                    sportType={sportData.sportType}
+                    gender={sportData.gender}
+                    level={sportData.level}
+                />
             </div>
 
             {/* Delete Form Section */}
