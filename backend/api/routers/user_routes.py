@@ -1,11 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException
-from schemas.items import GeneralInputMethod
-from schemas import items
 from typing import Dict, Tuple
-from service.users_teams import UsersServices
+from fastapi import APIRouter, Depends, HTTPException
+from api.schemas.items import GeneralInputMethod
+from api.schemas import items
+from api.service.users_teams import UsersServices
 
 router = APIRouter()
 _instance_cache: Dict[Tuple, "UsersServices"] = {}
+
 
 def users_class(level_key: Tuple) -> "UsersServices":
     if level_key not in _instance_cache:
