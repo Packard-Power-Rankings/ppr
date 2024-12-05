@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom';
 import './TeamDetails.css';
 
 const TeamDetails = () => {
-    const { sportType, teamName } = useParams();
+    const { sportType, teamName, gender, level } = useParams(); // Extract gender and level parameters
     const [teamData, setTeamData] = useState(null);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -12,7 +12,9 @@ const TeamDetails = () => {
     const fetchTeamDetails = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`http://localhost:8000/user/${sportType}/${teamName}/?gender=mens&level=college`);
+            const response = await fetch(
+                `http://localhost:8000/${sportType}/${teamName}/?gender=mens&level=college`
+            );
             if (!response.ok) {
                 throw new Error(`${response.status} (HTTP not found)`);
             }
@@ -32,7 +34,7 @@ const TeamDetails = () => {
 
     useEffect(() => {
         fetchTeamDetails();
-    }, [sportType, teamName]);
+    }, [sportType, teamName, gender, level]); // Update dependencies
 
     if (loading) return <p>Loading...</p>;
     if (error) return <p>Error: {error}</p>;

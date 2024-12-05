@@ -6,30 +6,30 @@ const RankingTile = () => {
     const footballSports = [
         {
             title: 'College Football',
-            link: '/user/football',
+            link: '/football',
         },
         {
             title: 'Colorado High School Football',
-            link: '/user/football',
+            link: '/football',
         },
     ];
 
     const basketballSports = [
         {
             title: 'Men’s College Basketball',
-            link: '/user/basketball',
+            link: '/basketball',
         },
         {
             title: 'Women’s College Basketball',
-            link: '/user/basketball',
+            link: '/basketball',
         },
         {
             title: 'Colorado Boy’s High School Basketball',
-            link: '/user/basketball',
+            link: '/basketball',
         },
         {
             title: 'Colorado Girl’s High School Basketball',
-            link: '/user/basketball',
+            link: '/basketball',
         },
     ];
 
@@ -40,7 +40,7 @@ const RankingTile = () => {
                 {footballSports.map((sport, index) => (
                     <div key={index} className="ranking-tile">
                         <h3>{sport.title}</h3>
-                        <Link to={sport.link} className="tile-link"> {/* Use Link instead of button */}
+                        <Link to={sport.link} className="tile-link">
                             View Power Rankings
                         </Link>
                     </div>
@@ -52,7 +52,7 @@ const RankingTile = () => {
                 {basketballSports.map((sport, index) => (
                     <div key={index} className="ranking-tile">
                         <h3>{sport.title}</h3>
-                        <Link to={sport.link} className="tile-link"> {/* Use Link instead of button */}
+                        <Link to={sport.link} className="tile-link">
                             View Power Rankings
                         </Link>
                     </div>

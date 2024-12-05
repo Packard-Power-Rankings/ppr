@@ -73,8 +73,8 @@ const App = () => {
                         )
                     }
                 />
-                <Route path="/user/:sportType" element={<TeamsPage />} />
-                <Route path="/user/:sportType/:teamName" element={<TeamDetails />} />
+                <Route path="/:sportType" element={<TeamsPage />} />
+                <Route path="/:sportType/:teamName" element={<TeamDetails />} />
             </Routes>
         </Router>
     );

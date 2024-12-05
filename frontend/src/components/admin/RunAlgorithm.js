@@ -21,10 +21,10 @@ const RunAlgorithm = ({ onRun, sportType, gender, level }) => {
         formData.append('sport_type', sportType);
         formData.append('gender', gender);
         formData.append('level', level);
-        formData.append('iterations', runCount); // Add `iterations` to the form data
+        formData.append('iterations', runCount);
 
         try {
-            const response = await fetch(`http://localhost:8000/admin/run_algorithm/`, {
+            const response = await fetch(`http://localhost:8000/run_algorithm/`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
