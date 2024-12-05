@@ -15,7 +15,6 @@ import traceback
 from typing import Tuple, Dict, Annotated, Any
 from celery.result import AsyncResult
 from celery import states
-from service.tasks import run_main_algorithm
 from fastapi import (
     APIRouter,
     Depends,
@@ -27,7 +26,8 @@ from fastapi import (
 )
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import JSONResponse
-from schemas.items import (
+from api.service.tasks import run_main_algorithm
+from api.schemas.items import (
     InputMethod,
     NewTeamList,
     UpdateTeamsData,
@@ -35,9 +35,9 @@ from schemas.items import (
     input_method_dependency,
     update_method
 )
-from service.admin_teams import AdminTeamsService
-from service.admin_service import AdminServices
-from service.celery import celery
+from api.service.admin_teams import AdminTeamsService
+from api.service.admin_service import AdminServices
+from api.service.celery import celery
 
 router = APIRouter()
 admin_service = AdminServices()
@@ -59,7 +59,7 @@ def admin_team_class(level_key: Tuple) -> "AdminTeamsService":
     return _instance_cache[level_key]
 
 
-@router.post("token/", response_model=Token, tags=["Admin"])
+@router.post("/token/", response_model=Token, tags=["Admin"])
 async def login_generate_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
     admin_service: AdminServices = Depends()
@@ -79,7 +79,7 @@ async def login_generate_token(
 
 
 @router.post(
-    "upload_csv/",
+    "/upload_csv/",
     tags=["Admin"],
     dependencies=[Depends(AdminServices.get_current_admin)],
     description="Adds CSV File and Finds Missing Teams"
@@ -132,7 +132,7 @@ async def upload_csv(
 
 
 @router.post(
-    "add_teams/",
+    "/add_teams/",
     tags=["Admin"],
     dependencies=[Depends(AdminServices.get_current_admin)],
     description="Adds Missing Teams To Database"
@@ -174,7 +174,7 @@ async def add_missing_teams(
 
 
 @router.post(
-    "run_algorithm/",
+    "/run_algorithm/",
     tags=["Admin"],
     dependencies=[Depends(AdminServices.get_current_admin)],
     description="Runs Main Algorithm"
@@ -218,7 +218,7 @@ async def main_algorithm_exc(
 
 
 @router.post(
-    "calc_z_scores/",
+    "/calc_z_scores/",
     tags=["Admin"],
     dependencies=[Depends(AdminServices.get_current_admin)],
     description="Calculates z Scores"
@@ -254,7 +254,7 @@ async def calc_z_scores(
 
 
 @router.get(
-    "task-status/{task_id}",
+    "/task-status/{task_id}",
     tags=["Admin"],
     dependencies=[Depends(AdminServices.get_current_admin)],
     description="Checks Status of Task"
@@ -304,7 +304,7 @@ async def task_checker(task_id: str):
 
 
 @router.put(
-    "update_game/",
+    "/update_game/",
     tags=["Admin"],
     dependencies=[Depends(AdminServices.get_current_admin)],
     description="Updates Games and CSV File"
@@ -346,7 +346,7 @@ async def update_game(
 
 
 @router.delete(
-    "clear_season/",
+    "/clear_season/",
     tags=["Admin"],
     dependencies=[Depends(AdminServices.get_current_admin)],
     description="Clears Season"
