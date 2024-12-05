@@ -3,8 +3,8 @@ from typing import Tuple, Dict, List
 from math import e
 import motor.motor_asyncio
 from fastapi import status, HTTPException
-from config.constants import LEVEL_CONSTANTS
-from utils.json_helper import query_params_builder
+from api.config.constants import LEVEL_CONSTANTS
+from api.utils.json_helper import query_params_builder
 
 
 MONGO_DETAILS = \
