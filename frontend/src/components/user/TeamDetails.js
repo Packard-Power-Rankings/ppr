@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom';
 import './TeamDetails.css';
 
 const TeamDetails = () => {
-    const { sportType, teamName, gender, level } = useParams(); // Extract gender and level parameters
+    const { sportType, gender, level, teamName } = useParams(); // Extract gender and level parameters
     const [teamData, setTeamData] = useState(null);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -13,7 +13,7 @@ const TeamDetails = () => {
         setLoading(true);
         try {
             const response = await fetch(
-                `http://localhost:8000/${sportType}/${teamName}/?gender=mens&level=college`
+                `http://localhost:8000/${sportType}/${teamName}/?gender=${gender}&level=${level}`
             );
             if (!response.ok) {
                 throw new Error(`${response.status} (HTTP not found)`);

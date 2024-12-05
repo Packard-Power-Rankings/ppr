@@ -183,7 +183,7 @@ const TeamsPage = () => {
                 </div>
                 {currentTeams.map(team => (
                     <Link
-                        to={`/${sportType}/${team.team_name}`}
+                        to={`/${sportType}/${team.team_name}${gender}/${level}`}
                         key={team.team_id}
                         className="team-row"
                     >
