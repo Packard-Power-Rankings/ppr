@@ -197,9 +197,9 @@ def process_team_data(
             if k == 0:
                 # output_file.write("Power Change 1\n")
                 depth2['power_ranking'][-1] += \
-                    (1.0/3.0) * ((0.5)**(i-1 + k)) * power_change
+                    (1.0/3.0) * ((0.5)**(i-1 + k)) * actual_power_change
                 temp_loop_change += \
-                    (1.0/3.0) * ((0.5)**(i-1 + k)) * power_change
+                    (1.0/3.0) * ((0.5)**(i-1 + k)) * actual_power_change
                 # output_file.write(f"Temp Loop Change {temp_loop_change}\n")
                 continue
             for m in range(0, 6):
@@ -210,9 +210,9 @@ def process_team_data(
                 if m == 0:
                     # output_file.write("Power Change 2\n")
                     depth3['power_ranking'][-1] += \
-                        (1.0/3.0) * ((0.5)**(i-1 + k + m)) * power_change
+                        (1.0/3.0) * ((0.5)**(i-1 + k + m)) * actual_power_change
                     temp_loop_change += \
-                        (1.0/3.0) * ((0.5)**(i-1 + k + m)) * power_change
+                        (1.0/3.0) * ((0.5)**(i-1 + k + m)) * actual_power_change
                     # output_file.write(f"Temp Loop Change {temp_loop_change}\n")
                     continue
                 for l in range(0, 6):
@@ -223,9 +223,9 @@ def process_team_data(
                     if l == 0:
                         # output_file.write("Power change 3\n")
                         depth4['power_ranking'][-1] += \
-                            (1.0/3.0) * ((0.5)**(i-1 + k + m + l)) * power_change
+                            (1.0/3.0) * ((0.5)**(i-1 + k + m + l)) * actual_power_change
                         temp_loop_change += \
-                            (1.0/3.0) * ((0.5)**(i-1 + k + m + l)) * power_change
+                            (1.0/3.0) * ((0.5)**(i-1 + k + m + l)) * actual_power_change
                         # output_file.write(f"Temp Loop Change {temp_loop_change}\n")
                         continue
                     for q in range(0, 6):
@@ -237,10 +237,10 @@ def process_team_data(
                             # output_file.write("Power change 4\n")
                             depth5['power_ranking'][-1] += \
                                 (1.0/3.0) * ((0.5)**(i-1 + k + m + l + q)) * \
-                                power_change
+                                actual_power_change
                             temp_loop_change += \
                                 (1.0/3.0) * ((0.5)**(i-1 + k + m + l + q)) * \
-                                power_change
+                                actual_power_change
                             # output_file.write(f"Temp Loop Change {temp_loop_change}\n")
                             continue
         # print(temp_loop_change)
@@ -332,13 +332,13 @@ def run_calculations(df, teams_data):
     df = expected_wl(df)
     df = calculate_power_difference(df)
     nested_power_change(df, teams_id_dict, teams_names_dict)
-    df = set_adjusted_power_rankings(df, teams_names_dict)
+    # df = set_adjusted_power_rankings(df, teams_names_dict)
     # print(teams_data)
 
     # for team in teams_data:
     #     if team['team_name'] == "Webber":
     #         print(team)
 
-    df = calculate_z_scores(df)  # Ensure Z-scores are calculated and included
+    # df = calculate_z_scores(df)  # Ensure Z-scores are calculated and included
     # print(df.to_string())
     return df, teams_data
