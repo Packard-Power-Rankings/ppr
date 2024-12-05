@@ -15,11 +15,6 @@ const AdminPage = () => {
         setShowUploadForm(true);
     };
 
-    // Handle completion of CSV upload
-    const handleCsvUploadComplete = (newTeamsDetected) => {
-        console.log('CSV upload complete. New teams detected:', newTeamsDetected);
-    };
-
     return (
         <div>
             <h1>Packard Power Rankings Admin Page</h1>

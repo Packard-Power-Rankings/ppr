@@ -10,6 +10,13 @@ const DeleteForm = ({ seasonName, onComplete }) => {
         setDeleteOption(e.target.value);
     };
 
+    const handleCancel = () => {
+        setDeleteOption(''); // Reset the delete option to hide delete form
+        if (onComplete && typeof onComplete === 'function') {
+            onComplete(); // Call onComplete if it's a valid function
+        }
+    };
+
     const renderDeleteOperation = () => {
         switch (deleteOption) {
             case 'deleteSeason':
@@ -31,7 +38,7 @@ const DeleteForm = ({ seasonName, onComplete }) => {
             {renderDeleteOperation()}
 
             {/* Single Cancel button that applies to all delete options */}
-            {deleteOption && <button onClick={onComplete}>Cancel</button>}
+            {deleteOption && <button onClick={handleCancel}>Cancel</button>}
         </div>
     );
 };
