@@ -17,6 +17,14 @@ const TeamsPage = () => {
     const [divisions, setDivisions] = useState([]);
     const [conferences, setConferences] = useState([]);
 
+    // Prediction-related state
+    const [teamOne, setTeamOne] = useState("");
+    const [teamTwo, setTeamTwo] = useState("");
+    const [homeFieldAdv, setHomeFieldAdv] = useState('false');
+    const [predictions, setPredictions] = useState(null);
+    const [predictionLoading, setPredictionLoading] = useState(false);
+    const [predictionError, setPredictionError] = useState(null);
+
     const fetchTeams = async () => {
         setLoading(true);
         try {
@@ -38,6 +46,31 @@ const TeamsPage = () => {
             setError(err.message);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchPredictions = async () => {
+        if (!teamOne || !teamTwo) {
+            setPredictionError('Please select two teams for predictions.');
+            return;
+        }
+
+        setPredictionLoading(true);
+        try {
+            const response = await fetch(
+                `http://localhost:8000/user/predictions/${teamOne}/${teamTwo}/${homeFieldAdv}?sport_type=football&gender=mens&level=college`
+            );
+            if (!response.ok) {
+                throw new Error(`Error: ${response.statusText}`);
+            }
+            const data = await response.json();
+            console.log("Prediction Data:", data); // Log to inspect the response
+            setPredictions(data); // Set the predictions state with the API response
+            setPredictionError(null); // Clear any previous error
+        } catch (err) {
+            setPredictionError(err.message);
+        } finally {
+            setPredictionLoading(false);
         }
     };
 
@@ -87,6 +120,14 @@ const TeamsPage = () => {
         setSelectedConference(e.target.value);
     };
 
+    const handleTeamSelection = (teamName, teamSelect) => {
+        if (teamSelect === 'teamOne') {
+            setTeamOne(teamName);
+        } else {
+            setTeamTwo(teamName);
+        }
+    };
+
     const indexOfLastTeam = currentPage * teamsPerPage;
     const indexOfFirstTeam = indexOfLastTeam - teamsPerPage;
     const currentTeams = applySortingAndFiltering().slice(indexOfFirstTeam, indexOfLastTeam);
@@ -105,15 +146,15 @@ const TeamsPage = () => {
         <div>
             <h2>{sportType.charAt(0).toUpperCase() + sportType.slice(1)} Teams</h2>
 
-            <input
-                type="text"
-                placeholder="Search teams..."
-                value={searchQuery}
-                onChange={handleSearchChange}
-                className="search-input"
-            />
-
+            {/* Team Filters */}
             <div className="filters">
+                <input
+                    type="text"
+                    placeholder="Search teams..."
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    className="search-input"
+                />
                 <select onChange={handleDivisionChange} value={selectedDivision}>
                     <option value="">All Divisions</option>
                     {divisions.map((division, index) => (
@@ -129,6 +170,7 @@ const TeamsPage = () => {
                 </select>
             </div>
 
+            {/* Teams List */}
             <div className="team-table">
                 <div className="table-header">
                     <span onClick={() => handleSort("overall_rank")}>Overall Rank {sortColumn === "overall_rank" ? (sortOrder === "asc" ? "↑" : "↓") : ""}</span>
@@ -146,15 +188,13 @@ const TeamsPage = () => {
                     >
                         <span>{team.overall_rank ?? 'N/A'}</span>
                         <span>{team.team_name}</span>
-                        <span>{team.power_ranking?.[0] != null ? Number(team.power_ranking[0]).toFixed(2) : 'N/A'}</span>
                         <span>
-                            {team.division_rank ?? 'N/A'} -
-                            <span
-                                onClick={(e) => { e.preventDefault(); }}
-                                className="division-link"
-                            >
-                                {team.division ?? 'N/A'}
-                            </span>
+                            {team.power_ranking && team.power_ranking.length > 0
+                                ? Object.values(team.power_ranking[team.power_ranking.length - 1])[0].toFixed(2)
+                                : 'N/A'}
+                        </span>
+                        <span>
+                            {team.division_rank ?? 'N/A'} - {team.division ?? 'N/A'}
                         </span>
                         <span>{team.conference ?? 'N/A'}</span>
                         <span>{team.wins} - {team.losses}</span>
@@ -162,6 +202,7 @@ const TeamsPage = () => {
                 ))}
             </div>
 
+            {/* Pagination */}
             <div className="pagination">
                 <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
                     Previous
@@ -181,6 +222,57 @@ const TeamsPage = () => {
                 >
                     Next
                 </button>
+            </div>
+
+            {/* Prediction Section */}
+            <div className="prediction-section">
+                <h3>Prediction</h3>
+                <div>
+                    <select onChange={(e) => handleTeamSelection(e.target.value, 'teamOne')} value={teamOne}>
+                        <option value="">Select Team 1</option>
+                        {teams.map((team) => (
+                            <option key={team.team_id} value={team.team_name}>
+                                {team.team_name}
+                            </option>
+                        ))}
+                    </select>
+                    <select onChange={(e) => handleTeamSelection(e.target.value, 'teamTwo')} value={teamTwo}>
+                        <option value="">Select Team 2</option>
+                        {teams.map((team) => (
+                            <option key={team.team_id} value={team.team_name}>
+                                {team.team_name}
+                            </option>
+                        ))}
+                    </select>
+
+                    <label>
+                        Home Field Advantage:
+                        <input
+                            type="checkbox"
+                            checked={homeFieldAdv === true}
+                            onChange={() => setHomeFieldAdv(prev => !prev)} // Toggle to boolean
+                        />
+                    </label>
+                </div>
+
+                {/* Use this updated button to trigger prediction fetch */}
+                <button
+                    onClick={fetchPredictions} // Directly trigger the fetch function
+                    className="prediction-button"
+                >
+                    Get Prediction
+                </button>
+
+                {/* Prediction Result */}
+                {predictionLoading && <p>Loading prediction...</p>}
+                {predictionError && <p>Error: {predictionError}</p>}
+                {predictions && (
+                    <div>
+                        <h4>Prediction for {teamOne} vs {teamTwo}</h4>
+                        <p>{teamOne}: {predictions[teamOne] ? predictions[teamOne].toFixed(2) : 'N/A'}</p>
+                        <p>{teamTwo}: {predictions[teamTwo] ? predictions[teamTwo].toFixed(2) : 'N/A'}</p>
+                    </div>
+                )}
             </div>
         </div>
     );

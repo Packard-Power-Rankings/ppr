@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes, Link, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import Home from './components/Home';
 import About from './components/About';
 import ThemeToggle from './components/ThemeToggle';
@@ -43,12 +43,7 @@ const App = () => {
     };
 
     return (
-        <Router
-            future={{
-                v7_startTransition: true, // Opt into startTransition
-                v7_relativeSplatPath: true, // Opt into relative splat path resolution
-            }}
-        >
+        <Router>
             <nav>
                 <Link to="/" className="nav-label">Packard Power Rankings</Link>
                 <Link to="/">Home</Link>

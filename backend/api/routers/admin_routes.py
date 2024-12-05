@@ -15,6 +15,7 @@ import traceback
 from typing import Tuple, Dict, Annotated, Any
 from celery.result import AsyncResult
 from celery import states
+from service.tasks import run_main_algorithm
 from fastapi import (
     APIRouter,
     Depends,
