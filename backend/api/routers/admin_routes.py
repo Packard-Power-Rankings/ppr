@@ -15,7 +15,6 @@ import traceback
 from typing import Tuple, Dict, Annotated, Any
 from celery.result import AsyncResult
 from celery import states
-# from service.tasks import run_main_algorithm
 from fastapi import (
     APIRouter,
     Depends,
@@ -27,7 +26,8 @@ from fastapi import (
 )
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import JSONResponse
-from schemas.items import (
+from api.service.tasks import run_main_algorithm
+from api.schemas.items import (
     InputMethod,
     NewTeamList,
     UpdateTeamsData,
@@ -35,9 +35,9 @@ from schemas.items import (
     input_method_dependency,
     update_method
 )
-from service.admin_teams import AdminTeamsService
-from service.admin_service import AdminServices
-# from service.celery import celery
+from api.service.admin_teams import AdminTeamsService
+from api.service.admin_service import AdminServices
+from api.service.celery import celery
 
 router = APIRouter()
 admin_service = AdminServices()

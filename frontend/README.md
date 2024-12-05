@@ -7,28 +7,46 @@
 ## Testing
 For local testing, launch the docker containers and navigate to localhost:3000 ([here](http://localhost:3000/)).
 
-## File Structure [subject to change]
+## File Structure
 
 ```
 📦frontend
  ┣ 📂node_modules
  ┣ 📂public
  ┃ ┣ 📜index.html
+ ┃ ┣ 📜manifest.json
  ┃ ┗ 📜R.ico
  ┣ 📂src
  ┃ ┣ 📂components
+ ┃ ┃ ┣ 📂admin
+ ┃ ┃ ┃ ┣ 📜AdminPage.js
+ ┃ ┃ ┃ ┣ 📜CsvParser.js
+ ┃ ┃ ┃ ┣ 📜CsvTable.css
+ ┃ ┃ ┃ ┣ 📜CsvTable.js
+ ┃ ┃ ┃ ┣ 📜CsvUpload.js
+ ┃ ┃ ┃ ┣ 📜DeleteForm.js
+ ┃ ┃ ┃ ┣ 📜DeleteSeason.js
+ ┃ ┃ ┃ ┣ 📜Login.js
+ ┃ ┃ ┃ ┣ 📜RunAlgorithm.js
+ ┃ ┃ ┃ ┣ 📜SportForm.js
+ ┃ ┃ ┃ ┗ 📜UpdateTeam.js
+ ┃ ┃ ┣ 📂user
+ ┃ ┃ ┃ ┣ 📜TeamDetails.css
+ ┃ ┃ ┃ ┣ 📜TeamDetails.js
+ ┃ ┃ ┃ ┣ 📜TeamsPage.css
+ ┃ ┃ ┃ ┗ 📜TeamsPage.js
  ┃ ┃ ┣ 📜About.js
- ┃ ┃ ┣ 📜AdminPage.js
- ┃ ┃ ┣ 📜Home.css
  ┃ ┃ ┣ 📜Home.js
- ┃ ┃ ┣ 📜Login.js
  ┃ ┃ ┣ 📜RankingTile.css
  ┃ ┃ ┣ 📜RankingTile.js
- ┃ ┃ ┣ 📜SportForm.js
- ┃ ┃ ┗ 📜UploadForm.js
+ ┃ ┃ ┗ 📜ThemeToggle.js
  ┃ ┣ 📜App.js
  ┃ ┣ 📜index.js
- ┃ ┗ 📜Nav.css
+ ┃ ┣ 📜Nav.css
+ ┃ ┗ 📜Styles.css
+ ┣ 📂tests
+ ┃ ┣ 📜test_teams.csv
+ ┃ ┗ 📜test_teams_empty.csv
  ┣ 📜Dockerfile
  ┣ 📜dockerignore
  ┣ 📜gitignore

@@ -11,7 +11,7 @@ It includes:
 - Serialization and deserialization logic for integration with MongoDB. 
 """
 
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict
 import json
 from enum import Enum
 from pydantic import (
@@ -21,8 +21,8 @@ from pydantic import (
     field_validator,
     model_validator
 )
-from config.constants import LEVEL_CONSTANTS
-from fastapi import Form, Depends, HTTPException
+# from config.constants import LEVEL_CONSTANTS
+from fastapi import Form, HTTPException
 
 
 # Enum Definitions (fixed set of values)

@@ -22,7 +22,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 import bcrypt
 import jwt
 from jwt.exceptions import InvalidTokenError
-from schemas.items import TokenData, Token
+from api.schemas.items import TokenData, Token
 
 ACCESS_TOKEN_TIME = 60.0
 ALGORITHM = "HS256"
@@ -34,7 +34,7 @@ client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_DETAILS)
 database = client['admin_details']
 admin = database.get_collection('admin')
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/admin/token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token/")
 
 
 class AdminServices():
