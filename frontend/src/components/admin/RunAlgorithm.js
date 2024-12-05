@@ -1,7 +1,7 @@
 // src/components/admin/RunAlgorithm.js
 import React, { useState } from 'react';
 
-const RunAlgorithm = ({ onRun, sportType, gender, level }) => {
+const RunAlgorithm = ({ sportType, gender, level }) => {
     const [runCount, setRunCount] = useState(1);
     const [errorMessage, setErrorMessage] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -55,7 +55,6 @@ const RunAlgorithm = ({ onRun, sportType, gender, level }) => {
             if (response.ok) {
                 const data = await response.json();
                 console.log('Algorithm run successful:', data);
-                if (onRun) onRun(data);
             } else {
                 handleAuthError(response);
             }
