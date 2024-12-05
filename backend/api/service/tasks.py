@@ -14,8 +14,8 @@ ground
 import asyncio
 from celery import states
 # from admin_teams import AdminTeamsService
-from .admin_teams import AdminTeamsService
-from .celery import celery
+from api.service.admin_teams import AdminTeamsService
+from api.service.celery import celery
 
 
 @celery.task(bind=True, name="api.service.tasks.run_main_algorithm")
