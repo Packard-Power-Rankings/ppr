@@ -73,8 +73,9 @@ const App = () => {
                         )
                     }
                 />
-                <Route path="/:sportType" element={<TeamsPage />} />
+                <Route path="/:sportType/:gender/:level" element={<TeamsPage />} />
                 <Route path="/:sportType/:teamName" element={<TeamDetails />} />
+                <Route path="*" element={<p>404 Page Not Found</p>} />
             </Routes>
         </Router>
     );

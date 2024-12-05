@@ -17,7 +17,7 @@ def users_class(level_key: Tuple) -> "UsersServices":
 @router.get("/{sport_type}/", response_description="Display Teams Data")
 async def list_teams(
     sport_type: str,
-    search_params: items.GeneralInputMethod = Depends()
+    search_params: GeneralInputMethod = Depends()
 ):
     """
     Retrieve all teams for a specific sport, with optional filters.

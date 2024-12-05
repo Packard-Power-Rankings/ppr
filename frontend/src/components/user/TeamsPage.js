@@ -29,7 +29,7 @@ const TeamsPage = () => {
     const fetchTeams = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`http://localhost:8000/${sportType}/?gender=mens&level=college`);
+            const response = await fetch(`http://localhost:8000/${sportType}/?gender=${gender}&level=${level}`);
             if (!response.ok) {
                 throw new Error(`${response.status} (HTTP not found)`);
             }
@@ -59,7 +59,7 @@ const TeamsPage = () => {
         setPredictionLoading(true);
         try {
             const response = await fetch(
-                `http://localhost:8000/predictions/${teamOne}/${teamTwo}/${homeFieldAdv}?sport_type=football&gender=mens&level=college`
+                `http://localhost:8000/predictions/${teamOne}/${teamTwo}/${homeFieldAdv}/?gender=${gender}&level=${level}`
             );
             if (!response.ok) {
                 throw new Error(`Error: ${response.statusText}`);
