@@ -34,7 +34,7 @@ const App = () => {
     const handleLoginSuccess = (token) => {
         setIsAuthenticated(true);
         localStorage.setItem('access_token', token); // Save the token for future use
-        console.log('Logged in successfully, token:', token);
+        // console.log('Logged in successfully, token:', token);
     };
 
     const handleLogout = () => {
