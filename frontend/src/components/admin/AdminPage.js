@@ -6,7 +6,6 @@ import DeleteForm from './DeleteForm';
 import RunAlgorithm from './RunAlgorithm';
 
 const AdminPage = () => {
-    const [showUploadForm, setShowUploadForm] = useState(false);
     const [sportData, setSportData] = useState({ sportType: '', gender: '', level: '' });
     const [showSportSelection, setShowSportSelection] = useState(true); // Show sport selection by default
 

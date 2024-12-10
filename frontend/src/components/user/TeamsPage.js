@@ -4,7 +4,7 @@ import { useParams, Link } from 'react-router-dom';
 import './TeamsPage.css';
 
 const TeamsPage = () => {
-    const { sportType, teamName, gender, level } = useParams(); // Extract gender and level parameters
+    const { sportType, gender, level } = useParams();
     const [teams, setTeams] = useState([]);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -29,7 +29,9 @@ const TeamsPage = () => {
     const fetchTeams = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`http://localhost:8000/${sportType}/?gender=${gender}&level=${level}`);
+            const response = await fetch(
+                `http://localhost:8000/${sportType}/?gender=${encodeURIComponent(gender)}&level=${encodeURIComponent(level)}`
+            );
             if (!response.ok) {
                 throw new Error(`${response.status} (HTTP not found)`);
             }
@@ -183,7 +185,7 @@ const TeamsPage = () => {
                 </div>
                 {currentTeams.map(team => (
                     <Link
-                        to={`/${sportType}/${team.team_name}${gender}/${level}`}
+                        to={`/${sportType}/${team.team_name}/${gender}/${level}`} // Provide an absolute path
                         key={team.team_id}
                         className="team-row"
                     >
