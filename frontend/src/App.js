@@ -73,8 +73,8 @@ const App = () => {
                         )
                     }
                 />
-                <Route path="/:sportType/:gender/:level" element={<TeamsPage />} />
                 <Route path="/:sportType/:teamName/:gender/:level" element={<TeamDetails />} />
+                <Route path="/:sportType/:gender/:level" element={<TeamsPage />} />
             </Routes>
         </Router>
     );
