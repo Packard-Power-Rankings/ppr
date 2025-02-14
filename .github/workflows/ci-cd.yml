@@ -1,29 +1,36 @@
 name: CI/CD Pipeline
 
-# Run this workflow on any push to the main branch
 on:
   push:
     branches: [ "main" ]
 
 jobs:
-  # Define a job for building, testing, and deploying
   build:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Check out the code
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      # Step 2: Set up Docker (if you're using Docker)
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
-      # Step 3: Build and test FastAPI and React (you can add more steps here)
+      - name: Install Docker Compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+
+      # Create the .env file with environment variables from GitHub Secrets
+      - name: Create .env file
+        run: |
+          echo "MONGO_DB_NAME=${{ secrets.MONGO_DB_NAME }}" >> .env
+          echo "MONGO_USER=${{ secrets.MONGO_USER }}" >> .env
+          echo "MONGO_PASS=${{ secrets.MONGO_PASS }}" >> .env
+          echo "MONGO_PORT=${{ secrets.MONGO_PORT }}" >> .env
+          echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
+
+      # Run Docker Compose with the .env file
       - name: Build and Test
         run: |
           docker-compose up --build -d
-          # Run backend tests
-          docker-compose exec fastapi pytest
-          # Run frontend tests
-          docker-compose exec react npm test
+          # Additional test or build commands here

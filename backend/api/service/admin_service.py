@@ -1,28 +1,28 @@
 """Admin service class that creates a single admin,
     generates password hash and stores in database, checks
-    if password is correct, and genrates an access token
+    if password is correct, and generates an access token
 
     Raises:
-        HTTPException: 401 Unathorized Access
+        HTTPException: 401 Unauthorized Access
         HTTPException: 500 Server Error
         HTTPException: 404 Not Found
         HTTPException: 400 Bad Request
-        credentials_exception: 401 Unathorized Access
+        credentials_exception: 401 Unauthorized Access
 
     Returns:
         None
 """
 
 import os
-from typing import Annotated
+from typing import Annotated, Optional
 from datetime import datetime, timedelta, timezone
 import motor.motor_asyncio
 from fastapi import HTTPException, Depends, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 import bcrypt
 import jwt
 from jwt.exceptions import InvalidTokenError
-from schemas.items import TokenData
+from api.schemas.items import TokenData, Token
 
 ACCESS_TOKEN_TIME = 60.0
 ALGORITHM = "HS256"
@@ -34,17 +34,34 @@ client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_DETAILS)
 database = client['admin_details']
 admin = database.get_collection('admin')
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token/")
 
 
 class AdminServices():
     def __init__(self):
+        """Initializes the collection from the database
+        """
         self.admin_collection = admin
 
     async def create_admin(self, username: str, password: str) -> str:
+        """Creates a new admin and checks if an admin
+        already exists in the database
+
+        Args:
+            username (str): Username
+            password (str): Password
+
+        Raises:
+            HTTPException: Internal Server Error
+            HTTPException: Unauthorized Access
+
+        Returns:
+            str: The id returned from the insertion into the
+            database
+        """
         try:
-            exsisting_admin = await self.admin_collection.find_one({})
-            if exsisting_admin:
+            existing_admin = await self.admin_collection.find_one({})
+            if existing_admin:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail="Admin Already Exists"
@@ -59,11 +76,61 @@ class AdminServices():
         except Exception as exc:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Error has occured"
+                detail="Error has occurred"
             ) from exc
 
+    async def login(
+        self,
+        form_data: OAuth2PasswordRequestForm
+    ) -> Token:
+        """Verifies the admin username and the password are
+        correct
+
+        Args:
+            form_data (OAuth2PasswordRequestForm): Username and Password
+
+        Returns:
+            Token: Returns the login token
+        """
+        access_token = await self.verify_admin(
+            form_data.username,
+            form_data.password
+        )
+        return Token(access_token=access_token, token_type="bearer")
+
+    @staticmethod
+    async def get_current_admin(
+        token: str = Depends(oauth2_scheme)
+    ):
+        """Gets the current admin based on the verified
+        token
+
+        Args:
+            token (str, optional): Token from verification.
+            Defaults to Depends(oauth2_scheme).
+
+        Returns:
+            TokenData: JSON Web Token to store in frontend
+            for a set amount of time without reverification
+        """
+        admin_service = AdminServices()
+        return await admin_service.get_current_user(token)
+
     async def verify_admin(self, username: str, password: str) -> str:
-        admin = self.admin_collection.find_one({"username": username})
+        """Verifies that the admin is logging in
+
+        Args:
+            username (str): Username
+            password (str): Password
+
+        Raises:
+            HTTPException: Not Found
+            HTTPException: Bad Request
+
+        Returns:
+            str: A generated JWT access token
+        """
+        admin = await self.admin_collection.find_one({"username": username})
         if not admin:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -82,6 +149,18 @@ class AdminServices():
         self,
         token: Annotated[str, Depends(oauth2_scheme)]
     ):
+        """Gets the current user
+
+        Args:
+            token (Annotated[str, Depends): Token Scheme
+
+        Raises:
+            credentials_exception: Unauthorized
+            credentials_exception: Unauthorized
+
+        Returns:
+            TokenData: Returns token data
+        """
         credentials_exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
@@ -103,17 +182,23 @@ class AdminServices():
     def generate_access_token(
         self,
         data: dict,
-        expires_delta = timedelta | None
+        expires_delta: Optional[timedelta] = None
     ) -> str:
+        """Generates the JWT for ease of access
+
+        Args:
+            data (dict): Specific information for JWT structure
+            expires_delta (Optional[timedelta], optional): 
+                Time frame for JWT structure. Defaults to None.
+
+        Returns:
+            str: The encoded JWT string
+        """
         to_encode = data.copy()
         if expires_delta:
-            expire = \
-                datetime.now(timezone.utc) \
-                    + expires_delta
+            expire = datetime.now(timezone.utc) + expires_delta
         else:
-            expire = \
-                datetime.now(timezone.utc) \
-                    + timedelta(minutes=ACCESS_TOKEN_TIME)
+            expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_TIME)
 
         to_encode.update({'exp': expire})
         encode_jwt = jwt.encode(
@@ -125,6 +210,14 @@ class AdminServices():
 
     @staticmethod
     def hashed_password(password: str) -> str:
+        """Hashes the password for storage in the database
+
+        Args:
+            password (str): Password
+
+        Returns:
+            str: The hashed password
+        """
         salt = bcrypt.gensalt()
         return bcrypt.hashpw(
             password=password.encode('utf-8'),
@@ -133,6 +226,16 @@ class AdminServices():
 
     @staticmethod
     def check_password(submitted_pass: str, hashed_pass: str) -> bool:
+        """Compares the entered password to the stored
+        password to see if they are equal
+
+        Args:
+            submitted_pass (str): Entered Password
+            hashed_pass (str): Password in DB
+
+        Returns:
+            bool: Whether they are matched or not
+        """
         return bcrypt.checkpw(
             submitted_pass.encode("utf-8"),
             hashed_pass.encode('utf-8')

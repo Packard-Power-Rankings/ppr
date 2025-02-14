@@ -6,30 +6,30 @@ const RankingTile = () => {
     const footballSports = [
         {
             title: 'College Football',
-            link: '/football', // Link to the TeamsPage for football
+            link: '/football/mens/college',
         },
         {
-            title: 'High School Football',
-            link: '/football',
+            title: 'Colorado High School Football',
+            link: '/football/mens/high-school',
         },
     ];
 
     const basketballSports = [
         {
             title: 'Men’s College Basketball',
-            link: '/basketball',
+            link: '/basketball/mens/college',
         },
         {
             title: 'Women’s College Basketball',
-            link: '/basketball',
+            link: '/basketball/womens/college',
         },
         {
-            title: 'Men’s High School Basketball',
-            link: '/basketball', // Link to the TeamsPage for basketball
+            title: 'Colorado Boy’s High School Basketball',
+            link: '/basketball/mens/high-school',
         },
         {
-            title: 'Women’s High School Basketball',
-            link: '/basketball',
+            title: 'Colorado Girl’s High School Basketball',
+            link: '/basketball/womens/high-school',
         },
     ];
 
@@ -40,7 +40,7 @@ const RankingTile = () => {
                 {footballSports.map((sport, index) => (
                     <div key={index} className="ranking-tile">
                         <h3>{sport.title}</h3>
-                        <Link to={sport.link} className="tile-link"> {/* Use Link instead of button */}
+                        <Link to={sport.link} className="tile-link">
                             View Power Rankings
                         </Link>
                     </div>
@@ -52,7 +52,7 @@ const RankingTile = () => {
                 {basketballSports.map((sport, index) => (
                     <div key={index} className="ranking-tile">
                         <h3>{sport.title}</h3>
-                        <Link to={sport.link} className="tile-link"> {/* Use Link instead of button */}
+                        <Link to={sport.link} className="tile-link">
                             View Power Rankings
                         </Link>
                     </div>

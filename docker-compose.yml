@@ -8,7 +8,7 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASS}
     ports:
-      - "${MONGO_PORT}:${MONGO_PORT}"
+      - 27017:27017
     networks:
       - app-network
     env_file:
@@ -16,7 +16,7 @@ services:
 
   backend:
     build: ./backend
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
     volumes:
       - ./backend:/app
     ports:
@@ -24,11 +24,51 @@ services:
     networks:
       - app-network
     environment:
+      - PYTHONPATH=/app
       - MONGO_URI=mongodb://${MONGO_USER}:${MONGO_PASS}@db:${MONGO_PORT}/${MONGO_DB_NAME}
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
     depends_on:
-      - db
+      redis:
+        condition: service_healthy
+      db:
+        condition: service_started
     env_file:
       - .env
+  
+  celery_worker:
+    build: ./backend
+    command: celery -A api.service.celery worker --loglevel=info -Q algorithm_queue -E
+    volumes:
+      - ./backend:/app
+    networks:
+      - app-network
+    environment:
+      - PYTHONPATH=/app
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    env_file:
+      - .env
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
 
   frontend:
     build: ./frontend
@@ -46,6 +86,7 @@ services:
 volumes:
   mongo_data:
   node_modules:
+  redis_data:
 
 networks:
   app-network:

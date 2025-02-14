@@ -1,25 +1,25 @@
+from typing import List, Dict
+import math
 import numpy as np  # For numerical operations
 import pandas as pd
-from typing import Tuple, Dict, Any, List
-# from config.config import CONSTANTS_MAP
 
 
-def calculate_z_scores(df):
-    """
-    Calculate Z-scores for the home and away teams based on their scores.
-    :param df: DataFrame containing enriched data.
-    :return: DataFrame with Z-scores for home and away teams.
-    """
-    all_scores = df['home_score'].tolist() + df['away_score'].tolist()
-    mean_score = np.mean(all_scores)
-    std_dev_score = np.std(all_scores)
+# def calculate_z_scores(df):
+#     """
+#     Calculate Z-scores for the home and away teams based on their scores.
+#     :param df: DataFrame containing enriched data.
+#     :return: DataFrame with Z-scores for home and away teams.
+#     """
+#     all_scores = df['home_score'].tolist() + df['away_score'].tolist()
+#     mean_score = np.mean(all_scores)
+#     std_dev_score = np.std(all_scores)
 
-    df['home_z_score'] = (df['home_score'] - mean_score) / \
-        std_dev_score if std_dev_score != 0 else 0
-    df['away_z_score'] = (df['away_score'] - mean_score) / \
-        std_dev_score if std_dev_score != 0 else 0
+#     df['home_z_score'] = (df['home_score'] - mean_score) / \
+#         std_dev_score if std_dev_score != 0 else 0
+#     df['away_z_score'] = (df['away_score'] - mean_score) / \
+#         std_dev_score if std_dev_score != 0 else 0
 
-    return df
+#     return df
 
 
 def calculate_expected_performance(expected):
@@ -40,12 +40,11 @@ def calculate_actual_performance(actual):
     """
     if actual >= 0:
         return ((actual + 2.0) ** 0.45) - (2.0 ** 0.45) + 1.0
-    else:
-        return -1.0 * ((-1.0 * actual + 2.0) ** 0.45 - (2.0 ** 0.45)) - 1
+    return -1.0 * ((-1.0 * actual + 2.0) ** 0.45 - (2.0 ** 0.45)) - 1.0
 
 
 def power_change(actual_performance, expected_performance, k_value):
-    return k_value * (actual_performance - expected_performance)
+    return (actual_performance - expected_performance) * k_value
 
 
 def calculate_power_difference(df):
@@ -76,19 +75,21 @@ def calculate_power_difference(df):
         actual_away_performance = \
             calculate_actual_performance(actual_away_wl)
         home_power_change = \
-            power_change(
+            round(power_change(
                 actual_home_performance,
                 expected_home_performance,
                 row['k_value']
-            )
+            ), 5)
         away_power_change = \
-            power_change(
+            round(power_change(
                 actual_away_performance,
                 expected_visitor_performance,
                 row['k_value']
-            )
-        row['home_team_power_ranking'] += home_power_change
-        row['away_team_power_ranking'] += away_power_change
+            ), 5)
+        row['home_team_power_ranking'] = \
+            (row['home_team_power_ranking'] + home_power_change)
+        row['away_team_power_ranking'] = \
+            (row['away_team_power_ranking'] + away_power_change)
 
         return pd.Series(
             [
@@ -161,10 +162,10 @@ def modify_game_scores(df):
             mov = row['away_score'] - row['home_score']
             mov_mod = modified_away_score - modified_home_score
             mov_mod1 = (
-                50.0 / (row['away_score'] + row['home_score'])
+                50.0 / (row['home_score'] + row['away_score'])
             ) * mov
             mov_mod2 = max(mov_mod, mov_mod1)
-            if row['away_score'] + row['home_score'] < row['AVEGAMESC']:
+            if row['home_score'] + row['away_score'] < row['AVEGAMESC']:
                 mov_mod2 = mov_mod
             modified_away_score = round(25.0 + 0.5 * mov_mod2, 5)
             modified_home_score = round(50.0 - modified_away_score, 5)
@@ -179,7 +180,7 @@ def modify_game_scores(df):
 def process_team_data(
     teams_id_dict,
     recent_opponents,
-    power_change
+    actual_power_change
 ):
     temp_loop_change = 0.0
 
@@ -196,9 +197,9 @@ def process_team_data(
             if k == 0:
                 # output_file.write("Power Change 1\n")
                 depth2['power_ranking'][-1] += \
-                    (1.0/3.0) * ((0.5)**(i-1 + k)) * power_change
+                    (1.0/3.0) * ((0.5)**(i-1 + k)) * actual_power_change
                 temp_loop_change += \
-                    (1.0/3.0) * ((0.5)**(i-1 + k)) * power_change
+                    (1.0/3.0) * ((0.5)**(i-1 + k)) * actual_power_change
                 # output_file.write(f"Temp Loop Change {temp_loop_change}\n")
                 continue
             for m in range(0, 6):
@@ -209,9 +210,9 @@ def process_team_data(
                 if m == 0:
                     # output_file.write("Power Change 2\n")
                     depth3['power_ranking'][-1] += \
-                        (1.0/3.0) * ((0.5)**(i-1 + k + m)) * power_change
+                        (1.0/3.0) * ((0.5)**(i-1 + k + m)) * actual_power_change
                     temp_loop_change += \
-                        (1.0/3.0) * ((0.5)**(i-1 + k + m)) * power_change
+                        (1.0/3.0) * ((0.5)**(i-1 + k + m)) * actual_power_change
                     # output_file.write(f"Temp Loop Change {temp_loop_change}\n")
                     continue
                 for l in range(0, 6):
@@ -222,9 +223,9 @@ def process_team_data(
                     if l == 0:
                         # output_file.write("Power change 3\n")
                         depth4['power_ranking'][-1] += \
-                            (1.0/3.0) * ((0.5)**(i-1 + k + m + l)) * power_change
+                            (1.0/3.0) * ((0.5)**(i-1 + k + m + l)) * actual_power_change
                         temp_loop_change += \
-                            (1.0/3.0) * ((0.5)**(i-1 + k + m + l)) * power_change
+                            (1.0/3.0) * ((0.5)**(i-1 + k + m + l)) * actual_power_change
                         # output_file.write(f"Temp Loop Change {temp_loop_change}\n")
                         continue
                     for q in range(0, 6):
@@ -236,10 +237,10 @@ def process_team_data(
                             # output_file.write("Power change 4\n")
                             depth5['power_ranking'][-1] += \
                                 (1.0/3.0) * ((0.5)**(i-1 + k + m + l + q)) * \
-                                power_change
+                                actual_power_change
                             temp_loop_change += \
                                 (1.0/3.0) * ((0.5)**(i-1 + k + m + l + q)) * \
-                                power_change
+                                actual_power_change
                             # output_file.write(f"Temp Loop Change {temp_loop_change}\n")
                             continue
         # print(temp_loop_change)
@@ -258,9 +259,12 @@ def nested_power_change(df, teams_id_dict, teams_names_dict):
         home_opponent_ids = home_team['recent_opp']
         home_opponent_ids.insert(0, home_team['team_id'])
 
-        # print(f"Home Team PR {home_team['power_ranking']}\n")
-        home_team['power_ranking'][-1] += row['home_power_change']
-        # print(f"Home Team PR After Change: {home_team['power_ranking']}\n")
+        home_last_entry = home_team['power_ranking'][-1]
+        home_key = next(iter(home_last_entry))
+        home_last_entry[home_key] = round(
+            home_last_entry[home_key] + row['home_power_change'],
+            5
+        )
 
         away_team = teams_names_dict[row['away_team'].lower()]
         away_opponent_ids = away_team['recent_opp']
@@ -276,15 +280,16 @@ def nested_power_change(df, teams_id_dict, teams_names_dict):
         process_team_data(
             teams_id_dict,
             home_opponent_ids,
-            row['home_power_change']
+            round(row['home_power_change'], 5)
         )
+        # print(f"Home Team PR After Nested Loop: {home_team['power_ranking'][-1]}")
 
         process_team_data(
             teams_id_dict,
             away_opponent_ids,
-            row['away_power_change']
+            round(row['away_power_change'], 5)
         )
-
+        # print(f"Away Team PR After Nested Loop: {away_team['power_ranking'][-1]}")
         home_opponent_ids = update_recent_opp_list(
             home_opponent_ids,
             away_team['team_id']
@@ -293,22 +298,21 @@ def nested_power_change(df, teams_id_dict, teams_names_dict):
             away_opponent_ids,
             home_team['team_id']
         )
-        # print(f"Home Team PR After Change: {home_team['power_ranking']}\n")
-        # print(f"Away Team PR After Change: {away_team['power_ranking']}\n")
-        # print(f"Home Opponent List: {home_opponent_ids}\nAway Opponent List: {away_opponent_ids}\n")
 
     df.apply(calculate_power_change, axis=1)
 
 
-def set_adjusted_power_rankings(df, teams_names_dict):
-    def power_rankings_change(row):
-        updated_home_pr = \
-            teams_names_dict[row['home_team'].lower()]['power_ranking'][-1]
-        updated_away_pr = \
-            teams_names_dict[row['away_team'].lower()]['power_ranking'][-1]
-        return pd.Series([updated_home_pr, updated_away_pr])
-    df[['home_team_power_ranking', 'away_team_power_ranking']] = \
-        df.apply(power_rankings_change, axis=1)
+def calculate_z_scores(df, n):
+    df = modify_game_scores(df)
+    df = expected_wl(df)
+    df = calculate_power_difference(df)
+    potential_changes = df['home_power_change'].tolist()
+    updated_potential_changes = [elem ** 2 for elem in potential_changes]
+
+    standard_deviation = math.sqrt(sum(updated_potential_changes) / n)
+
+    df['home_z_score'] = df['home_power_change'] / standard_deviation
+    df['away_z_score'] = df['away_power_change'] / standard_deviation
     return df
 
 
@@ -328,13 +332,13 @@ def run_calculations(df, teams_data):
     df = expected_wl(df)
     df = calculate_power_difference(df)
     nested_power_change(df, teams_id_dict, teams_names_dict)
-    df = set_adjusted_power_rankings(df, teams_names_dict)
+    # df = set_adjusted_power_rankings(df, teams_names_dict)
     # print(teams_data)
 
     # for team in teams_data:
     #     if team['team_name'] == "Webber":
     #         print(team)
 
-    df = calculate_z_scores(df)  # Ensure Z-scores are calculated and included
+    # df = calculate_z_scores(df)  # Ensure Z-scores are calculated and included
     # print(df.to_string())
     return df, teams_data

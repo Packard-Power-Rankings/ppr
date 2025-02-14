@@ -9,15 +9,6 @@ def enrich_data(df, k_value, home_advantage, average_game_score, teams):
     :param df: Cleaned DataFrame from data_cleaning.py.
     :return: DataFrame with dummy values added.
     """
-    # team_state = TeamState()
-    # # R-value (constant for all teams)
-    # R_value = LEVEL_CONSTANTS[level_key].get("k_value")
-
-    # # Home field advantage (constant for all home games)
-    # home_advantage = LEVEL_CONSTANTS[level_key].get("home_advantage")
-
-    # team_info, team_id = \
-    #     CONSTANTS_MAP[level_key][0:2]
 
     # Generate power rankings and win/loss ratios for each team
     team_data = {}
@@ -26,7 +17,10 @@ def enrich_data(df, k_value, home_advantage, average_game_score, teams):
     for team in pd.concat([df['home_team'], df['away_team']]).unique():
         if team.lower() in team_dict:
             team_data[team] = {
-                "power_ranking": team_dict[team.lower()]['power_ranking'][-1],
+                "power_ranking": next(iter(
+                    team_dict[team.lower()]['power_ranking'][-1].values()
+                    )
+                ),
                 # Random win ratio between 30% and 90%
                 "win_ratio": round(random.uniform(0.3, 0.9), 2)
             }

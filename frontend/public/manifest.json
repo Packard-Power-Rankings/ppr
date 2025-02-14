@@ -1,0 +1,9 @@
+{
+    "short_name": "Packard",
+    "name": "Packard Power Rankings",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#000000",
+    "description": "An app for Packard Power Rankings"
+}

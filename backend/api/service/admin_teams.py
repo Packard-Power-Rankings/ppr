@@ -1,3 +1,7 @@
+"""Logical operations for Admin
+"""
+
+
 import os
 from io import StringIO
 from typing import Any, List, Dict, Tuple
@@ -7,9 +11,7 @@ from datetime import datetime
 from fastapi import HTTPException, status, UploadFile
 from bson.binary import Binary
 import motor.motor_asyncio
-# from utils.algorithm.run import MainAlgorithm
-from config.config import LEVEL_CONSTANTS
-from schemas import items
+from api.config.constants import LEVEL_CONSTANTS
 
 MONGO_DETAILS = \
     f"mongodb+srv://{os.getenv("MONGO_USER")}:{os.getenv("MONGO_PASS")}@" \
@@ -31,8 +33,8 @@ class AdminTeamsService():
             level_key (Tuple): Tuple that contains three
             strings: sport_type, gender, level
         """
-        self.sports_collection = database.get_collection('temp2')
-        self.csv_collection = database.get_collection('csv_files')
+        self.sports_collection = database.get_collection('temp')
+        self.csv_collection = database.get_collection('csv_files_temp')
         self.previous_season = database.get_collection('previous_season')
         self.level_key = level_key
         self.level_constant = LEVEL_CONSTANTS[level_key]
@@ -65,39 +67,11 @@ class AdminTeamsService():
             # Read the uploaded CSV file
             file_name = csv_file.filename
             file_content = await csv_file.read()
-
-            # Decode the content to validate CSV format
             decode_content = file_content.decode("utf-8")
             csv_reader = csv.reader(StringIO(decode_content))
-            
-            # Check if the CSV file is empty
-            if not decode_content.strip():
-                raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                    detail="CSV file is empty."
-                )
+            first_row = next(csv_reader, None)
+            date = first_row[0]
 
-            # Validate CSV format by checking the first line
-            header = next(csv_reader, None)  # Read the first line for header
-            if header is None or len(header) < 3:
-                raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                    detail="CSV format is incorrect, insufficient columns."
-                )
-
-            # Create a list for teams to check in db
-            team_check: List[str] = []
-            for team in csv_reader:
-                # Ensure each row has enough columns
-                if len(team) < 3:
-                    raise HTTPException(
-                        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                        detail="CSV format is incorrect, each row must have at least three columns."
-                    )
-                team_check.append(team[1].lower())  # Assuming team name is in column 2
-                team_check.append(team[2].lower())  # Assuming additional data in column 3
-
-            # Prepare the query for the database
             query_csv = {
                 "sport_type": sport_type,
                 "gender": gender,
@@ -108,10 +82,16 @@ class AdminTeamsService():
             file_upload = await self._add_csv_file(
                 query_csv,
                 file_name,
-                file_content
+                file_content,
+                date
             )
 
-            # Query teams from the database
+            # Creates a list for teams to check in db
+            team_check: List[str] = []
+            for team in csv_reader:
+                team_check.append(team[1].lower())
+                team_check.append(team[2].lower())
+
             query_teams = {
                 "_id": self.level_constant.get('_id')
             }
@@ -156,7 +136,7 @@ class AdminTeamsService():
             teams (List[Dict[str, Any]]): List of new teams to add 
 
         Returns:
-            Any: Succesfull storage of new teams or an
+            Any: Successful storage of new teams or an
             that the team already exists in the db
         """
         message = {}
@@ -172,7 +152,7 @@ class AdminTeamsService():
                 "conference": team.get('conference'),
                 "division_rank": 0,
                 "overall_rank": 0,
-                "power_ranking": [team.get('power_ranking')],
+                "power_ranking": [{"initial": team.get('power_ranking')}],
                 "win_ratio": 0.0,
                 "wins": 0,
                 "losses": 0,
@@ -211,6 +191,166 @@ class AdminTeamsService():
         from utils.algorithm.run import MainAlgorithm
         algorithm = MainAlgorithm(self, self.level_key)
         await algorithm.execute(iterations)
+
+    async def calculate_z_scores(self):
+        """Calculates z scores from the potential power changes
+        """
+        from utils.algorithm.run import MainAlgorithm
+        z_scores = MainAlgorithm(self, self.level_key)
+        await z_scores.execute_z_score_calc()
+
+    async def update_db_data(
+        self,
+        home_team: str,
+        home_score: int,
+        away_team: str,
+        away_score: int,
+        game_id: str
+    ):
+        """Updates teams scores in the csv file as well as
+        the teams in the database along with the wins/losses
+
+        Args:
+            home_team (str): Name of home team
+            home_score (int): Home team Score
+            away_team (str): Name of away team
+            away_score (int): Away team Score
+            game_id (str): Game ID based on 
+        """
+        home_team_data = await self.sports_collection.find_one(
+            {"teams.team_name": home_team, "teams.season_opp.game_id": game_id},
+            {"teams.$": 1}
+        )
+
+        away_team_data = await self.sports_collection.find_one(
+            {"teams.team_name": away_team, "teams.season_opp.game_id": game_id},
+            {"teams.$": 1}
+        )
+
+        current_home_score = \
+            home_team_data['teams'][0]['season_opp'][0]['home_score']
+        current_away_score = \
+            away_team_data['teams'][0]['season_opp'][0]['away_score']
+
+        current_home_wins = \
+            home_team_data['teams'][0]['wins']
+        current_home_losses = \
+            home_team_data['teams'][0]['losses']
+        current_away_wins = \
+            away_team_data['teams'][0]['wins']
+        current_away_losses = \
+            away_team_data['teams'][0]['losses']
+
+        home_won_current = current_home_score > current_away_score
+        home_won_now = home_score > away_score
+
+        if home_won_current != home_won_now:
+            update_home_wins = \
+                current_home_wins + (1 if home_won_now else -1)
+            updated_home_losses = \
+                current_home_losses + (-1 if home_won_now else 1)
+            updated_away_wins = \
+                current_away_wins + (-1 if home_won_now else 1)
+            updated_away_losses = \
+                current_away_losses + (1 if home_won_now else -1)
+
+            await self.sports_collection.find_one_and_update(
+                {
+                    "teams.team_name": home_team,
+                    "teams.season_opp.game_id": game_id
+                },
+                {
+                    "$set": {
+                        "teams.$[team].season_opp.$[game].home_score": home_score,
+                        "teams.$[team].season_opp.$[game].away_score": away_score,
+                        "teams.$[team].wins": update_home_wins,
+                        "teams.$[team].losses": updated_home_losses,
+                    }
+                },
+                array_filters=[
+                    {"team.team_name": home_team},
+                    {"game.game_id": game_id}
+                ]
+            )
+            await self.sports_collection.find_one_and_update(
+                {
+                    "teams.team_name": away_team,
+                    "teams.season_opp.game_id": game_id
+                },
+                {
+                    "$set": {
+                        "teams.$[team].season_opp.$[game].home_score": home_score,
+                        "teams.$[team].season_opp.$[game].away_score": away_score,
+                        "teams.$[team].wins": updated_away_wins,
+                        "teams.$[team].losses": updated_away_losses
+                    }
+                },
+                array_filters=[
+                    {"team.team_name": away_team},
+                    {"game.game_id": game_id}
+                ]
+            )
+
+    async def update_teams_info(
+        self,
+        home_team: str,
+        home_score: int,
+        away_team: str,
+        away_score: int,
+        date: str
+    ):
+        """Updates the CSV file and database based
+        on the new data that has been passed in.
+        Does not run algorithm.
+
+        Args:
+            home_team (str): Home Team Name
+            home_score (int): Updated Home Score
+            away_team (str): Away Team Name
+            away_score (int): Updated Away Score
+            date (str): Game Date The Two Teams played
+        """
+        query = {
+            "sport_type": self.level_key[0],
+            "gender": self.level_key[1],
+            "level": self.level_key[2]
+        }
+        csv_content = await self.csv_collection.find_one(
+            query,
+            {"csv_files": {"$elemMatch": {"sports_week": date}}}
+        )
+        print(csv_content)
+        csv_data = csv_content['csv_files'][0]
+        csv_file_data = csv_data['filedata']
+        csv_stream = StringIO(csv_file_data.decode('utf-8'))
+
+        csv_reader = csv.reader(csv_stream)
+        rows = list(csv_reader)
+
+        for row in rows:
+            if row[1] == home_team and row[2] == away_team:
+                row[3] = home_score
+                row[4] = away_score
+                break
+
+        output_stream = StringIO()
+        csv_writer = csv.writer(output_stream)
+        csv_writer.writerows(rows)
+
+        updated_csv_file = output_stream.getvalue().encode('utf-8')
+        updated_results = await self.csv_collection.update_one(
+            query,
+            {"$set": {"csv_files.$[elem].filedata": updated_csv_file}},
+            array_filters=[{"elem.sports_week": date}]
+        )
+        # print(updated_results.modified_count)
+        await self.update_db_data(
+            home_team,
+            home_score,
+            away_team,
+            away_score,
+            f"{home_team}_{away_team}_{date}"
+        )
 
     async def clear_season(self):
         """Clears the season at the end of a season
@@ -257,7 +397,8 @@ class AdminTeamsService():
         self,
         query: dict,
         filename: str,
-        csv_file: Any
+        csv_file: Any,
+        date: str
     ) -> int:
         """Adds a csv file to the database for later
         processing
@@ -273,7 +414,8 @@ class AdminTeamsService():
         file_entry = {
             "filename": filename,
             "filedata": Binary(csv_file),
-            "upload_date": str(datetime.today())
+            "upload_date": str(datetime.today()),
+            "sports_week": date
         }
         results = await self.csv_collection.update_one(
             query,
@@ -325,7 +467,7 @@ class AdminTeamsService():
         """Retrieves the CSV file from the database
 
         Returns:
-            Dict: Returns the contents recieved from
+            Dict: Returns the contents received from
             MongoDB
         """
         csv_document = await self.csv_collection.find_one(
@@ -336,5 +478,4 @@ class AdminTeamsService():
             },
             {"csv_files": 1}
         )
-        # print(csv_document['csv_files'])
         return csv_document['csv_files']
