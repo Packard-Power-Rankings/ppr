@@ -70,7 +70,7 @@ const CsvUpload = ({ SportType, Gender, Level, isUploadDisabled }) => {
         formData.append('csv_file', file);
 
         try {
-            const response = await fetch('http://localhost:8000/admin/upload_csv/', {
+            const response = await fetch('http://localhost:8000/upload_csv/', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -112,7 +112,7 @@ const CsvUpload = ({ SportType, Gender, Level, isUploadDisabled }) => {
         formData.append('level', Level);
 
         try {
-            const response = await fetch('http://localhost:8000/admin/add_teams/', {
+            const response = await fetch('http://localhost:8000/add_teams/', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,

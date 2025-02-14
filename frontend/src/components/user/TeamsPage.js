@@ -1,9 +1,10 @@
+// src/components/user/TeamsPage.js
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import './TeamsPage.css';
 
 const TeamsPage = () => {
-    const { sportType } = useParams();
+    const { sportType, gender, level } = useParams();
     const [teams, setTeams] = useState([]);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -28,7 +29,9 @@ const TeamsPage = () => {
     const fetchTeams = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`http://localhost:8000/user/${sportType}/?gender=mens&level=college`);
+            const response = await fetch(
+                `http://localhost:8000/${sportType}/?gender=${encodeURIComponent(gender)}&level=${encodeURIComponent(level)}`
+            );
             if (!response.ok) {
                 throw new Error(`${response.status} (HTTP not found)`);
             }
@@ -58,7 +61,7 @@ const TeamsPage = () => {
         setPredictionLoading(true);
         try {
             const response = await fetch(
-                `http://localhost:8000/user/predictions/${teamOne}/${teamTwo}/${homeFieldAdv}?sport_type=football&gender=mens&level=college`
+                `http://localhost:8000/predictions/${teamOne}/${teamTwo}/${homeFieldAdv}/?gender=${gender}&level=${level}`
             );
             if (!response.ok) {
                 throw new Error(`Error: ${response.statusText}`);
@@ -182,7 +185,7 @@ const TeamsPage = () => {
                 </div>
                 {currentTeams.map(team => (
                     <Link
-                        to={`/user/${sportType}/${team.team_name}`}
+                        to={`/${sportType}/${team.team_name}/${gender}/${level}`} // Provide an absolute path
                         key={team.team_id}
                         className="team-row"
                     >

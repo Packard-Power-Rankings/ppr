@@ -5,6 +5,7 @@ const SportForm = ({ onSubmit, initialSportType = '', initialGender = '', initia
     const [sportType, setSportType] = useState(initialSportType);
     const [gender, setGender] = useState(initialGender);
     const [level, setLevel] = useState(initialLevel);
+    const [errorMessage, setErrorMessage] = useState(''); // To display error messages
 
     // Update state when props change
     useEffect(() => {
@@ -15,6 +16,12 @@ const SportForm = ({ onSubmit, initialSportType = '', initialGender = '', initia
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        // Check if all fields are filled
+        if (!sportType || !gender || !level) {
+            setErrorMessage('Please fill in all fields.'); // Show error if fields are missing
+            return; // Prevent form submission
+        }
+        
         // Make sure we call onSubmit only if it is passed as a prop
         if (typeof onSubmit === 'function') {
             onSubmit({ sportType, gender, level });
@@ -51,6 +58,7 @@ const SportForm = ({ onSubmit, initialSportType = '', initialGender = '', initia
                     id="sportType"
                     value={sportType}
                     onChange={handleSportTypeChange}
+                    required // Make this field required
                 >
                     <option value="">Select a sport type</option>
                     <option value="football">Football</option>
@@ -65,6 +73,7 @@ const SportForm = ({ onSubmit, initialSportType = '', initialGender = '', initia
                     value={gender}
                     onChange={handleGenderChange}
                     disabled={sportType === ''} // Disable until a sport is selected
+                    required // Make this field required
                 >
                     <option value="">Select a gender</option>
                     <option value="mens">Mens</option>
@@ -79,6 +88,7 @@ const SportForm = ({ onSubmit, initialSportType = '', initialGender = '', initia
                     value={level}
                     onChange={(e) => setLevel(e.target.value)}
                     disabled={isLevelDisabled} // Disable until both sport type and gender are selected
+                    required // Make this field required
                 >
                     <option value="">Select a level</option>
                     <option value="high_school">High School</option>
@@ -86,7 +96,9 @@ const SportForm = ({ onSubmit, initialSportType = '', initialGender = '', initia
                 </select>
             </div>
 
-            <button type="submit">Submit</button>
+            {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>} {/* Show error message if needed */}
+
+            <button type="submit">Select Sport</button>
         </form>
     );
 };

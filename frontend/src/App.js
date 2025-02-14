@@ -34,7 +34,7 @@ const App = () => {
     const handleLoginSuccess = (token) => {
         setIsAuthenticated(true);
         localStorage.setItem('access_token', token); // Save the token for future use
-        console.log('Logged in successfully, token:', token);
+        // console.log('Logged in successfully, token:', token);
     };
 
     const handleLogout = () => {
@@ -73,8 +73,8 @@ const App = () => {
                         )
                     }
                 />
-                <Route path="/user/:sportType" element={<TeamsPage />} />
-                <Route path="/user/:sportType/:teamName" element={<TeamDetails />} />
+                <Route path="/:sportType/:teamName/:gender/:level" element={<TeamDetails />} />
+                <Route path="/:sportType/:gender/:level" element={<TeamsPage />} />
             </Routes>
         </Router>
     );

@@ -1,6 +1,6 @@
 // src/components/Home.js
 import React from 'react';
-import SportsRankings from './RankingTile.js';
+import RankingTile from './RankingTile.js';
 
 const Home = () => {
     return (
@@ -11,7 +11,7 @@ const Home = () => {
             <h3>Power Rankings</h3>
             <p>View the Power Rankings below.</p>
 
-            <SportsRankings />
+            <RankingTile />
         </div>
     );
 };
