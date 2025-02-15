@@ -1,0 +1,13 @@
+fastapi             # Python Web framework (dependency: pydantic)
+pydantic            # Python JSON model schema
+pymongo             # Synchronous Python driver for MongoDB
+motor               # Asynchronous Python driver for MongoDB
+uvicorn             # FastAPI & MongoDB local test server
+python-multipart    # Python HTTP request handling (file uploads)
+numpy               # For algorithm processing
+pandas              # For file processing
+python-dotenv       # For loading environment variables (.env)
+pyjwt               # JSON Web Token (JWT) encoding and decoding for authentication
+passlib[bcrypt]     # Password hashing library (bcrypt algorithm for secure password storage)
+celery[redis]       # Celery task queue with Redis as a message broker
+redis               # Redis Python client
