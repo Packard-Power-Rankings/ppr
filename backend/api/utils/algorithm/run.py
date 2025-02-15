@@ -4,11 +4,11 @@ from typing import Tuple, List, Dict
 import asyncio
 from fastapi import HTTPException, status
 from backend.api.service.admin_teams import AdminTeamsService
-from .upload import upload_csv
-from .data_cleaning import clean_data
-from .data_enrichment import enrich_data
-from .main import run_calculations, calculate_z_scores
-from .output import update_teams, set_z_scores
+from upload import upload_csv
+from data_cleaning import clean_data
+from data_enrichment import enrich_data
+from main import run_calculations, calculate_z_scores
+from output import update_teams, set_z_scores
 
 
 class MainAlgorithm():
