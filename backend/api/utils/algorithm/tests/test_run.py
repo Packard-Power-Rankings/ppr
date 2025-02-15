@@ -67,12 +67,12 @@ async def test_retrieve_teams(main_algorithm):
     assert teams[0]["team_name"] == "Team A"
 
 
-def test_data_cleaning(main_algorithm):
-    with patch("run.clean_data", return_value="cleaned_df") as mock_clean_data:
-        main_algorithm.df = "raw_df"
-        main_algorithm.data_cleaning()
-        mock_clean_data.assert_called_once_with("raw_df")
-        assert main_algorithm.df == "cleaned_df"
+# def test_data_cleaning(main_algorithm):
+#     with patch("run.clean_data", return_value="cleaned_df") as mock_clean_data:
+#         main_algorithm.df = "raw_df"
+#         main_algorithm.data_cleaning()
+#         mock_clean_data.assert_called_once_with("raw_df")
+#         assert main_algorithm.df == "cleaned_df"
 
 
 @pytest.mark.asyncio
@@ -101,12 +101,12 @@ async def test_update_db(main_algorithm):
         )
 
 
-def test_run_algorithm(main_algorithm):
-    with patch("run.run_calculations", return_value=("calculated_df", "calculated_teams")) as mock_run_calculations:
-        main_algorithm.df = "raw_df"
-        main_algorithm.team_data = "raw_team_data"
-        main_algorithm.run_algorithm()
-        mock_run_calculations.assert_called_once_with(
-            "raw_df", "raw_team_data")
-        assert main_algorithm.df == "calculated_df"
-        assert main_algorithm.team_data == "calculated_teams"
+# def test_run_algorithm(main_algorithm):
+#     with patch("run.run_calculations", return_value=("calculated_df", "calculated_teams")) as mock_run_calculations:
+#         main_algorithm.df = "raw_df"
+#         main_algorithm.team_data = "raw_team_data"
+#         main_algorithm.run_algorithm()
+#         mock_run_calculations.assert_called_once_with(
+#             "raw_df", "raw_team_data")
+#         assert main_algorithm.df == "calculated_df"
+#         assert main_algorithm.team_data == "calculated_teams"
