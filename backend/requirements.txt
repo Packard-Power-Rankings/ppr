@@ -12,3 +12,4 @@ passlib[bcrypt]     # Password hashing library (bcrypt algorithm for secure pass
 celery[redis]       # Celery task queue with Redis as a message broker
 redis               # Redis Python client
 hypothesis          # Hypothesis Unittest Framework
+pytest-asyncio      # Pytest async
