@@ -1,60 +1,180 @@
-# React Frontend
+# CoreUI Free React Admin Template (Create React App)[![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social&logo=twitter)](https://twitter.com/intent/tweet?text=CoreUI%20-%20Free%React%204%20Admin%20Template%20&url=https://coreui.io&hashtags=bootstrap,admin,template,dashboard,panel,free,angular,react,vue)
 
-## Layout
-~~So far I have not spent as much time on this one yet. I have to restructure the Dockerfile so that when we load into this side of things that it loads into the proper file for this portion of the application.~~ 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
+[![@coreui coreui](https://img.shields.io/badge/@coreui%20-coreui-lightgrey.svg?style=flat-square)](https://github.com/coreui/coreui)
+[![npm package][npm-coreui-badge]][npm-coreui]
+[![NPM downloads][npm-coreui-download]][npm-coreui]
+[![@coreui react](https://img.shields.io/badge/@coreui%20-react-lightgrey.svg?style=flat-square)](https://github.com/coreui/react)
+[![npm package][npm-coreui-react-badge]][npm-coreui-react]
+[![NPM downloads][npm-coreui-react-download]][npm-coreui-react]  
 
-## Testing
-For local testing, launch the docker containers and navigate to localhost:3000 ([here](http://localhost:3000/)).
+[npm-coreui]: https://www.npmjs.com/package/@coreui/coreui
+[npm-coreui-badge]: https://img.shields.io/npm/v/@coreui/coreui.png?style=flat-square
+[npm-coreui-download]: https://img.shields.io/npm/dm/@coreui/coreui.svg?style=flat-square
+[npm-coreui-react]: https://www.npmjs.com/package/@coreui/react
+[npm-coreui-react-badge]: https://img.shields.io/npm/v/@coreui/react.png?style=flat-square
+[npm-coreui-react-download]: https://img.shields.io/npm/dm/@coreui/react.svg?style=flat-square
+[npm]: https://www.npmjs.com/package/@coreui/react
 
-## File Structure
+[![Bootstrap Admin Template](https://assets.coreui.io/products/coreui-free-bootstrap-admin-template-light-dark.webp)](https://coreui.io/product/free-react-admin-template/)
+
+CoreUI is meant to be the UX game changer. Pure & transparent code is devoid of redundant components, so the app is light enough to offer ultimate user experience. This means mobile devices also, where the navigation is just as easy and intuitive as on a desktop or laptop. The CoreUI Layout API lets you customize your project for almost any device – be it Mobile, Web or WebApp – CoreUI covers them all!
+
+## Table of Contents
+
+* [Versions](#versions)
+* [CoreUI PRO](#coreui-pro)
+* [CoreUI PRO React Admin Templates](#coreui-pro-react-admin-templates)
+* [Quick Start](#quick-start)
+* [Installation](#installation)
+* [Basic usage](#basic-usage)
+* [What's included](#whats-included)
+* [Documentation](#documentation)
+* [Versioning](#versioning)
+* [Creators](#creators)
+* [Community](#community)
+* [Support CoreUI Development](#support-coreui-development)
+* [Copyright and License](#copyright-and-license)
+
+## Versions
+
+* [CoreUI Free Bootstrap Admin Template](https://github.com/coreui/coreui-free-bootstrap-admin-template)
+* [CoreUI Free Angular Admin Template](https://github.com/coreui/coreui-free-angular-admin-template)
+* [CoreUI Free React.js Admin Template (Vite)](https://github.com/coreui/coreui-free-react-admin-template)
+* [CoreUI Free React.js Admin Template (Create React App)](https://github.com/coreui/coreui-free-react-admin-template-cra)
+* [CoreUI Free Vue.js Admin Template](https://github.com/coreui/coreui-free-vue-admin-template)
+
+## CoreUI PRO
+
+* 💪  [CoreUI PRO Angular Admin Template](https://coreui.io/product/angular-dashboard-template/)
+* 💪  [CoreUI PRO Bootstrap Admin Template](https://coreui.io/product/bootstrap-dashboard-template/)
+* 💪  [CoreUI PRO React Admin Template](https://coreui.io/product/react-dashboard-template/)
+* 💪  [CoreUI PRO Vue Admin Template](https://coreui.io/product/vue-dashboard-template/)
+
+## CoreUI PRO React Admin Templates
+
+| Default Theme | Light Theme |
+| --- | --- |
+| [![CoreUI PRO React Admin Template](https://coreui.io/images/templates/coreui_pro_default_light_dark.webp)](https://coreui.io/product/react-dashboard-template/?theme=default) | [![CoreUI PRO React Admin Template](https://coreui.io/images/templates/coreui_pro_light_light_dark.webp)](https://coreui.io/product/react-dashboard-template/?theme=light)|
+
+| Default Theme v3 | Light Theme v3 |
+| --- | --- |
+| [![CoreUI PRO React Admin Template](https://coreui.io/images/templates/coreui_pro_default_v3_light_dark.webp)](https://coreui.io/product/react-dashboard-template/?theme=default-v3) | [![CoreUI PRO React Admin Template](https://coreui.io/images/templates/coreui_pro_light_v3_light_dark.webp)](https://coreui.io/product/react-dashboard-template/?theme=light)|
+
+## Quick Start
+
+- [Download the latest release](https://github.com/coreui/coreui-free-react-admin-template-cra/archive/refs/heads/main.zip)
+- Clone the repo: `git clone https://github.com/coreui/coreui-free-react-admin-template-cra.git`
+
+### Installation
+
+``` bash
+$ npm install
 ```
-📦frontend
- ┣ 📂node_modules
- ┣ 📂public
- ┃ ┣ 📜index.html
- ┃ ┣ 📜manifest.json
- ┃ ┗ 📜R.ico
- ┣ 📂src
- ┃ ┣ 📂components
- ┃ ┃ ┣ 📂admin
- ┃ ┃ ┃ ┣ 📜AdminPage.js    # Houses display logic for admin operations
- ┃ ┃ ┃ ┣ 📜CsvParser.js    # Parses CSV data
- ┃ ┃ ┃ ┣ 📜CsvTable.css    # Styles a table for CSV info
- ┃ ┃ ┃ ┣ 📜CsvTable.js     # Creates a table for CSV info
- ┃ ┃ ┃ ┣ 📜CsvUpload.js    # Connects to CSV upload logic and adjacent logic
- ┃ ┃ ┃ ┣ 📜DeleteForm.js   # Houses deletion functions
- ┃ ┃ ┃ ┣ 📜DeleteSeason.js # Connects to deletion logic
- ┃ ┃ ┃ ┣ 📜Login.js        # Connects to admin JWT authorization logic (required to be passed to all admin operations)
- ┃ ┃ ┃ ┣ 📜RunAlgorithm.js # Connects to RunAlgorithm logic
- ┃ ┃ ┃ ┣ 📜SportForm.js    # Houses sport_type, gender, level (required to be passed to all admin/user operations)
- ┃ ┃ ┃ ┗ 📜UpdateTeam.js   # Houses display logic for CSV upload and adjacent logic
- ┃ ┃ ┣ 📂user
- ┃ ┃ ┃ ┣ 📜TeamDetails.css # Styles a team's games table
- ┃ ┃ ┃ ┣ 📜TeamDetails.js  # Displays a team's games table
- ┃ ┃ ┃ ┣ 📜TeamsPage.css   # Styles Teams table
- ┃ ┃ ┃ ┗ 📜TeamsPage.js    # Displays Teams table
- ┃ ┃ ┣ 📜About.js          # Displays the About page
- ┃ ┃ ┣ 📜Home.js           # Displays the Home page
- ┃ ┃ ┣ 📜RankingTile.css   # Styles the Home page tiles
- ┃ ┃ ┣ 📜RankingTile.js    # Houses tile information
- ┃ ┃ ┗ 📜ThemeToggle.js    # Styles light and dark modes
- ┃ ┣ 📜App.js              # The entry point for the React app (links)
- ┃ ┣ 📜index.js            # The entry point for the React app (root)
- ┃ ┣ 📜Nav.css             # Styles the navigation bar
- ┃ ┗ 📜Styles.css          # Styles the theme (includes light and dark mode styles)
- ┣ 📂tests
- ┃ ┣ 📜test_teams.csv
- ┃ ┗ 📜test_teams_empty.csv
- ┣ 📜Dockerfile
- ┣ 📜dockerignore
- ┣ 📜gitignore
- ┣ 📜package-lock.json
- ┣ 📜package.json
- ┗ 📜README.md
+
+or
+
+``` bash
+$ yarn install
 ```
 
-## Future Development Checklist
-- [ ] Modify RankingTile.js routes in accordance with the appropriate MongoDB collection names for each sport (e.g. hs_football, college_football, etc.).
-- [ ] Implement TeamDetails.js Z-score to be displayed for users and modify AdminPage.js (and create a new .js file to tie into it) to include access to the Z-score calculation route in the backend (admin_routes -> calc_z_scores).
-- [ ] Implement Celery backend route (admin_routes -> task-status) in RunAlgorithm.js to display the progress of the task to the user (suggest also locking out the run algorithm button to prevent flooding the backend with requests).
-- [ ] Implement backend deletion logic and accomodate in the frontend (DeleteSeason.js is connected to an empty route, DeleteForm will house various deletion operations).
+### Basic usage
+
+``` bash
+# dev server with hot reload at http://localhost:3000
+$ npm start 
+```
+
+or 
+
+``` bash
+# dev server with hot reload at http://localhost:3000
+$ yarn start
+```
+
+Navigate to [http://localhost:3000](http://localhost:3000). The app will automatically reload if you change any of the source files.
+
+#### Build
+
+Run `build` to build the project. The build artifacts will be stored in the `build/` directory.
+
+```bash
+# build for production with minification
+$ npm run build
+```
+
+or
+
+```bash
+# build for production with minification
+$ yarn build
+```
+
+## What's included
+
+Within the download you'll find the following directories and files, logically grouping common assets and providing both compiled and minified variations. You'll see something like this:
+
+```
+coreui-free-react-admin-template
+├── public/          # static files
+│   └── index.html   # html template
+│
+├── src/             # project root
+│   ├── assets/      # images, icons, etc.
+│   ├── components/  # common components - header, footer, sidebar, etc.
+│   ├── layouts/     # layout containers
+│   ├── scss/        # scss styles
+│   ├── views/       # application views
+│   ├── _nav.js      # sidebar navigation config
+│   ├── App.js
+│   ├── ...
+│   ├── index.js
+│   ├── routes.js    # routes config
+│   └── store.js     # template state example 
+│
+└── package.json
+```
+
+## Documentation
+
+The documentation for the CoreUI Admin Template is hosted at our website [CoreUI for React](https://coreui.io/react/docs/templates/installation/)
+
+## Versioning
+
+For transparency into our release cycle and in striving to maintain backward compatibility, CoreUI Free Admin Template is maintained under [the Semantic Versioning guidelines](http://semver.org/).
+
+See [the Releases section of our project](https://github.com/coreui/coreui-free-react-admin-template/releases) for changelogs for each release version.
+
+## Creators
+
+**Łukasz Holeczek**
+
+* <https://twitter.com/lukaszholeczek>
+* <https://github.com/mrholek>
+
+**Andrzej Kopański**
+
+* <https://github.com/xidedix>
+
+**CoreUI Team**
+
+* <https://twitter.com/core_ui>
+* <https://github.com/coreui>
+* <https://github.com/orgs/coreui/people>
+
+## Community
+
+Get updates on CoreUI's development and chat with the project maintainers and community members.
+
+- Follow [@core_ui on Twitter](https://twitter.com/core_ui).
+- Read and subscribe to [CoreUI Blog](https://coreui.ui/blog/).
+
+## Support CoreUI Development
+
+CoreUI is an MIT-licensed open source project and is completely free to use. However, the amount of effort needed to maintain and develop new features for the project is not sustainable without proper financial backing. You can support development by buying the [CoreUI PRO](https://coreui.io/pricing/?framework=react&src=github-coreui-free-react-admin-template) or by becoming a sponsor via [Open Collective](https://opencollective.com/coreui/).
+
+## Copyright and License
+
+copyright 2024 creativeLabs Łukasz Holeczek.   
+
+Code released under [the MIT license](https://github.com/coreui/coreui-free-react-admin-template/blob/main/LICENSE).
