@@ -19,7 +19,7 @@ def test_calculate_z_scores():
         'home_score': [100, 80, 90],
         'away_score': [85, 95, 100]
     })
-    result_df = calculate_z_scores(df)
+    result_df = calculate_z_scores(df, 6)
     assert 'home_z_score' in result_df.columns
     assert 'away_z_score' in result_df.columns
     assert result_df['home_z_score'].notnull().all()

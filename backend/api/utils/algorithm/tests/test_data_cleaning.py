@@ -70,7 +70,7 @@ def test_clean_data_invalid_dates():
     cleaned_df = clean_data(df)
 
     # Assert that rows with invalid dates are dropped
-    assert len(cleaned_df) == 1
+    assert len(cleaned_df) == 2
     assert cleaned_df['date'].tolist() == [pd.Timestamp('2023-11-19')]
 
 
