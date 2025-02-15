@@ -3,7 +3,7 @@ from io import BytesIO
 from typing import Tuple, List, Dict
 import asyncio
 from fastapi import HTTPException, status
-from api.service.admin_teams import AdminTeamsService
+from backend.api.service.admin_teams import AdminTeamsService
 from .upload import upload_csv
 from .data_cleaning import clean_data
 from .data_enrichment import enrich_data
