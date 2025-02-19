@@ -19,5 +19,5 @@ const AppFooter = () => {
     </CFooter>
   )
 }
-
+// <a target="_blank" href="https://icons8.com/icon/102902/admin-settings-male">Admin Settings Male</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
 export default React.memo(AppFooter)
