@@ -16,6 +16,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the code into the container
 COPY . .
 
+ENV PYTHONPATH=/app
+
 # Create a non-root user and switch to it
 RUN addgroup celery && adduser --ingroup celery --disabled-password celery-user
 USER celery-user
