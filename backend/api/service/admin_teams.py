@@ -11,7 +11,7 @@ from datetime import datetime
 from fastapi import HTTPException, status, UploadFile
 from bson.binary import Binary
 import motor.motor_asyncio
-from backend.api.config.constants import LEVEL_CONSTANTS
+from api.config.constants import LEVEL_CONSTANTS
 
 MONGO_DETAILS = \
     f"mongodb+srv://{os.getenv("MONGO_USER")}:{os.getenv("MONGO_PASS")}@" \
