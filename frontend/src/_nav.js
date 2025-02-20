@@ -26,58 +26,58 @@ const _nav = [
   {
     component: CNavGroup,
     name: 'Football',
-    to: '/pages',
+    to: '#',
     icon: <CIcon icon={cilAmericanFootball} customClassName="nav-icon" />,
     items: [
       {
         component: CNavItem,
         name: 'High School',
-        to: '/pages/teams',
+        to: '/teams/football/mens/high_school',
       },
       {
         component: CNavItem,
         name: 'College',
-        to: '/pages/teams'
+        to: '/teams/football/mens/college'
       }
     ]
   },
   {
     component: CNavGroup,
     name: 'Basketball',
-    to: '/pages',
+    to: '#',
     icon: <CIcon icon={cilBasketball} customClassName="nav-icon" />,
     items: [
       {
         component: CNavGroup,
         name: 'Mens',
-        to: '/pages',
+        to: '#',
         items: [
           {
             component: CNavItem,
             name: 'High School',
-            to: '/pages/teams',
+            to: '/teams/basketball/mens/high_school',
           },
           {
             component: CNavItem,
             name: 'College',
-            to: '/pages/teams',
+            to: '/teams/basketball/mens/college',
           }
         ]
       },
       {
         component: CNavGroup,
         name: 'Womens',
-        to: '/pages',
+        to: '#',
         items: [
           {
             component: CNavItem,
             name: 'High School',
-            to: '/pages/teams',
+            to: '/teams/basketball/womens/high_school',
           },
           {
             component: CNavItem,
             name: 'College',
-            to: '/pages/teams'
+            to: '/teams/basketball/womens/college'
           }
         ]
       }
