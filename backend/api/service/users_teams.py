@@ -30,8 +30,36 @@ class UsersServices():
             gender=self.level_key[1],
             level=self.level_key[2]
         )
-        projection = {"teams": 1, "_id": 0}
-        return await self._sports_retrieval(query, projection)
+        projection = {
+            "teams": 1,
+            "_id": 0
+        }
+        pipeline = [
+            {"$match": query},
+            {"$unwind": "$teams"},
+            {"$project": {
+                "_id": 0,
+                "team": {
+                    "overall_rank": "$teams.overall_rank",
+                    "team_name": "$teams.team_name",
+                    "power_ranking": {"$slice": ["$teams.power_ranking", -1]},
+                    "division_rank": "$teams.division_rank",
+                    "division": "$teams.division",
+                    "wins": "$teams.wins",
+                    "losses": "$teams.losses"
+                }
+            }},
+            {"$group": {
+                "_id": None,
+                "teams": {"$push": "$team"}
+            }},
+            {"$project": {
+                "_id": 0,
+                "teams": 1
+            }}
+        ]
+
+        return await self._sports_retrieval(pipeline)
 
     async def retrieve_team_info(self, team_name):
         query: Dict = query_params_builder()
@@ -186,17 +214,15 @@ class UsersServices():
             return team_one, team_two
         return team_two, team_one
         
-    async def _sports_retrieval(self, query: Dict, projection: Dict):
+    async def _sports_retrieval(self, pipeline: list):
         try:
-            self.sports_data = await self.user_collection.find_one(
-                query,
-                projection
-            )
-            if self.sports_data:
+            cursor = self.user_collection.aggregate(pipeline)
+            result = await cursor.to_list(length=None)
+            if result and len(result) > 0:
                 return {
-                    "message": "Succesfully Found Teams",
+                    "message": "Successfully Found Teams",
                     "status": status.HTTP_200_OK,
-                    "data": self.sports_data
+                    "data": result[0]  # First document contains our grouped results
                 }
             return {
                 "message": "Did Not Find Any Teams",
