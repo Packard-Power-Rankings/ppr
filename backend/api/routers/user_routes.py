@@ -14,10 +14,11 @@ def users_class(level_key: Tuple) -> "UsersServices":
     return _instance_cache[level_key]
 
 
-@router.get("/{sport_type}/", response_description="Display Teams Data")
+@router.get("/{sport_type}/{gender}/{level}", response_description="Display Teams Data")
 async def list_teams(
     sport_type: str,
-    search_params: GeneralInputMethod = Depends()
+    gender: str,
+    level: str
 ):
     """
     Retrieve all teams for a specific sport, with optional filters.
@@ -27,8 +28,8 @@ async def list_teams(
     """
     level_key: Tuple = (
         sport_type,
-        search_params.gender,
-        search_params.level
+        gender,
+        level
     )
     sports_data = users_class(level_key)
     results = await sports_data.retrieve_sports_info()  # Await the async method
