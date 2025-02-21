@@ -36,19 +36,20 @@ async def list_teams(
     return results
 
 
-@router.get("/{sport_type}/{team_name}/", response_description="Display Team Specific Data")
+@router.get("/{team_name}/{sport_type}/{gender}/{level}", response_description="Display Team Specific Data")
 async def list_team_info(
-    sport_type: str,
     team_name: str,
-    search_params: GeneralInputMethod = Depends()
+    sport_type: str,
+    gender: str,
+    level: str
 ):
     """
     Fetch sports or team data based on query parameters.
     """
     level_key: Tuple = (
-        search_params.sport_type,
-        search_params.gender,
-        search_params.level
+        sport_type,
+        gender,
+        level
     )
     sports_data = users_class(level_key)
     results = await sports_data.retrieve_team_info(team_name)
