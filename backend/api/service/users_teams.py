@@ -30,10 +30,10 @@ class UsersServices():
             gender=self.level_key[1],
             level=self.level_key[2]
         )
-        projection = {
-            "teams": 1,
-            "_id": 0
-        }
+        # projection = {
+        #     "teams": 1,
+        #     "_id": 0
+        # }
         pipeline = [
             {"$match": query},
             {"$unwind": "$teams"},
@@ -67,19 +67,40 @@ class UsersServices():
             _id=self.level_constants.get('_id'),
             sport_type=self.level_key[0],
             gender=self.level_key[1],
-            level=self.level_key[2],
-            teams={
-                "$elemMatch": {
-                    "team_name": {"$regex": f"^{team_name}$", "$options": "i"}
-                }
-            }
+            level=self.level_key[2]
         )
 
-        projection = {
-            "teams.$": 1,
-            "_id": 0
-        }
-        return await self._sports_retrieval(query, projection)
+        pipeline = [
+            {"$match": query},
+            {"$unwind": "$teams"},  # Unwind to access individual team entries
+            {"$match": {"teams.team_name": {"$regex": f"^{team_name}$", "$options": "i"}}},  # Filter for the specific team
+            {"$project": {
+                "_id": 0,
+                "teams.division": 1,
+                "teams.conference": 1,
+                "teams.division_rank": 1,
+                "teams.overall_rank": 1,
+                "teams.power_ranking": 1,
+                "teams.wins": 1,
+                "teams.losses": 1,
+                "teams.season_opp": {
+                    "$map": {
+                        "input": "$teams.season_opp",  # Input array for mapping
+                        "as": "opp",
+                        "in": {
+                            "opponent_name": "$$opp.opponent_name",
+                            "home_team": "$$opp.home_team",
+                            "home_score": "$$opp.home_score",
+                            "away_score": "$$opp.away_score",
+                            "home_z_score": "$$opp.home_z_score",
+                            "away_z_score": "$$opp.away_z_score",
+                            "game_date": "$$opp.game_date"
+                        }
+                    }
+                }
+            }}
+        ]
+        return await self._sports_retrieval(pipeline)
 
     @staticmethod
     def sigmond_curve(vabs) -> float:
