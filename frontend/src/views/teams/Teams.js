@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import api from "src/api";
 import {
     CTable,
@@ -9,7 +9,6 @@ import {
     CTableDataCell,
     CTableBody,
     CSpinner,
-    CNavLink
 } from '@coreui/react'
 
 const Teams = () => {
@@ -20,17 +19,14 @@ const Teams = () => {
 
     const getLatestPowerRanking = (powerRanking) => {
         if (!powerRanking || powerRanking.length === 0) return '-';
-        
-        // Get the first (and only) object from the array
+
         const rankingObj = powerRanking[0];
         
-        // Get all dates and find the latest one
         const dates = Object.keys(rankingObj);
-        const latestDate = dates[0]; // Since there's only one date
-        
-        // Return the power ranking value formatted to 2 decimal places
+        const latestDate = dates[0];
+
         return rankingObj[latestDate].toFixed(2);
-      };
+    };
 
     const fetchTeams = async () => {
         try {
@@ -83,7 +79,11 @@ const Teams = () => {
                     {teams.map((team) => (
                         <CTableRow>
                             <CTableDataCell>{team.overall_rank}</CTableDataCell>
-                            <CTableDataCell>{team.team_name}</CTableDataCell>
+                            <CTableDataCell>
+                                <Link to={`/team/${encodeURIComponent(team.team_name)}/${sport}/${gender}/${level}`}>
+                                    {team.team_name}
+                                </Link>
+                            </CTableDataCell>
                             <CTableDataCell>{getLatestPowerRanking(team.power_ranking)}</CTableDataCell>
                             <CTableDataCell>{team.division_rank}</CTableDataCell>
                             <CTableDataCell>{team.division}</CTableDataCell>
