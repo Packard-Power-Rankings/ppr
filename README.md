@@ -1,6 +1,24 @@
 # Packard Power Rankings
 
-This might be an approach to our fullstack project where we can containerize the frontend and backend. ~~I was talking to Dr. MacEvoy a little about the fullstack that uses MongoDB, and it might make more sense to switch to PostgreSQL since it can use both NoSQL and SQL databases and it works seamlessly with AWS. Here is a [template](https://github.com/PlatonovSerg/full-stack-fastapi/tree/master) that we could go off that, to me, would make the most sense and would give us the option to choose between SQL or NoSQL. Let me know what you guys think, but this swarm would give us that added boost with our development, we just need to talk to Dr. Basnet and Dr. Packard about it.~~ After talking to Dr. Basnet we will go with MongoDB instead for this and do it with NoSQL, looking at how PostgreSQL does there NoSQL it looks like a nightmare and is basically SQL. So, none of that we are sticking to the original plan. To get a good idea of how connecting the backend and database together you can read through this [article](https://testdriven.io/blog/fastapi-mongo/) and it give a pretty good idea of how things are structured. 
+## About the Algorithm
+
+
+The idea of the program is to model how a person would rank teams if they could process all the information and have no bias. The algorithm utilizes game scores and considers home-field advantage. When two teams play, one team should move up in power and the other down by the same amount based on their performances in relation to their current power ranking. In addition to the margin of victory, the algorithm considers the overall score in a game to create a more fair shift in a team’s power. For example, the difference between winning by 5 and 15 is much larger than the difference between winning by 35 and 45. In both games, the margin of victory is the same; however, 35 to 45 is considered a more even game than 5 to 15. It is also the case that a team could do worse than expected and still increase in power if they win. For instance, if the program predicts a team should win by 6 points and they only win by 3 points, they will still improve in power because they had a significant chance of losing.
+
+Two teams that have recently played will affect the power scores of their other recent opponents. The effect on an opponent's power is influenced by the recency of the game. For example, if the #10 ranked college football team’s last opponent did much better than expected in their next game, the algorithm would increase the #10 team’s power by a fraction of their opponent’s change in power. If two teams with a wide power ranking play each other, and the team projected to lose ends up winning, there will be a much larger shift in rankings. Similarly, in the case that a highly favored team wins, both teams will see minimal change in their current power. For a team to move up in the rankings, they will need to perform well in their games, and their connected opponents will also have to perform well in their games.
+
+At the start of a season, the initial rankings are simply the rankings from the end of the previous year. After scores are entered at the start of a new season, the rankings will fluctuate until enough data has been gathered and their appropriate ranking has been assigned. Finally, the algorithm is repeated several times over a season to achieve more accurate results.
+
+## Score Predictions
+
+While the primary purpose of this website is to rank teams, it also can predict the score of a hypothetical game played by two teams. The predictions are not meant to be considered definite scores, but decimal approximations of a hypothetical game outcome. This is analogous to guessing that a family has 2.4 children. Such a prediction cannot be correct, but an estimate of 2.4 might be a better estimate than 2, despite 2 having a chance of being exact.
+
+## z-score
+
+
+
+The z-score displayed on team pages measures the team’s performance in a game when considering the average performance across all games in a season and relies on the teams current power rankings. The score itself conveys how many standard deviations above or below the average game performance the team did in that game. A positive z-scores means that the game improved that team’s ranking and a negative one decreased it. The higher the z-score the more it helps a team. At least 75% of the time the z-score will be between -2 and 2, so if a z-score is greater than 2 or less than -2, that game was greatly impactful. After more games are played, these z-scores will change as the program will have more information and curve the z-scores up or down given the new information. With the z-scores, you can tell which games were the best and worst for a given team as viewed by the program. By looking at z-scores, we can decide which game was the best in the season.
+
 
 
 ## Docker Compose Files & Commands
