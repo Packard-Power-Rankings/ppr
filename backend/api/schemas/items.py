@@ -22,7 +22,7 @@ from pydantic import (
     model_validator
 )
 # from config.constants import LEVEL_CONSTANTS
-from fastapi import Form, HTTPException
+from fastapi import Form, HTTPException, UploadFile
 
 
 # Enum Definitions (fixed set of values)
