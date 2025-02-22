@@ -57,11 +57,15 @@ const Teams = React.lazy(() => import('./views/teams/Teams'))
 // Team Info
 const Team = React.lazy(() => import('./views/team/Team'))
 
+// Predictions
+const Predictions = React.lazy(() => import('./views/predictions/Predictions'))
+
 const routes = [
   { path: '/', exact: true, name: 'Home' },
   { path: '/dashboard', name: 'Dashboard', element: Dashboard },
   { path: '/teams/:sport/:gender/:level', name: 'Teams', element: Teams },
   { path: '/team/:team_name/:sport/:gender/:level', name: "Team", element: Team },
+  { path: '/predictions', name: 'Predictions', element: Predictions },
   { path: '/theme', name: 'Theme', element: Colors, exact: true },
   { path: '/theme/colors', name: 'Colors', element: Colors },
   { path: '/theme/typography', name: 'Typography', element: Typography },
