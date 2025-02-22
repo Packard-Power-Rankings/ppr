@@ -3,10 +3,13 @@
 
 
 import os
+import io
 from io import StringIO
 from typing import Any, List, Dict, Tuple
 import traceback
 import csv
+import pandas as pd
+import base64
 from datetime import datetime
 from fastapi import HTTPException, status, UploadFile
 from bson.binary import Binary
@@ -352,10 +355,79 @@ class AdminTeamsService():
             f"{home_team}_{away_team}_{date}"
         )
 
+    async def update_team_name(
+        self,
+        team_id: int,
+        new_team_name: str
+    ):
+        """
+        Updates a teams name in both the database and csv files
+        """
+
+        query_base = {
+            "_id": self.level_constant.get('_id'),
+            "sport_type": self.level_key[0],
+            "gender": self.level_key[1],
+            "level": self.level_key[2]
+        }
+
+        await self.sports_collection.update_one(
+            {**query_base, "teams.team_id": team_id},
+            {
+                "$set": {"teams.$.team_name": new_team_name}
+            }
+        )
+
+        await self.sports_collection.update_many(
+            {**query_base, "teams.season_opp.opponent_id": team_id},
+            {"$set": {"teams.$[].season_opp.$[elem].opponent_name": new_team_name}},
+            array_filters=[{"elem.opponent_id": team_id}]
+        )
+
+        team_doc = self.csv_collection.find_one(query_base)
+        if not team_doc or "csv_files" not in team_doc:
+            print("No CSV files found for this query.")
+            return
+
+        updated_csv_files = []
+
+        for csv_file in team_doc["csv_files"]:
+            filename = csv_file["filename"]
+            filedata = base64.b64decode(csv_file["filedata"])
+
+            # Read CSV data into a DataFrame
+            df = pd.read_csv(io.BytesIO(filedata))
+
+            # Replace old team name with new team name in all occurrences
+            df.replace(to_replace={"team_name": {team_id: new_team_name},
+                                "opponent_name": {team_id: new_team_name}},
+                    inplace=True)
+
+            output = io.BytesIO()
+            df.to_csv(output, index=False)
+            new_filedata = base64.b64encode(output.getvalue()).decode('utf-8')
+
+            updated_csv_files.append({
+                "filename": filename,
+                "filedata": new_filedata,
+                "upload_date": csv_file.get("upload_date"),  # Preserve original upload_date
+                "sports_week": csv_file.get("sports_week", "")
+            })
+
+        self.collection.update_one(
+            query_base,
+            {"$set": {"csv_files": updated_csv_files}}
+        )
+
+
+        return {
+            "results": f"Team {new_team_name} has been updated"
+        }
+
+
     async def clear_season(self):
         """Clears the season at the end of a season
-        and stores the previous season in a separate
-        database
+        and stores the previous season in a separate database.
         """
         query_base = {
             "_id": self.level_constant.get('_id')
@@ -374,24 +446,37 @@ class AdminTeamsService():
         }
         await self.sports_collection.update_one(query_base, update_params)
 
-        last_pr = self.sports_collection.find_one(
+        last_pr = await self.sports_collection.find_one(
             query_base,
             {"teams.power_ranking": {"$slice": -1}}
         )
+
+        updates = []
         if last_pr and "teams" in last_pr:
-            updates = []
             for team in last_pr["teams"]:
                 if "power_ranking" in team and team["power_ranking"]:
                     last_rank = team["power_ranking"][-1]
                     updates.append(last_rank)
+
+        cleared_seasons = None
+        if updates:  # Only update power_ranking if we have values
             cleared_seasons = await self.sports_collection.update_one(
                 query_base,
                 {"$set": {
-                        f"teams.{i}.power_ranking": \
-                            [updates[i]] for i, _ in enumerate(updates)
-                    }
-                }
+                    f"teams.{i}.power_ranking": [rank] for i, rank in enumerate(updates)
+                }}
             )
+
+        return {
+            "archived": True,
+            "teams_reset": True,
+            "return_data": "Cleared season and set previous season",
+            "power_rankings_updated": len(updates)
+        } if cleared_seasons and cleared_seasons.modified_count else {
+            "archived": False,
+            "teams_reset": False,
+            "return_data": "Failed to clear season"
+        }
 
     async def _add_csv_file(
         self,
