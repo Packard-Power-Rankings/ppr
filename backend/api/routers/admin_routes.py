@@ -59,7 +59,7 @@ def admin_team_class(level_key: Tuple) -> "AdminTeamsService":
     return _instance_cache[level_key]
 
 
-@router.post("/token/", response_model=Token, tags=["Admin"])
+@router.post("/token/", response_model=Token)
 async def login_generate_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
     admin_service: AdminServices = Depends()
@@ -79,8 +79,7 @@ async def login_generate_token(
 
 
 @router.post(
-    "/upload_csv/",
-    tags=["Admin"],
+    "/upload_csv",
     dependencies=[Depends(AdminServices.get_current_admin)],
     description="Adds CSV File and Finds Missing Teams"
 )
@@ -133,7 +132,6 @@ async def upload_csv(
 
 @router.post(
     "/add_teams/",
-    tags=["Admin"],
     dependencies=[Depends(AdminServices.get_current_admin)],
     description="Adds Missing Teams To Database"
 )
@@ -174,8 +172,7 @@ async def add_missing_teams(
 
 
 @router.post(
-    "/run_algorithm/",
-    tags=["Admin"],
+    "/run_algorithm/{iterations}",
     dependencies=[Depends(AdminServices.get_current_admin)],
     description="Runs Main Algorithm"
 )
@@ -219,7 +216,6 @@ async def main_algorithm_exc(
 
 @router.post(
     "/calc_z_scores/",
-    tags=["Admin"],
     dependencies=[Depends(AdminServices.get_current_admin)],
     description="Calculates z Scores"
 )
@@ -255,7 +251,6 @@ async def calc_z_scores(
 
 @router.get(
     "/task-status/{task_id}",
-    tags=["Admin"],
     dependencies=[Depends(AdminServices.get_current_admin)],
     description="Checks Status of Task"
 )
@@ -305,7 +300,6 @@ async def task_checker(task_id: str):
 
 @router.put(
     "/update_game/",
-    tags=["Admin"],
     dependencies=[Depends(AdminServices.get_current_admin)],
     description="Updates Games and CSV File"
 )
@@ -345,13 +339,84 @@ async def update_game(
     return results
 
 
+@router.put(
+    "/update-name/{team_id}/{new_name}",
+    dependencies=[Depends(AdminServices.get_current_admin)],
+    description="Update Team Name"
+)
+async def update_team_name(
+    team_id: int,
+    new_name: str,
+    sport_input: InputMethod = Depends(input_method_dependency)
+):
+    """
+    Update A teams Name
+    """
+    team_service = admin_team_class(
+        (
+            sport_input.sport_type,
+            sport_input.gender,
+            sport_input.level
+        )
+    )
+    return await team_service.update_team_name(team_id, new_name)
+
+
 @router.delete(
     "/clear_season/",
-    tags=["Admin"],
     dependencies=[Depends(AdminServices.get_current_admin)],
     description="Clears Season"
 )
-async def clear_season():
-    """Needs to be implemented
+async def clear_season(
+    sport_input: InputMethod = Depends(input_method_dependency)
+):
     """
-    pass
+    Moves current season to previous season
+    """
+    team_service = admin_team_class(
+        (
+            sport_input.sport_type,
+            sport_input.gender,
+            sport_input.level
+        )
+    )
+    return await team_service.clear_season()
+
+
+@router.delete(
+    "/delete-game",
+    dependencies=[Depends(AdminServices.get_current_admin)],
+    description="Delete A Game"
+)
+async def delete_game(
+    sport_input: InputMethod = Depends(input_method_dependency)
+):
+    """
+    Delete A Game From Database
+    """
+    team_service = admin_team_class(
+        (
+            sport_input.sport_type,
+            sport_input.gender,
+            sport_input.level
+        )
+    )
+
+@router.delete(
+    "/delete-team",
+    dependencies=[Depends(AdminServices.get_current_admin)],
+    description="Delete A Team"
+)
+async def delete_team(
+    sport_input: InputMethod = Depends(input_method_dependency)
+):
+    """
+    Delete a team from the database
+    """
+    team_service = admin_team_class(
+        (
+            sport_input.sport_type,
+            sport_input.gender,
+            sport_input.level
+        )
+    )
