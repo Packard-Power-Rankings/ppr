@@ -102,6 +102,36 @@ class UsersServices():
         ]
         return await self._sports_retrieval(pipeline)
 
+    async def retrieve_team_names(self):
+        query: Dict = query_params_builder()
+        query.update(
+            _id=self.level_constants.get('_id'),
+            sport_type=self.level_key[0],
+            gender=self.level_key[1],
+            level=self.level_key[2]
+        )
+
+        pipeline = [
+            {"$match": query},
+            {"$unwind": "$teams"},
+            {"$project": {
+                "_id": 0,
+                "team": {
+                    "team_name": "$teams.team_name"
+                }
+            }},
+            {"$group": {
+                "_id": None,
+                "teams": {"$push": "$team"}
+            }},
+            {"$project": {
+                "_id": 0,
+                "teams": 1
+            }}
+        ]
+
+        return await self._sports_retrieval(pipeline)
+
     @staticmethod
     def sigmond_curve(vabs) -> float:
         return 1.0 / (1.0 + 40.0 * e ** (-1.0 * ((vabs / 6.0) + 2.0)))
