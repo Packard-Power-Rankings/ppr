@@ -58,29 +58,36 @@ async def list_team_info(
         raise HTTPException(status_code=404, detail="Team not found")
     return results
 
-# @router.get("/teams_data", tags=["User"])
-# async def get_teams_data(sport_input: GeneralInputMethod):
-#     pass
 
-# @router.get("/team_data/{team_name}", tags=["User"])
-# async def get_team_data(
-#     team_name: str,
-#     sport_input: GeneralInputMethod
-# ):
-#     pass
+@router.get("/predictions/teams/{sport_type}/{gender}/{level}", response_description="Get Sports Teams")
+async def get_sports_team_names(
+    sport_type: str,
+    gender: str,
+    level: str
+):
+    level_key: Tuple = (
+        sport_type,
+        gender,
+        level
+    )
+    sports_data = users_class(level_key)
+    return await sports_data.retrieve_team_names()
 
 
-@router.get("/predictions/{team_one}/{team_two}/{home_field_adv}", tags=["User"])
+
+@router.get("/predictions/{team_one}/{team_two}/{home_field_adv}/{sport_type}/{gender}/{level}", response_description="Get Predictions")
 async def get_game_predictions(
     team_one: str,
     team_two: str,
     home_field_adv: bool,
-    sport_input: GeneralInputMethod = Depends()
+    sport_type: str,
+    gender: str,
+    level: str
 ):
     level_key: Tuple = (
-        sport_input.sport_type,
-        sport_input.gender,
-        sport_input.level
+        sport_type,
+        gender,
+        level
     )
     sports_data = users_class(level_key)
     score_predictions = \
