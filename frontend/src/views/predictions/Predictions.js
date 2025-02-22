@@ -35,7 +35,7 @@ const Predictions = () => {
         const debounceFetch = setTimeout(async () => {
             setLoading(true);
             try {
-                const teamNames = await api.get(`/predictions/teams/${sport}/${gender}/${level}`);
+                const teamNames = await api.get(`/predictions/?sport_type=${sport}&gender=${gender}&level=${level}`);
                 setTeamsOptions(teamNames.data.data.teams.map(item => ({
                     value: item.team_name,
                     label: item.team_name
@@ -58,9 +58,9 @@ const Predictions = () => {
 
         try {
             const response = await api.get(
-                `/predictions/${teamOne.value}/${teamTwo.value}/${homeFieldAdv}/${sport}/${gender}/${level}`
+                `/predictions/${teamOne.value}/${teamTwo.value}/${homeFieldAdv}/?sport_type=${sport}&gender=${gender}&level=${level}`
             );
-            console.log(response);
+            // console.log(response);
             setValues([
                 { team: teamOne.value, score: response.data[teamOne.value].toFixed(2) },
                 { team: teamTwo.value, score: response.data[teamTwo.value].toFixed(2) }
