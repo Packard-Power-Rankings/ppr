@@ -32,7 +32,9 @@ const Teams = () => {
         try {
             setLoading(true);
 
-            const teamsData = await api.get(`/${sport}/${gender}/${level}`);
+            const teamsData = await api.get(
+                `/teams/?sport_type=${sport}&gender=${gender}&level=${level}`
+            );
             // console.log(teamsData.data.data.teams);
 
             setTeams(teamsData.data.data.teams);
