@@ -41,7 +41,7 @@ const Team = () => {
             setLoading(true);
             setError(null);
 
-            const teamInfo = await api.get(`/${team_name}/${sport}/${gender}/${level}`);
+            const teamInfo = await api.get(`teams/${team_name}/?sport_type=${sport}&gender=${gender}&level=${level}`);
             // console.log(teamInfo.data.data.teams.season_opp);
             setTeam(teamInfo.data.data.teams);
             setOpp(teamInfo.data.data.teams.season_opp);
