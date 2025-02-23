@@ -22,7 +22,9 @@ from fastapi import (
     UploadFile,
     HTTPException,
     status,
-    Body
+    Body,
+    Response,
+    Request
 )
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import JSONResponse
@@ -31,7 +33,7 @@ from api.schemas.items import (
     InputMethod,
     NewTeamList,
     UpdateTeamsData,
-    Token,
+    LoginResponse,
     input_method_dependency,
     update_method
 )
@@ -59,8 +61,9 @@ def admin_team_class(level_key: Tuple) -> "AdminTeamsService":
     return _instance_cache[level_key]
 
 
-@router.post("/token/", response_model=Token)
+@router.post("/token/", response_model=LoginResponse)
 async def login_generate_token(
+    response: Response,
     form_data: OAuth2PasswordRequestForm = Depends(),
     admin_service: AdminServices = Depends()
 ):
@@ -75,12 +78,19 @@ async def login_generate_token(
     Returns:
         TokenData: Login token
     """
-    return await admin_service.login(form_data)
+    return await admin_service.login(form_data, response)
+
+
+def require_admin():
+    """Dependency for protected routes that checks cookie auth"""
+    async def wrapper(request: Request):
+        return await AdminServices().get_current_user(request)
+    return Depends(wrapper)
 
 
 @router.post(
     "/upload_csv",
-    dependencies=[Depends(AdminServices.get_current_admin)],
+    dependencies=[require_admin()],
     description="Adds CSV File and Finds Missing Teams"
 )
 async def upload_csv(
@@ -132,7 +142,7 @@ async def upload_csv(
 
 @router.post(
     "/add_teams/",
-    dependencies=[Depends(AdminServices.get_current_admin)],
+    dependencies=[require_admin()],
     description="Adds Missing Teams To Database"
 )
 async def add_missing_teams(
@@ -173,7 +183,7 @@ async def add_missing_teams(
 
 @router.post(
     "/run_algorithm/{iterations}",
-    dependencies=[Depends(AdminServices.get_current_admin)],
+    dependencies=[require_admin()],
     description="Runs Main Algorithm"
 )
 async def main_algorithm_exc(
@@ -216,7 +226,7 @@ async def main_algorithm_exc(
 
 @router.post(
     "/calc_z_scores/",
-    dependencies=[Depends(AdminServices.get_current_admin)],
+    dependencies=[require_admin()],
     description="Calculates z Scores"
 )
 async def calc_z_scores(
@@ -251,7 +261,7 @@ async def calc_z_scores(
 
 @router.get(
     "/task-status/{task_id}",
-    dependencies=[Depends(AdminServices.get_current_admin)],
+    dependencies=[require_admin()],
     description="Checks Status of Task"
 )
 async def task_checker(task_id: str):
@@ -300,7 +310,7 @@ async def task_checker(task_id: str):
 
 @router.put(
     "/update_game/",
-    dependencies=[Depends(AdminServices.get_current_admin)],
+    dependencies=[require_admin()],
     description="Updates Games and CSV File"
 )
 async def update_game(
@@ -341,7 +351,7 @@ async def update_game(
 
 @router.put(
     "/update-name/{team_id}/{new_name}",
-    dependencies=[Depends(AdminServices.get_current_admin)],
+    dependencies=[require_admin()],
     description="Update Team Name"
 )
 async def update_team_name(
@@ -364,7 +374,7 @@ async def update_team_name(
 
 @router.delete(
     "/clear_season/",
-    dependencies=[Depends(AdminServices.get_current_admin)],
+    dependencies=[require_admin()],
     description="Clears Season"
 )
 async def clear_season(
@@ -385,7 +395,7 @@ async def clear_season(
 
 @router.delete(
     "/delete-game",
-    dependencies=[Depends(AdminServices.get_current_admin)],
+    dependencies=[require_admin()],
     description="Delete A Game"
 )
 async def delete_game(
@@ -404,7 +414,7 @@ async def delete_game(
 
 @router.delete(
     "/delete-team",
-    dependencies=[Depends(AdminServices.get_current_admin)],
+    dependencies=[require_admin()],
     description="Delete A Team"
 )
 async def delete_team(
