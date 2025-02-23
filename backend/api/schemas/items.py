@@ -193,6 +193,10 @@ class Token(BaseModel):
     token_type: str
 
 
+class LoginResponse(BaseModel):
+    message: str
+
+
 class NewTeamData(BaseModel):
     team_name: str = Field(...)
     division: Optional[str] = Field(default=None)
