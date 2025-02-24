@@ -34,6 +34,7 @@ from api.schemas.items import (
     NewTeamList,
     UpdateTeamsData,
     LoginResponse,
+    LogoutResponse,
     input_method_dependency,
     update_method
 )
@@ -79,6 +80,14 @@ async def login_generate_token(
         TokenData: Login token
     """
     return await admin_service.login(form_data, response)
+
+
+@router.post("/logout/", response_model=LogoutResponse)
+async def logout(
+    response: Response
+):
+    response.delete_cookie("access_token")
+    return LogoutResponse(message="Logout Successful")
 
 
 def require_admin():
