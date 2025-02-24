@@ -5,6 +5,15 @@ const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 const Colors = React.lazy(() => import('./views/theme/colors/Colors'))
 const Typography = React.lazy(() => import('./views/theme/typography/Typography'))
 
+// Admin
+const AddTeams = React.lazy(() => import('./views/admin/add_teams/AddTeams'))
+const CalculateValues = React.lazy(() => import('./views/admin/calc_values/CalculateValues'))
+const UpdateGame = React.lazy(() => import('./views/admin/update_game/UpdateGame'))
+const UpdateTeamName = React.lazy(() => import('./views/admin/update_team_name/UpdateTeamName'))
+const DeleteTeam = React.lazy(() => import('./views/admin/delete_team/DeleteTeam'))
+const DeleteGame = React.lazy(() => import('./views/admin/delete_game/DeleteGame'))
+const ClearSeason = React.lazy(() => import('./views/admin/clear_season/ClearSeason'))
+
 // Base
 const Accordion = React.lazy(() => import('./views/base/accordion/Accordion'))
 const Breadcrumbs = React.lazy(() => import('./views/base/breadcrumbs/Breadcrumbs'))
@@ -66,6 +75,14 @@ const routes = [
   { path: '/teams/:sport/:gender/:level', name: 'Teams', element: Teams },
   { path: '/team/:team_name/:sport/:gender/:level', name: "Team", element: Team },
   { path: '/predictions', name: 'Predictions', element: Predictions },
+  { path: '/admin', name: 'Admin', element: AddTeams, exact: true },
+  { path: '/admin/add_teams', name: 'AddTeams', element: AddTeams },
+  { path: '/admin/calc_values', name: 'CalculateValues', element: CalculateValues },
+  { path: '/admin/update_game', name: 'UpdateGame', element: UpdateGame },
+  { path: '/admin/update_team_name', name: 'UpdateTeamName', element: UpdateTeamName },
+  { path: '/admin/delete_team', name: 'DeleteTeam', element: DeleteTeam},
+  { path: '/admin/delete_game', name: 'DeleteGame', element: DeleteGame},
+  { path: '/admin/clear_season', name: 'ClearSeason', element: ClearSeason },
   { path: '/theme', name: 'Theme', element: Colors, exact: true },
   { path: '/theme/colors', name: 'Colors', element: Colors },
   { path: '/theme/typography', name: 'Typography', element: Typography },
