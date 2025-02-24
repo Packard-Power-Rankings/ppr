@@ -1,4 +1,6 @@
 import React, { useState } from 'react'
+import { useDispatch } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 import {
   CButton,
   CCard,
@@ -21,6 +23,9 @@ const Login = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [error, setError] = useState(false);
 
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage('');
@@ -41,6 +46,9 @@ const Login = () => {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         credentials: 'include'
       });
+
+      dispatch({'type': 'login'});
+      navigate('/admin/calc_values')
 
     } catch (error) {
       setErrorMessage("Invalid username or password");
