@@ -77,7 +77,6 @@ const Predictions = () => {
             </CCardHeader>
             <CCardBody>
                 <CForm onSubmit={handleSubmit}>
-                    {/* Sport Selection */}
                     <CRow className="mb-3">
                         <CCol sm={3}><strong>Sport:</strong></CCol>
                         <CCol sm={6}>
@@ -88,7 +87,6 @@ const Predictions = () => {
                         </CCol>
                     </CRow>
 
-                    {/* Gender Selection */}
                     <CRow className="mb-3">
                         <CCol sm={3}><strong>Gender:</strong></CCol>
                         <CCol sm={6}>
@@ -99,7 +97,6 @@ const Predictions = () => {
                         </CCol>
                     </CRow>
 
-                    {/* Level Selection */}
                     <CRow className="mb-3">
                         <CCol sm={3}><strong>Level:</strong></CCol>
                         <CCol sm={6}>
@@ -110,7 +107,6 @@ const Predictions = () => {
                         </CCol>
                     </CRow>
 
-                    {/* Home Field Advantage */}
                     <CRow className="mb-3">
                         <CCol sm={3}><strong>Home Field Advantage:</strong></CCol>
                         <CCol sm={6}>
@@ -118,8 +114,6 @@ const Predictions = () => {
                                 checked={homeFieldAdv} onChange={() => setFieldAdv(prev => !prev)} />
                         </CCol>
                     </CRow>
-
-                    {/* Team Selection */}
                     <CRow className="mb-3">
                         <CCol sm={3}><strong>Team 1:</strong></CCol>
                         <CCol sm={6}>
@@ -136,7 +130,6 @@ const Predictions = () => {
                         </CCol>
                     </CRow>
 
-                    {/* Submit Button */}
                     <CRow className="text-center mt-4">
                         <CCol>
                             <CButton type="submit" color="primary" variant="outline">Submit</CButton>
@@ -144,7 +137,6 @@ const Predictions = () => {
                     </CRow>
                 </CForm>
 
-                {/* Display Predictions if Available */}
                 {predValues.length > 0 && (
                     <CCard className="mt-4">
                         <CCardHeader>
