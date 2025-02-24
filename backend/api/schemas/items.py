@@ -197,6 +197,10 @@ class LoginResponse(BaseModel):
     message: str
 
 
+class LogoutResponse(BaseModel):
+    message: str
+
+
 class NewTeamData(BaseModel):
     team_name: str = Field(...)
     division: Optional[str] = Field(default=None)
