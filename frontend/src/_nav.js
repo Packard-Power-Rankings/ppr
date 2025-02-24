@@ -4,7 +4,8 @@ import {
   cilAmericanFootball,
   cilBasketball,
   cilInfo,
-  cilFunctions
+  cilFunctions,
+  cilCog
 } from '@coreui/icons'
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react'
 
@@ -18,6 +19,53 @@ const _nav = [
     name: 'Info',
     to: '/about',
     icon: <CIcon icon={cilInfo} customClassName="nav-icon" />
+  },
+  {
+    component: CNavTitle,
+    name: "Admin"
+  },
+  {
+    component: CNavGroup,
+    name: 'Admin',
+    to: '/admin',
+    icon: <CIcon icon={cilCog} customClassName='nav-icon' />,
+    items: [
+      {
+        component: CNavItem,
+        name: 'Add Teams',
+        to: '/admin/add_teams',
+      },
+      {
+        component: CNavItem,
+        name: 'Algorithm/z-scores',
+        to: '/admin/calc_values',
+      },
+      {
+        component: CNavItem,
+        name: 'Clear Season',
+        to: '/admin/clear_season',
+      },
+      {
+        component: CNavItem,
+        name: 'Delete Game',
+        to: '/admin/delete_game',
+      },
+      {
+        component: CNavItem,
+        name: 'Delete Team',
+        to: '/admin/delete_team',
+      },
+      {
+        component: CNavItem,
+        name: 'Update Game',
+        to: '/admin/update_game',
+      },
+      {
+        component: CNavItem,
+        name: 'Update Team Name',
+        to: '/admin/update_team_name',
+      },
+    ]
   },
   {
     component: CNavTitle,
