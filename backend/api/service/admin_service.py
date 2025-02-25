@@ -103,7 +103,7 @@ class AdminServices():
             value=access_token,
             httponly=True,
             secure=False,       # Change for production
-            samesite="lax",     # Change for production
+            samesite='none',     # Change for production
         )
         return LoginResponse(message="Login successful")
 
@@ -175,7 +175,7 @@ class AdminServices():
             detail="Could not validate credentials",
             headers={"WWW-Authenticate": "Bearer"}
         )
-        token = request.cookies.get("access_token")
+        token = request.cookies.get("token_type")
         if not token:
             raise credentials_exception
 
