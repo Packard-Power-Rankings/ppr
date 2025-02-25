@@ -103,7 +103,7 @@ def require_admin():
     description="Adds CSV File and Finds Missing Teams"
 )
 async def upload_csv(
-    sports_input: InputMethod = Depends(input_method_dependency),
+    sports_input: InputMethod = Depends(),
     csv_file: UploadFile = File()
 ):
     """Endpoint for uploading a csv file and checking if teams are missing
@@ -156,7 +156,7 @@ async def upload_csv(
 )
 async def add_missing_teams(
     new_team: Annotated[NewTeamList, Body(embed=True)],
-    sports_input: InputMethod = Depends(input_method_dependency)
+    sports_input: InputMethod = Depends()
 ):
     """Endpoint for adding the missing teams to the database
 
@@ -197,7 +197,7 @@ async def add_missing_teams(
 )
 async def main_algorithm_exc(
     iterations: int,
-    sport_input: InputMethod = Depends(input_method_dependency)
+    sport_input: InputMethod = Depends()
 ):
     """Runs main algorithm for computing power rankings gathering teams
     and updating their power as needed
@@ -239,7 +239,7 @@ async def main_algorithm_exc(
     description="Calculates z Scores"
 )
 async def calc_z_scores(
-    sport_input: InputMethod = Depends(input_method_dependency)
+    sport_input: InputMethod = Depends()
 ):
     """Calculates the z scores and updates it as more games are played
     also it changes past games. This should be ran after the main algorithm
@@ -323,8 +323,8 @@ async def task_checker(task_id: str):
     description="Updates Games and CSV File"
 )
 async def update_game(
-    update_data: UpdateTeamsData = Depends(update_method),
-    sport_input: InputMethod = Depends(input_method_dependency)
+    update_data: UpdateTeamsData = Depends(),
+    sport_input: InputMethod = Depends()
 ):
     """Updates teams information if in the case a game has incorrect
     scores input. This updates the teams in the db as well as the 
@@ -366,7 +366,7 @@ async def update_game(
 async def update_team_name(
     team_id: int,
     new_name: str,
-    sport_input: InputMethod = Depends(input_method_dependency)
+    sport_input: InputMethod = Depends()
 ):
     """
     Update A teams Name
@@ -387,7 +387,7 @@ async def update_team_name(
     description="Clears Season"
 )
 async def clear_season(
-    sport_input: InputMethod = Depends(input_method_dependency)
+    sport_input: InputMethod = Depends()
 ):
     """
     Moves current season to previous season
@@ -408,7 +408,7 @@ async def clear_season(
     description="Delete A Game"
 )
 async def delete_game(
-    sport_input: InputMethod = Depends(input_method_dependency)
+    sport_input: InputMethod = Depends()
 ):
     """
     Delete A Game From Database
@@ -427,7 +427,7 @@ async def delete_game(
     description="Delete A Team"
 )
 async def delete_team(
-    sport_input: InputMethod = Depends(input_method_dependency)
+    sport_input: InputMethod = Depends()
 ):
     """
     Delete a team from the database
