@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { 
     CCol,
     CButtonGroup,
@@ -8,6 +9,18 @@ import {
 
 
 const AdminHeader = () => {
+    const dispatch = useDispatch();
+    const sport = useSelector((state) => state.sport);
+    const gender = useSelector((state) => state.gender);
+    const level = useSelector((state) => state.level);
+
+    const updateAdminState = (key, value) => {
+        dispatch({
+            type: 'updateAdminState',
+            payload: {[key]: value},
+        })
+    }
+
     return (
         <div>
             <CRow>
@@ -16,18 +29,20 @@ const AdminHeader = () => {
                         <CFormCheck 
                             type="radio"
                             name="sportradio"
-                            id="sportradio1"
+                            id="football"
                             autoComplete="off"
                             label='Football'
-                            defaultChecked
+                            onChange={() => updateAdminState('sport', 'football')}
+                            checked={sport === 'football'}
                         />
                         <CFormCheck 
                             type="radio"
                             name="sportradio"
-                            id="sportradio1"
+                            id="basketball"
                             autoComplete="off"
                             label='Basketball'
-                            defaultChecked
+                            onChange={() => updateAdminState('sport', 'basketball')}
+                            checked={sport === 'basketball'}
                         />
                     </CButtonGroup>
                 </CCol>
@@ -36,18 +51,21 @@ const AdminHeader = () => {
                         <CFormCheck 
                             type="radio"
                             name="genderradio"
-                            id="genderradio1"
+                            id="mens"
                             autoComplete="off"
                             label='Mens'
-                            defaultChecked
+                            onChange={() => updateAdminState('gender', 'mens')}
+                            checked={gender === 'mens'}
                         />
                         <CFormCheck 
                             type="radio"
                             name="genderradio"
-                            id="genderradio2"
+                            id="womens"
                             autoComplete="off"
                             label='Womens'
-                            defaultChecked
+                            onChange={() => updateAdminState('gender','womens')}
+                            checked={gender === 'womens'}
+                            disabled={sport === 'football'}
                         />
                     </CButtonGroup>
                 </CCol>
@@ -56,18 +74,20 @@ const AdminHeader = () => {
                         <CFormCheck 
                             type="radio"
                             name="levelradio"
-                            id="levelradio1"
+                            id="high_school"
                             autoComplete="off"
                             label='High School'
-                            defaultChecked
+                            onChange={() => updateAdminState('level', 'high_school')}
+                            checked={level === 'high_school'}
                         />
                         <CFormCheck 
                             type="radio"
                             name="levelradio"
-                            id="levelradio1"
+                            id="college"
                             autoComplete="off"
                             label='College'
-                            defaultChecked
+                            onChange={() => updateAdminState('level','college')}
+                            checked={level === 'college'}
                         />
                     </CButtonGroup>
                 </CCol>
