@@ -22,7 +22,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 import bcrypt
 import jwt
 from jwt.exceptions import InvalidTokenError, ExpiredSignatureError
-from api.schemas.items import TokenData, LoginResponse
+from api.schemas.items import TokenData, LoginResponse, LogoutResponse
 
 ACCESS_TOKEN_TIME = 60.0
 ALGORITHM = "HS256"
@@ -99,13 +99,26 @@ class AdminServices():
         )
 
         response.set_cookie(
-            "access_token",
+            key="access_token",
             value=access_token,
             httponly=True,
             secure=False,       # Change for production
-            samesite='none',     # Change for production
+            samesite='lax',     # Change for production
+            max_age=int(ACCESS_TOKEN_TIME * 60)
         )
         return LoginResponse(message="Login successful")
+
+    async def logout(
+        self,
+        response: Response
+    ) -> LogoutResponse:
+        response.delete_cookie(
+            key='access_token',
+            httponly=True,
+            secure=False,
+            samesite='lax'
+        )
+        return LogoutResponse(message="Logout Successful")
 
     @staticmethod
     async def get_current_admin(
@@ -147,11 +160,12 @@ class AdminServices():
             )
 
         hash_pass = admin["password"]
+        # admin_username = admin['username']
         if self.check_password(password, hash_pass):
             return self.generate_access_token({"sub": username}, None)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid Password"
+            detail="Invalid Password or Username"
         )
 
     async def get_current_user(
@@ -220,12 +234,23 @@ class AdminServices():
             expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_TIME)
 
         to_encode.update({'exp': expire})
+        to_encode.update({'iat': datetime.now(timezone.utc)})
         encode_jwt = jwt.encode(
             to_encode,
             os.getenv('SECRET_KEY'),
             algorithm=ALGORITHM
         )
         return encode_jwt
+
+    async def validate_token(
+        self,
+        request: Request
+    ):
+        try:
+            user = await self.get_current_user(request)
+            return {"status": "valid", "username": user.username}
+        except HTTPException:
+            return {"status": "invalid"}
 
     @staticmethod
     def hashed_password(password: str) -> str:
