@@ -20,17 +20,20 @@ import api from 'src/api'
 
 import admin from './../../assets/images/avatars/admin.png'
 import { useDispatch } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 
 const AppHeaderDropdown = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const handleLogout = async () => {
     try {
-      await api.post('/logout/', {
+      await api.post('/logout/', {}, {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        credentials: 'include'
+        withCredentials: true
       });
-      dispatch({ 'type': 'logout' });
+      dispatch({ type: 'logout' });
+      navigate('/');
     } catch (error) {
       console.log("An error has occured", error);
     }
@@ -48,7 +51,7 @@ const AppHeaderDropdown = () => {
           <CIcon icon={cilSettings} className='me-2' />
           Login
         </CDropdownItem>
-        <CDropdownItem onClick={handleLogout} href='/'>
+        <CDropdownItem onClick={handleLogout}>
           <CIcon icon={cilSettings} className='me-2' />
           Logout
         </CDropdownItem>
