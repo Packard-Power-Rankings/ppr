@@ -27,8 +27,40 @@ def run_main_algorithm(self, level_key, iterations: int):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         team_services = AdminTeamsService(level_key)
+
         results = loop.run_until_complete(
-            asyncio.sleep(120.0)
+            asyncio.sleep(120)
+        )
+
+        loop.close()
+
+        return {
+            "status": "completed",
+            "results": results
+        }
+    except Exception as exc:
+        self.update_state(
+            state=states.FAILURE,
+            meta={
+                'exc_type': type(exc).__name__,
+                'exc_message': str(exc)
+            }
+        )
+        raise exc
+
+
+@celery.task(bind=True, name="api.service.tasks.calc_z_score")
+def calc_z_score(self, level_key):
+    try:
+        self.update_state(state=states.STARTED)
+        if isinstance(level_key, list):
+            level_key = tuple(level_key)
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        team_services = AdminTeamsService(level_key)
+
+        results = loop.run_until_complete(
+            asyncio.sleep(120)
         )
 
         loop.close()
