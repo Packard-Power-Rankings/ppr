@@ -38,7 +38,7 @@ services:
   
   celery_worker:
     build: ./backend
-    command: celery -A api.service.celery worker --loglevel=info -Q algorithm_queue -E
+    command: celery -A api.service.celery worker --loglevel=info -Q algorithm_queue,z_score_queue -E
     volumes:
       - ./backend:/app
     networks:
