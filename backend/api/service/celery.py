@@ -13,7 +13,8 @@ celery = Celery(
 
 celery.conf.update(
     task_routes={
-        "api.service.tasks.run_main_algorithm": {"queue": "algorithm_queue"}
+        "api.service.tasks.run_main_algorithm": {"queue": "algorithm_queue"},
+        "api.service.tasks.calc_z_score": {'queue': "z_score_queue"}
     },
     task_track_started=True,
     task_serializer='json',
