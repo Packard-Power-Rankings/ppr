@@ -15,7 +15,7 @@ import {
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilLockLocked, cilUser } from '@coreui/icons'
-import api from 'src/api'
+import { loginUser } from 'src/services/authService'
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -36,23 +36,23 @@ const Login = () => {
       setError(true);
       return;
     }
-
-    const formData = new URLSearchParams();
-    formData.append("username", username);
-    formData.append("password", password);
+    const credentials = {
+      'username': username,
+      'password': password
+    }
 
     try {
-      await api.post('/token/', formData, {
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        credentials: 'include'
-      });
+      const success = await loginUser(credentials);
 
-      dispatch({'type': 'login'});
-      navigate('/admin/calc_values')
-
+      if (success) {
+        dispatch({ type: 'login' });
+        navigate('/admin/calc_values')
+      } else {
+        setErrorMessage("Invalid username or password");
+        setError(true);
+      }
     } catch (error) {
-      setErrorMessage("Invalid username or password");
-      setError(true);
+      console.error("Failed to sign in", error);
     }
   };
 
