@@ -84,10 +84,18 @@ async def login_generate_token(
 
 @router.post("/logout/", response_model=LogoutResponse)
 async def logout(
-    response: Response
+    response: Response,
+    admin_service: AdminServices = Depends()
 ):
-    response.delete_cookie("access_token")
-    return LogoutResponse(message="Logout Successful")
+    return await admin_service.logout(response)
+
+
+@router.get("/validate-token/")
+async def validate_token(
+    request: Request,
+    admin_service: AdminServices = Depends()
+):
+    return await admin_service.validate_token(request)
 
 
 def require_admin():
@@ -294,16 +302,19 @@ async def task_checker(task_id: str):
         result = {
             "task_id": task_id,
             "status": state,
+            "message": "In Progress"
         }
 
         if state == states.SUCCESS:
             result["result"] = task_result.get()
+            result['message'] = "Task Has Completed"
         elif state == states.FAILURE:
             result["error"] = str(task_result.result)
+            result['message'] = "Task Has Failed"
         elif state == states.PENDING:
             if not task_result.ready():
                 result["status"] = "PENDING"
-                result["message"] = "Task is in queue or processing"
+                result["message"] = "Task is Queued"
             else:
                 result["status"] = "NOT_FOUND"
                 result["message"] = "Task not found"
