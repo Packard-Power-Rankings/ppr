@@ -28,7 +28,7 @@ from fastapi import (
 )
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import JSONResponse
-from api.service.tasks import run_main_algorithm
+from api.service.tasks import run_main_algorithm, calc_z_score
 from api.schemas.items import (
     InputMethod,
     NewTeamList,
@@ -262,13 +262,15 @@ async def calc_z_scores(
         HTTPException: Internal Server Error
     """
     try:
-        level_key = (
+        level_key = [
             sport_input.sport_type,
             sport_input.gender,
             sport_input.level
+        ]
+        task = calc_z_score.delay(
+            level_key=level_key
         )
-        team_services = admin_team_class(level_key)
-        await team_services.calculate_z_scores()
+        return {"task_id": task.id, "message": "Task has been started."}
     except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
