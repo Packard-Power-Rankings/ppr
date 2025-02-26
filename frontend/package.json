@@ -50,6 +50,7 @@
     "react-router-dom": "^7.1.5",
     "react-select": "^5.10.0",
     "redux": "5.0.1",
+    "redux-persist": "^6.0.0",
     "simplebar-react": "^3.3.0"
   },
   "devDependencies": {
