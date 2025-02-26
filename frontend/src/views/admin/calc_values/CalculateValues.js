@@ -80,7 +80,10 @@ const CalculateValues = () => {
         pollTaskStatus(taskId);
     }
 
-    const handleAlgoRuns = () => startTask('Main Algorithm Run', `/run_algorithm/${value}/?sport_type=${sport}&gender=${gender}&level=${level}`)
+    const handleAlgoRuns = () => startTask(
+        'Main Algorithm Run',
+        `/run_algorithm/${value}/?sport_type=${sport}&gender=${gender}&level=${level}`
+    )
 
     const handleZScores = () => {}
 
