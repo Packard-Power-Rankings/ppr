@@ -189,7 +189,7 @@ class AdminServices():
             detail="Could not validate credentials",
             headers={"WWW-Authenticate": "Bearer"}
         )
-        token = request.cookies.get("token_type")
+        token = request.cookies.get("access_token")
         if not token:
             raise credentials_exception
 
