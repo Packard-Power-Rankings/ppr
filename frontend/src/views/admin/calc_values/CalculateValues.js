@@ -16,7 +16,6 @@ import {
 import { useState } from "react";
 import api from "src/api";
 import { useSelector } from "react-redux";
-import DateObject from "react-date-object";
 
 const CalculateValues = () => {
     const [ value, setValue ] = useState([]);
@@ -44,7 +43,7 @@ const CalculateValues = () => {
 
     const pollTaskStatus = async (taskId) => {
         let status = "PENDING";
-        while (status === "PENDING" || status === "RUNNING") {  // Need to Change the checks here
+        while (status === "PENDING" || status === "STARTED") {  // Need to Change the checks here
             status = await checkTaskStatus(taskId);
 
             setRunningTasks((prevTasks) =>
@@ -53,12 +52,13 @@ const CalculateValues = () => {
                 )
             );
 
-            if (status !== "PENDING" && status !== "RUNNING") break;
-            await new Promise((resolve) => setTimeout(resolve, 3000)); // Poll every 3s
+            if (status !== "PENDING" && status !== "STARTED") break;
+            await new Promise((resolve) => setTimeout(resolve, 3000));
         }
     };
 
     const startTask = async (process, endpoint) => {
+        // checkAdmin();
         const response = await api.post(
             endpoint,
             {},
@@ -102,7 +102,7 @@ const CalculateValues = () => {
                                 if (newValue > 0 && newValue <= 5) {
                                     setValue(newValue);
                                 }
-                            }} 
+                            }}
                             style={{ textAlign: "center" }} 
                         />
                     </CInputGroup>
