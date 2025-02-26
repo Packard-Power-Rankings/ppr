@@ -85,7 +85,10 @@ const CalculateValues = () => {
         `/run_algorithm/${value}/?sport_type=${sport}&gender=${gender}&level=${level}`
     )
 
-    const handleZScores = () => {}
+    const handleZScores = () => startTask(
+        'Calculating z-Scores',
+        `/calc_z_scores/?sport_type=${sport}&gender=${gender}&level=${level}`
+    )
 
     return (
         <div>
