@@ -369,6 +369,23 @@ async def update_game(
     return results
 
 
+@router.get(
+    '/teams-ids/',
+    description='Get team names and ids'
+)
+async def get_team_names_ids(
+    sport_input: InputMethod = Depends()
+):
+    team_service = admin_team_class(
+        (
+            sport_input.sport_type,
+            sport_input.gender,
+            sport_input.level
+        )
+    )
+    return await team_service.get_team_names_and_ids()
+
+
 @router.put(
     "/update-name/{team_id}/{new_name}",
     dependencies=[require_admin()],
