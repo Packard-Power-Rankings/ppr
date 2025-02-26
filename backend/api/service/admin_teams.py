@@ -15,6 +15,8 @@ from fastapi import HTTPException, status, UploadFile
 from bson.binary import Binary
 import motor.motor_asyncio
 from api.config.constants import LEVEL_CONSTANTS
+from api.utils.json_helper import query_params_builder
+
 
 MONGO_DETAILS = \
     f"mongodb+srv://{os.getenv("MONGO_USER")}:{os.getenv("MONGO_PASS")}@" \
@@ -477,6 +479,56 @@ class AdminTeamsService():
             "teams_reset": False,
             "return_data": "Failed to clear season"
         }
+
+    async def get_team_names_and_ids(
+        self
+    ):
+        query: Dict = query_params_builder()
+        query.update(
+            _id=self.level_constants.get('_id'),
+            sport_type=self.level_key[0],
+            gender=self.level_key[1],
+            level=self.level_key[2]
+        )
+
+        pipeline = [
+            {"$match": query},
+            {"$unwind": "$teams"},
+            {"$project": {
+                "_id": 0,
+                "team": {
+                    "team_name": "$teams.team_name",
+                    "team_id": "$teams.team_id"
+                }
+            }},
+            {"$group": {
+                "_id": None,
+                "teams": {"$push": "$team"}
+            }},
+            {"$project": {
+                "_id": 0,
+                "teams": 1
+            }}
+        ]
+        try:
+            cursor = self.sports_collection.aggregate(pipeline)
+            result = await cursor.to_list(length=None)
+            if result and len(result) > 0:
+                return {
+                    "message": "Successfully Found Teams",
+                    "status": status.HTTP_200_OK,
+                    "data": result[0]  # First document contains our grouped results
+                }
+            return {
+                "message": "Did Not Find Any Teams",
+                "status": status.HTTP_204_NO_CONTENT,
+                "data": None
+            }
+        except Exception as exc:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Internal Server Error"
+            ) from exc
 
     async def _add_csv_file(
         self,
