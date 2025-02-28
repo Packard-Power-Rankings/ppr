@@ -46,6 +46,7 @@
     "react-app-polyfill": "^3.0.0",
     "react-date-object": "^2.1.9",
     "react-dom": "^19.0.0",
+    "react-papaparse": "^4.4.0",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.1.5",
     "react-select": "^5.10.0",
