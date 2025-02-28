@@ -130,6 +130,30 @@ class AdminTeamsService():
                 detail="An internal error has occurred."
             ) from exc
 
+    async def find_missing_teams(
+        self,
+        teams: List[str]
+    ):
+        query_base = {
+            "_id": self.level_constant.get('_id'),
+            "sport_type": self.level_key[0],
+            "gender": self.level_key[1],
+            "level": self.level_key[2],
+        }
+
+        try:
+            documents = await self.sports_collection.find(query_base, {"teams.team_name": 1}).to_list(length=None)
+            found_team_names = {team["team_name"] for doc in documents for team in doc["teams"] if "team_name" in team}
+
+            missing_teams = list(set(teams) - found_team_names)
+            return missing_teams
+        except Exception as exc:
+            traceback.print_exc()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="An internal error has occurred."
+            ) from exc
+
 
     async def add_teams_to_db(
         self,
