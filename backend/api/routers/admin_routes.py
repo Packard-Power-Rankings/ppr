@@ -12,7 +12,7 @@
 
 from __future__ import annotations
 import traceback
-from typing import Tuple, Dict, Annotated, Any
+from typing import Tuple, List, Dict, Annotated, Any
 from celery.result import AsyncResult
 from celery import states
 from fastapi import (
@@ -196,6 +196,25 @@ async def add_missing_teams(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal Error"
         ) from exc
+
+
+@router.post(
+    '/check-teams/',
+    dependencies=[require_admin()],
+    description="Check Missing Teams in DB"
+)
+async def check_for_missing_teams(
+    teams: List[str],
+    sports_input: InputMethod = Depends()
+):
+    level_key = (
+                sports_input.sport_type,
+                sports_input.gender,
+                sports_input.level
+        )
+    team_services = admin_team_class(level_key)
+    results = await team_services.find_missing_teams(teams)
+    return {"missing_teams": results}
 
 
 @router.post(
