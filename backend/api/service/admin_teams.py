@@ -46,7 +46,7 @@ class AdminTeamsService():
         # self.teams_check: List[Dict[str, str]] = []
         # self.main_algorithm = MainAlgorithm(self, level_key)
 
-    async def store_csv_check_teams(
+    async def store_csv(
         self,
         sport_type: str,
         gender: str,
@@ -91,37 +91,42 @@ class AdminTeamsService():
                 date
             )
 
-            # Creates a list for teams to check in db
-            team_check: List[str] = []
-            for team in csv_reader:
-                team_check.append(team[1].lower())
-                team_check.append(team[2].lower())
+            # # Creates a list for teams to check in db
+            # team_check: List[str] = []
+            # for team in csv_reader:
+            #     team_check.append(team[1].lower())
+            #     team_check.append(team[2].lower())
 
-            query_teams = {
-                "_id": self.level_constant.get('_id')
-            }
-            results = await self._find_teams(query_teams, team_check)
-            # If the results are not empty loop through and see
-            # which teams are not in the database and return the
-            # list of the teams that need to be added
-            if results:
-                teams: List[Dict[str, str]] = results[0].get('teams')
-                for team in teams:
-                    if team.get('team_name').lower() in [t.lower() for t in team_check]:
-                        team_check = [
-                            t for t in team_check 
-                            if t.lower() != team.get('team_name').lower()
-                        ]
+            # query_teams = {
+            #     "_id": self.level_constant.get('_id')
+            # }
+            # results = await self._find_teams(query_teams, team_check)
+            # # If the results are not empty loop through and see
+            # # which teams are not in the database and return the
+            # # list of the teams that need to be added
+            # if results:
+            #     teams: List[Dict[str, str]] = results[0].get('teams')
+            #     for team in teams:
+            #         if team.get('team_name').lower() in [t.lower() for t in team_check]:
+            #             team_check = [
+            #                 t for t in team_check
+            #                 if t.lower() != team.get('team_name').lower()
+            #             ]
 
-            # Close the CSV file after processing
-            await csv_file.close()
-
-            return {
-                "success": "File Uploaded and Teams Searched",
-                "status": status.HTTP_200_OK,
-                "missing_teams": team_check,
-                "files_uploaded": file_upload
-            }
+            # # Close the CSV file after processing
+            # await csv_file.close()
+            if file_upload > 0:
+                return {
+                    "message": "File has been uploaded successfully",
+                    "status": status.HTTP_200_OK,
+                    "files_uploaded": file_upload
+                }
+            else:
+                return {
+                    "message": "No file was uploaded",
+                    "status": status.HTTP_200_OK,
+                    "files_uploaded": file_upload
+                }
         
         except Exception as exc:
             traceback.print_exc()
@@ -198,13 +203,13 @@ class AdminTeamsService():
             )
         if results.modified_count > 0:
             message.update(
-                message="Teams were added",
+                message="Teams were added successfully",
                 status=status.HTTP_200_OK,
                 number_of_files=results.modified_count
             )
         else:
             message.update(
-                message="Team already exists",
+                message="Team already exists in the database",
                 status=status.HTTP_200_OK,
                 number_of_files=results.modified_count
             )
