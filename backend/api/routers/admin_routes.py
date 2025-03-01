@@ -41,6 +41,13 @@ from api.schemas.items import (
 from api.service.admin_teams import AdminTeamsService
 from api.service.admin_service import AdminServices
 from api.service.celery import celery
+from api.config.constants import (
+    DIVISION_FOOTBALL,
+    DIVISION_BASKETBALL,
+    FOOTBALL_COLLEGE_CONF,
+    CONFERENCE_CB,
+    STATES
+)
 
 router = APIRouter()
 admin_service = AdminServices()
@@ -105,14 +112,41 @@ def require_admin():
     return Depends(wrapper)
 
 
+def dict_to_list(data_dict):
+    return [{"id": k, "name": v} for k, v in data_dict.items() if v is not None]
+
+@router.get(
+    '/sports/',
+    dependencies=[require_admin()],
+    description="Gets Division, Conferences, and States"
+)
+def get_sports_info(
+    sports_input: InputMethod = Depends()
+):
+    return_message = {}
+
+    if sports_input.sport_type == 'football':
+        return_message['division'] = dict_to_list(DIVISION_FOOTBALL)
+        if sports_input.level == 'college':
+            return_message['conference'] = dict_to_list(FOOTBALL_COLLEGE_CONF)
+    else:
+        return_message['division'] = dict_to_list(DIVISION_BASKETBALL)
+        if sports_input.level == 'college':
+            return_message['conference'] = dict_to_list(CONFERENCE_CB)
+
+    return_message["states"] = dict_to_list(STATES)
+
+    return return_message
+
+
 @router.post(
-    "/upload_csv",
+    "/upload_csv/",
     dependencies=[require_admin()],
     description="Adds CSV File and Finds Missing Teams"
 )
 async def upload_csv(
+    csv_file: UploadFile = File(),
     sports_input: InputMethod = Depends(),
-    csv_file: UploadFile = File()
 ):
     """Endpoint for uploading a csv file and checking if teams are missing
 
@@ -142,7 +176,7 @@ async def upload_csv(
             sports_input.level
         )
         team_services = admin_team_class(level_key)
-        results = await team_services.store_csv_check_teams(
+        results = await team_services.store_csv(
             sports_input.sport_type,
             sports_input.gender,
             sports_input.level,
@@ -163,7 +197,7 @@ async def upload_csv(
     description="Adds Missing Teams To Database"
 )
 async def add_missing_teams(
-    new_team: Annotated[NewTeamList, Body(embed=True)],
+    new_team: List[Dict],
     sports_input: InputMethod = Depends()
 ):
     """Endpoint for adding the missing teams to the database
@@ -181,14 +215,14 @@ async def add_missing_teams(
         dict: Success message
     """
     try:
-        teams = new_team.model_dump()
+        # teams = new_team.model_dump()
         level_key = (
                 sports_input.sport_type,
                 sports_input.gender,
                 sports_input.level
         )
         team_services = admin_team_class(level_key)
-        results = await team_services.add_teams_to_db(teams['teams'])
+        results = await team_services.add_teams_to_db(new_team)
         return results
     except Exception as exc:
         traceback.print_exc()
