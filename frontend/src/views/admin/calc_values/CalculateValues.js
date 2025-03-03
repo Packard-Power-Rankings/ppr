@@ -16,6 +16,26 @@ import {
 import { useState } from "react";
 import api from "src/api";
 import { useSelector } from "react-redux";
+import { format } from "date-fns";
+
+const statusMapping = {
+    queued: "Queued",
+    in_progress: "In Progress",
+    complete: "Complete",
+    deferred: "Deferred",
+    not_found: "Not Found",
+};
+
+
+const formatDate = (dateString) => {
+    if (!dateString || dateString === "N/A") return "N/A";
+    try {
+        return format(new Date(dateString), "MM-dd-yyyy hh:mm:ss bbb");
+    } catch (error) {
+        return "Invalid Date";
+    }
+};
+
 
 const CalculateValues = () => {
     const [ value, setValue ] = useState([]);
@@ -23,7 +43,7 @@ const CalculateValues = () => {
     const gender = useSelector((state) => state.gender);
     const level = useSelector((state) => state.level);
     const [ runningTasks, setRunningTasks ] = useState([]);
-    const date = new Date();
+    // const date = new Date();
 
     const checkTaskStatus = async (taskId) => {
         try {
@@ -34,51 +54,54 @@ const CalculateValues = () => {
                     withCredentials: true,
                 }
             );
-            return response.data.status; // Example: "PENDING", "RUNNING", "SUCCESS", "FAILED"
+            return response.data;
         } catch (error) {
             console.error("Error fetching task status:", error);
             return "UNKNOWN";
         }
     };
 
-    const pollTaskStatus = async (taskId) => {
-        let status = "PENDING";
-        while (status === "PENDING" || status === "STARTED") {  // Need to Change the checks here
-            status = await checkTaskStatus(taskId);
+    const pollTaskStatus = async (taskId, process, runs) => {
+        let taskStatus = await checkTaskStatus(taskId);
+        setRunningTasks((prev) => [
+            { taskId, process, runs, status: statusMapping[taskStatus.status] || "Unknown", startTime: taskStatus.info?.start_time || "N/A" },
+            ...prev,
+        ]);
 
-            setRunningTasks((prevTasks) =>
-                prevTasks.map((task) =>
-                    task.taskId === taskId ? { ...task, status } : task
+        while (taskStatus.status === "queued" || taskStatus.status === "in_progress") {
+            await new Promise((resolve) => setTimeout(resolve, 3000));
+            taskStatus = await checkTaskStatus(taskId);
+
+            setRunningTasks((prev) =>
+                prev.map((task) =>
+                    task.taskId === taskId
+                        ? {
+                              ...task,
+                              status: statusMapping[taskStatus.status] || "Unknown",
+                              enqueueTime: formatDate(taskStatus.info?.enqueue_time),
+                              startTime: formatDate(taskStatus.info?.start_time),
+                              finishTime: formatDate(taskStatus.info?.finish_time),
+                              success: taskStatus.info?.success !== undefined ? (taskStatus.info.success ? "Success" : "Failed") : "Pending",
+                          }
+                        : task
                 )
             );
 
-            if (status !== "PENDING" && status !== "STARTED") break;
-            await new Promise((resolve) => setTimeout(resolve, 3000));
+            if (taskStatus.status === "complete") break;
         }
     };
 
     const startTask = async (process, endpoint) => {
-        // checkAdmin();
         const response = await api.post(
-            endpoint,
-            {},
-            {
+            endpoint, {},
+            { 
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                withCredentials: true,
+                withCredentials: true 
             }
-        )
+        );
         const taskId = response.data.task_id;
-        const newTask = {
-            dateTime: date.getMonth() + 1 + '/' + date.getDate() + '/' + date.getFullYear(),
-            process: process,
-            runs: value || 1,
-            status: 'PENDING',
-            taskId
-        }
-
-        setRunningTasks((prev) => [newTask, ...prev]);
-        pollTaskStatus(taskId);
-    }
+        pollTaskStatus(taskId, process, value || 1);
+    };
 
     const handleAlgoRuns = () => startTask(
         'Main Algorithm Run',
@@ -127,18 +150,22 @@ const CalculateValues = () => {
             <CTable captionTop="History">
                 <CTableHead>
                     <CTableRow>
-                        <CTableHeaderCell scope="col">Date/Time</CTableHeaderCell>
+                        <CTableHeaderCell scope="col">Enqueue Time</CTableHeaderCell>
                         <CTableHeaderCell scope="col">Process</CTableHeaderCell>
                         <CTableHeaderCell scope="col">Runs</CTableHeaderCell>
+                        <CTableHeaderCell scope="col">Start Time</CTableHeaderCell>
+                        <CTableHeaderCell scope="col">Finish Time</CTableHeaderCell>
                         <CTableHeaderCell scope="col">Status</CTableHeaderCell>
                     </CTableRow>
                 </CTableHead>
                 <CTableBody>
                     {runningTasks.map((task, index) => (
                         <CTableRow key={index}>
-                            <CTableDataCell>{task.dateTime}</CTableDataCell>
+                            <CTableDataCell>{task.enqueueTime}</CTableDataCell>
                             <CTableDataCell>{task.process}</CTableDataCell>
                             <CTableDataCell>{task.runs}</CTableDataCell>
+                            <CTableDataCell>{task.startTime}</CTableDataCell>
+                            <CTableDataCell>{task.finishTime}</CTableDataCell>
                             <CTableDataCell>{task.status}</CTableDataCell>
                         </CTableRow>
                     ))}
