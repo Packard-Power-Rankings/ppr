@@ -26,8 +26,6 @@ services:
     environment:
       - PYTHONPATH=/app
       - MONGO_URI=mongodb://${MONGO_USER}:${MONGO_PASS}@db:${MONGO_PORT}/${MONGO_DB_NAME}
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
     depends_on:
       redis:
         condition: service_healthy
@@ -36,17 +34,16 @@ services:
     env_file:
       - .env
   
-  celery_worker:
+  arq_worker:
     build: ./backend
-    command: celery -A api.service.celery worker --loglevel=info -Q algorithm_queue,z_score_queue -E
+    command: ["arq", "api.service.tasks.WorkerSettings"]
     volumes:
       - ./backend:/app
+    working_dir: /app
     networks:
       - app-network
     environment:
       - PYTHONPATH=/app
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
     depends_on:
       redis:
         condition: service_healthy
