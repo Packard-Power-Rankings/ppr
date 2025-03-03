@@ -19,8 +19,6 @@ COPY . .
 ENV PYTHONPATH=/app
 
 # Create a non-root user and switch to it
-RUN addgroup celery && adduser --ingroup celery --disabled-password celery-user
-USER celery-user
 
 # Expose the port FastAPI will run on
 EXPOSE 8000
