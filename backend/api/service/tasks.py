@@ -1,80 +1,22 @@
-"""Task creation and storage into
-Redis, an in-memory data structure store,
-so the algorithm process can run in the back-
-ground
-
-    Raises:
-        exc: Failure and what is causing
-        the failure
-
-    Returns:
-        dict: Task completion with results
-"""
-
-import asyncio
-from celery import states
-# from admin_teams import AdminTeamsService
+from arq import create_pool
+from arq.connections import RedisSettings
 from api.service.admin_teams import AdminTeamsService
-from api.service.celery import celery
 
 
-@celery.task(bind=True, name="api.service.tasks.run_main_algorithm")
-def run_main_algorithm(self, level_key, iterations: int):
-    try:
-        self.update_state(state=states.STARTED)
-        if isinstance(level_key, list):
-            level_key = tuple(level_key)
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        team_services = AdminTeamsService(level_key)
-
-        results = loop.run_until_complete(
-            asyncio.sleep(120)
-        )
-
-        loop.close()
-
-        return {
-            "status": "completed",
-            "results": results
-        }
-    except Exception as exc:
-        self.update_state(
-            state=states.FAILURE,
-            meta={
-                'exc_type': type(exc).__name__,
-                'exc_message': str(exc)
-            }
-        )
-        raise exc
+async def run_main_algorithm(ctx, level_key, iterations: int):
+    """Runs the main algorithm asynchronously."""
+    team_services = AdminTeamsService(level_key)
+    print("Did I make it here?")
+    await team_services.run_main_algorithm(iterations)
 
 
-@celery.task(bind=True, name="api.service.tasks.calc_z_score")
-def calc_z_score(self, level_key):
-    try:
-        self.update_state(state=states.STARTED)
-        if isinstance(level_key, list):
-            level_key = tuple(level_key)
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        team_services = AdminTeamsService(level_key)
+async def calc_z_score(ctx, level_key):
+    """Calculates Z-score asynchronously."""
+    team_services = AdminTeamsService(level_key)
+    await team_services.calculate_z_scores()
 
-        results = loop.run_until_complete(
-            asyncio.sleep(120)
-        )
 
-        loop.close()
-
-        return {
-            "status": "completed",
-            "results": results
-        }
-    except Exception as exc:
-        self.update_state(
-            state=states.FAILURE,
-            meta={
-                'exc_type': type(exc).__name__,
-                'exc_message': str(exc)
-            }
-        )
-        raise exc
+class WorkerSettings:
+    """Configuration for Arq Worker"""
+    functions = [run_main_algorithm, calc_z_score]
+    redis_settings = RedisSettings(host="redis", port=6379)
