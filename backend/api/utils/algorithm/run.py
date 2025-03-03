@@ -1,14 +1,14 @@
 # Import the necessary functions from each module
 from io import BytesIO
-from typing import Tuple, List, Dict
+from typing import Tuple, List
 import asyncio
 from fastapi import HTTPException, status
-from backend.api.service.admin_teams import AdminTeamsService
-from upload import upload_csv
-from data_cleaning import clean_data
-from data_enrichment import enrich_data
-from main import run_calculations, calculate_z_scores
-from output import update_teams, set_z_scores
+from api.service.admin_teams import AdminTeamsService
+from .upload import upload_csv
+from .data_cleaning import clean_data
+from .data_enrichment import enrich_data
+from .main import run_calculations, calculate_z_scores
+from .output import update_teams, set_z_scores
 
 
 class MainAlgorithm():
@@ -49,14 +49,29 @@ class MainAlgorithm():
     async def retrieve_teams(self) -> List:
         document: dict = await self.team_services.sports_collection.find_one(
             {"_id": self.team_services.level_constant.get("_id")},
-            {"teams": 1, "_id": 0}
+            {
+                "teams.team_id": 1,
+                "teams.team_name": 1,
+                "teams.power_ranking": {"$slice": -1},  # Get only the last power_ranking element
+                "teams.recent_opp": 1,
+                "_id": 0
+            }
         )
         if not document:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="No teams were found"
             )
-        return document.get("teams")
+        teams = document.get("teams", [])
+
+        for team in teams:
+            if "power_ranking" in team and team["power_ranking"]:
+                last_ranking = team["power_ranking"][0]  # Get the first (and only) item
+                # Extract the first value regardless of key name
+                if last_ranking:
+                    team["power_ranking"] = [next(iter(last_ranking.values()))]
+
+        return teams
 
     def data_cleaning(self) -> None:
         self.df = self.clean_data(self.df)
@@ -104,11 +119,12 @@ class MainAlgorithm():
         )
         self.df = self.df.iloc[0:0]
 
-    async def execute(self, iterations: int):
+    async def execute_algo(self, iterations: int):
         await self.retrieve_teams()
         game_files = await self.load_csv()
         date = game_files[-1]['sports_week']
         for _ in range(iterations):
+            # await self.update_db(date)
             for game_file in game_files:
                 csv_file = BytesIO(game_file["filedata"])
                 self.df = upload_csv(csv_file)
@@ -117,7 +133,7 @@ class MainAlgorithm():
                 self.run_algorithm()
                 await self.update_db(date)
                 self.df = self.df.iloc[0:0]
-            asyncio.sleep(0.5)
+            await asyncio.sleep(0.5)
 
 
 if __name__ == "__main__":
