@@ -4,6 +4,7 @@
 
 import os
 import io
+import asyncio
 from io import StringIO
 from typing import Any, List, Dict, Tuple
 import traceback
@@ -38,8 +39,8 @@ class AdminTeamsService():
             level_key (Tuple): Tuple that contains three
             strings: sport_type, gender, level
         """
-        self.sports_collection = database.get_collection('temp')
-        self.csv_collection = database.get_collection('csv_files_temp')
+        self.sports_collection = database.get_collection('temp2')
+        self.csv_collection = database.get_collection('csv_files')
         self.previous_season = database.get_collection('previous_season')
         self.level_key = level_key
         self.level_constant = LEVEL_CONSTANTS[level_key]
@@ -90,31 +91,6 @@ class AdminTeamsService():
                 file_content,
                 date
             )
-
-            # # Creates a list for teams to check in db
-            # team_check: List[str] = []
-            # for team in csv_reader:
-            #     team_check.append(team[1].lower())
-            #     team_check.append(team[2].lower())
-
-            # query_teams = {
-            #     "_id": self.level_constant.get('_id')
-            # }
-            # results = await self._find_teams(query_teams, team_check)
-            # # If the results are not empty loop through and see
-            # # which teams are not in the database and return the
-            # # list of the teams that need to be added
-            # if results:
-            #     teams: List[Dict[str, str]] = results[0].get('teams')
-            #     for team in teams:
-            #         if team.get('team_name').lower() in [t.lower() for t in team_check]:
-            #             team_check = [
-            #                 t for t in team_check
-            #                 if t.lower() != team.get('team_name').lower()
-            #             ]
-
-            # # Close the CSV file after processing
-            # await csv_file.close()
             if file_upload > 0:
                 return {
                     "message": "File has been uploaded successfully",
@@ -222,14 +198,14 @@ class AdminTeamsService():
             iterations (int): Number of times to run
             the algorithm
         """
-        from utils.algorithm.run import MainAlgorithm
+        from api.utils.algorithm.run import MainAlgorithm
         algorithm = MainAlgorithm(self, self.level_key)
-        await algorithm.execute(iterations)
+        await algorithm.execute_algo(iterations)
 
     async def calculate_z_scores(self):
         """Calculates z scores from the potential power changes
         """
-        from utils.algorithm.run import MainAlgorithm
+        from api.utils.algorithm.run import MainAlgorithm
         z_scores = MainAlgorithm(self, self.level_key)
         await z_scores.execute_z_score_calc()
 
@@ -455,59 +431,76 @@ class AdminTeamsService():
             "results": f"Team {new_team_name} has been updated"
         }
 
-
     async def clear_season(self):
-        """Clears the season at the end of a season
-        and stores the previous season in a separate database.
         """
+        Clears the season and stores the previous season in a separate collection.
+        """
+
         query_base = {
-            "_id": self.level_constant.get('_id')
+            "_id": 1,
+            "sport_type": 1,
+            "gender": 1,
+            "level": 1,
+            "teams": 1
         }
-        await self.sports_collection.aggregate([
-            {"$match": {**query_base}},
+
+        # Archive the current season into previous_season collection
+        pipeline = [
+            {"$project": query_base},
             {"$out": "previous_season"}
-        ])
-        update_params = {
-            "$set": {
-                "teams.$[].win_ratio": 0.0,
-                "teams.$[].wins": 0,
-                "teams.$[].losses": 0,
-                "teams.$[].season_opp": []
-            }
-        }
-        await self.sports_collection.update_one(query_base, update_params)
+        ]
+        cursor = self.sports_collection.aggregate(pipeline)
+        await cursor.to_list(None)  # Execute the aggregation pipeline
 
-        last_pr = await self.sports_collection.find_one(
-            query_base,
-            {"teams.power_ranking": {"$slice": -1}}
-        )
+        update_pipeline = [
+            {"$match": {"_id": self.level_constant.get("_id")}},
+            {"$addFields": {
+                "teams": {
+                    "$map": {
+                        "input": "$teams",
+                        "as": "team",
+                        "in": {
+                            "$mergeObjects": [
+                                "$$team",
+                                {
+                                    "win_ratio": 0.0,
+                                    "wins": 0,
+                                    "losses": 0,
+                                    "season_opp": [],
+                                    "power_ranking": {
+                                        "$cond": [
+                                            {"$isArray": "$$team.power_ranking"},
+                                            {"$cond": [
+                                                {"$gt": [{"$size": "$$team.power_ranking"}, 0]},
+                                                [{"$arrayElemAt": ["$$team.power_ranking", -1]}],
+                                                []
+                                            ]},
+                                            []
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }},
+            {"$merge": {
+                "into": self.sports_collection.name,  # Use the actual collection name
+                "on": "_id",
+                "whenMatched": "replace"
+            }}
+        ]
 
-        updates = []
-        if last_pr and "teams" in last_pr:
-            for team in last_pr["teams"]:
-                if "power_ranking" in team and team["power_ranking"]:
-                    last_rank = team["power_ranking"][-1]
-                    updates.append(last_rank)
+        await self.sports_collection.aggregate(update_pipeline).to_list(None)
 
-        cleared_seasons = None
-        if updates:  # Only update power_ranking if we have values
-            cleared_seasons = await self.sports_collection.update_one(
-                query_base,
-                {"$set": {
-                    f"teams.{i}.power_ranking": [rank] for i, rank in enumerate(updates)
-                }}
-            )
+        doc = await self.sports_collection.find_one({"_id": self.level_constant.get("_id")})
 
         return {
             "archived": True,
-            "teams_reset": True,
-            "return_data": "Cleared season and set previous season",
-            "power_rankings_updated": len(updates)
-        } if cleared_seasons and cleared_seasons.modified_count else {
-            "archived": False,
-            "teams_reset": False,
-            "return_data": "Failed to clear season"
+            "teams_reset": doc is not None,
+            "return_data": "Cleared season" if doc is not None else "Failed to clear season",
         }
+
 
     async def get_team_names_and_ids(
         self
