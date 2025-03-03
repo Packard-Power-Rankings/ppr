@@ -12,9 +12,11 @@
 
 from __future__ import annotations
 import traceback
-from typing import Tuple, List, Dict, Annotated, Any
-from celery.result import AsyncResult
-from celery import states
+from typing import Tuple, List, Dict
+# from celery.result import AsyncResult
+# from celery import states
+from arq.connections import create_pool, RedisSettings
+from arq.jobs import Job
 from fastapi import (
     APIRouter,
     Depends,
@@ -22,25 +24,20 @@ from fastapi import (
     UploadFile,
     HTTPException,
     status,
-    Body,
     Response,
     Request
 )
 from fastapi.security import OAuth2PasswordRequestForm
-from fastapi.responses import JSONResponse
 from api.service.tasks import run_main_algorithm, calc_z_score
 from api.schemas.items import (
     InputMethod,
-    NewTeamList,
     UpdateTeamsData,
     LoginResponse,
-    LogoutResponse,
-    input_method_dependency,
-    update_method
+    LogoutResponse
 )
 from api.service.admin_teams import AdminTeamsService
 from api.service.admin_service import AdminServices
-from api.service.celery import celery
+# from api.service.celery import celery
 from api.config.constants import (
     DIVISION_FOOTBALL,
     DIVISION_BASKETBALL,
@@ -260,38 +257,16 @@ async def main_algorithm_exc(
     iterations: int,
     sport_input: InputMethod = Depends()
 ):
-    """Runs main algorithm for computing power rankings gathering teams
-    and updating their power as needed
-
-    Args:
-        iterations (int): Number of runs for the algorithm
-        sport_input (InputMethod, optional):
-        The specific key for db interactions.
-        Defaults to Depends(input_method_dependency).
-
-    Raises:
-        HTTPException: Internal Server Error
-
-    Returns:
-        dict: The task id for checking if a task is running
-        and a message that the task has started
-    """
     try:
-        level_key = [
-            sport_input.sport_type,
-            sport_input.gender,
-            sport_input.level
-        ]
-        task = run_main_algorithm.delay(
-            level_key=level_key,
-            iterations=iterations
+        redis = await create_pool(RedisSettings(host="redis", port=6379))
+        job = await redis.enqueue_job(
+            "run_main_algorithm",
+            (sport_input.sport_type, sport_input.gender, sport_input.level),
+            iterations
         )
-        return {"task_id": task.id, "message": "Task has been started."}
+        return {"task_id": job.job_id, "message": "Task has been started."}
     except Exception as exc:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal Server Error"
-        ) from exc
+        raise HTTPException(status_code=500, detail="Internal Server Error") from exc
 
 
 @router.post(
@@ -302,33 +277,15 @@ async def main_algorithm_exc(
 async def calc_z_scores(
     sport_input: InputMethod = Depends()
 ):
-    """Calculates the z scores and updates it as more games are played
-    also it changes past games. This should be ran after the main algorithm
-    has been ran.
-
-    Args:
-        sport_input (InputMethod, optional):
-        The specific key for db interactions.
-        Defaults to Depends(input_method_dependency).
-
-    Raises:
-        HTTPException: Internal Server Error
-    """
     try:
-        level_key = [
-            sport_input.sport_type,
-            sport_input.gender,
-            sport_input.level
-        ]
-        task = calc_z_score.delay(
-            level_key=level_key
+        redis = await create_pool(RedisSettings(host="redis", port=6379))
+        job = await redis.enqueue_job(
+            "calc_z_score",
+            (sport_input.sport_type, sport_input.gender, sport_input.level)
         )
-        return {"task_id": task.id, "message": "Task has been started."}
+        return {"task_id": job.job_id, "message": "Task has been started."}
     except Exception as exc:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal Server Error"
-        ) from exc
+        raise HTTPException(status_code=500, detail="Internal Server Error") from exc
 
 
 @router.get(
@@ -337,50 +294,15 @@ async def calc_z_scores(
     description="Checks Status of Task"
 )
 async def task_checker(task_id: str):
-    """Checks the status of background task (main algorithm)
-    to give the user an update on the status of the task
-
-    Args:
-        task_id (str): Task id value
-
-    Raises:
-        HTTPException: Internal Server Error
-
-    Returns:
-        dict: returns the task id and the state of that specific
-        task.
-    """
     try:
-        task_result = AsyncResult(task_id, app=celery)
-        state = task_result.state
-
-        result = {
-            "task_id": task_id,
-            "status": state,
-            "message": "In Progress"
+        redis = await create_pool(RedisSettings(host="redis", port=6379))
+        job_info = Job(job_id=task_id, redis=redis)
+        return {
+            "info": await job_info.info(),
+            "status": await job_info.status()
         }
-
-        if state == states.SUCCESS:
-            result["result"] = task_result.get()
-            result['message'] = "Task Has Completed"
-        elif state == states.FAILURE:
-            result["error"] = str(task_result.result)
-            result['message'] = "Task Has Failed"
-        elif state == states.PENDING:
-            if not task_result.ready():
-                result["status"] = "PENDING"
-                result["message"] = "Task is Queued"
-            else:
-                result["status"] = "NOT_FOUND"
-                result["message"] = "Task not found"
-        
-        return result
     except Exception as exc:
-        traceback.print_exc()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal Server Error"
-        ) from exc
+        raise HTTPException(status_code=500, detail="Internal Server Error") from exc
 
 
 @router.put(
@@ -465,7 +387,7 @@ async def update_team_name(
 
 
 @router.delete(
-    "/clear_season/",
+    "/clear-season/",
     dependencies=[require_admin()],
     description="Clears Season"
 )
