@@ -502,49 +502,116 @@ class AdminTeamsService():
         }
 
 
-    async def get_team_names_and_ids(
-        self
-    ):
+    async def get_team_names_and_ids(self):
         query: Dict = query_params_builder()
         query.update(
-            _id=self.level_constants.get('_id'),
+            _id=self.level_constant.get('_id'),
             sport_type=self.level_key[0],
             gender=self.level_key[1],
             level=self.level_key[2]
         )
 
-        pipeline = [
-            {"$match": query},
-            {"$unwind": "$teams"},
-            {"$project": {
-                "_id": 0,
-                "team": {
-                    "team_name": "$teams.team_name",
-                    "team_id": "$teams.team_id"
-                }
-            }},
-            {"$group": {
-                "_id": None,
-                "teams": {"$push": "$team"}
-            }},
-            {"$project": {
-                "_id": 0,
-                "teams": 1
-            }}
-        ]
+        projection = {"teams.team_name": 1, "teams.team_id": 1, "_id": 0}
+
         try:
-            cursor = self.sports_collection.aggregate(pipeline)
-            result = await cursor.to_list(length=None)
-            if result and len(result) > 0:
+            cursor = self.sports_collection.find(query, projection)
+            documents = await cursor.to_list(length=None)
+
+            teams = [
+                {"team_name": team["team_name"], "team_id": team["team_id"]}
+                for doc in documents if "teams" in doc
+                for team in doc["teams"]
+            ]
+
+            if teams:
                 return {
                     "message": "Successfully Found Teams",
                     "status": status.HTTP_200_OK,
-                    "data": result[0]  # First document contains our grouped results
+                    "data": {"teams": teams}
                 }
             return {
                 "message": "Did Not Find Any Teams",
                 "status": status.HTTP_204_NO_CONTENT,
                 "data": None
+            }
+        except Exception as exc:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Internal Server Error"
+            ) from exc
+
+    async def find_season_opp_dates(
+        self,
+        team_one: int,
+        team_two: int
+    ):
+        query = {
+            "_id": self.level_constant.get('_id'),
+            "sport_type": self.level_key[0],
+            "gender": self.level_key[1],
+            "level": self.level_key[2],
+            "teams.team_id": team_one
+        }
+
+        projection = {"teams.$": 1}
+
+        document = await self.sports_collection.find_one(
+            query,
+            projection
+        )
+
+        if not document:
+            return []
+        result = []
+        for team in document.get('teams', []):
+            for game in team.get('season_opp', []):
+                if game.get('opponent_id') == team_two:
+                    result.append({
+                        'game_date': game.get('game_date'),
+                        'game_id': game.get('game_id')
+                    })
+
+        return result
+
+    async def delete_game(
+        self,
+        team_one: int,
+        team_two: int,
+        game_id: str
+    ):
+        # Need to clear the season_opp array for both teams, utilizing team id's
+        # and game id
+        query1 = {
+            "_id": self.level_constant.get('_id'),
+            "sport_type": self.level_key[0],
+            "gender": self.level_key[1],
+            "level": self.level_key[2],
+            "teams.team_id": team_one,
+            "teams.season_opp.game_id": game_id
+        }
+        update = {
+            "$pull": {
+                "teams.$.season_opp": {
+                    "game_id": game_id
+                }
+            }
+        }
+
+        query2 = {
+            "_id": self.level_constant.get('_id'),
+            "sport_type": self.level_key[0],
+            "gender": self.level_key[1],
+            "level": self.level_key[2],
+            "teams.team_id": team_two,
+            "teams.season_opp.game_id": game_id
+        }
+        try:
+            team_1_delete = await self.sports_collection.find_one_and_update(query1, update)
+            team_2_delete = await self.sports_collection.find_one_and_update(query2, update)
+
+            return {
+                "message": "Game was successfully removed" if team_1_delete and team_2_delete else "Error removing both games",
+                "status": status.HTTP_200_OK
             }
         except Exception as exc:
             raise HTTPException(
