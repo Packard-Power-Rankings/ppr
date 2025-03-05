@@ -94,9 +94,9 @@ const CalculateValues = () => {
     const startTask = async (process, endpoint) => {
         const response = await api.post(
             endpoint, {},
-            { 
+            {
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                withCredentials: true 
+                withCredentials: true
             }
         );
         const taskId = response.data.task_id;
