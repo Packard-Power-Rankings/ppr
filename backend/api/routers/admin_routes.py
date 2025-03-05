@@ -408,11 +408,14 @@ async def clear_season(
 
 
 @router.delete(
-    "/delete-game",
+    "/delete-game/{team_one}/{team_two}/{game_id:path}",
     dependencies=[require_admin()],
     description="Delete A Game"
 )
 async def delete_game(
+    team_one: int,
+    team_two: int,
+    game_id: str,
     sport_input: InputMethod = Depends()
 ):
     """
@@ -425,6 +428,30 @@ async def delete_game(
             sport_input.level
         )
     )
+
+    return await team_service.delete_game(team_one, team_two, game_id)
+
+
+@router.get(
+    '/season-dates/{team_one}/{team_two}',
+    dependencies=[require_admin()],
+    description="Retrieve game dates of season opp array to delete"
+)
+async def season_opp_dates(
+    team_one: int,
+    team_two: int,
+    sport_input: InputMethod = Depends()
+):
+    team_service = admin_team_class(
+        (
+            sport_input.sport_type,
+            sport_input.gender,
+            sport_input.level
+        )
+    )
+
+    return await team_service.find_season_opp_dates(team_one, team_two)
+
 
 @router.delete(
     "/delete-team",
