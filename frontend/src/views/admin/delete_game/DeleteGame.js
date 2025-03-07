@@ -29,10 +29,11 @@ const DeleteGame = () => {
     const handleGameDelete = async () => {
         // Game deletion needs the two teams id's and the game id then will delete from
         // database
-        const encodedDate = encodeURIComponent(`${gameDate.value}`);
+        const encodedGameId = encodeURIComponent(`${gameDate.value}`);
+        const encodedDate = encodeURIComponent(`${gameDate.label}`);
         try {
             const response = await api.delete(
-                `/delete-game/${teamOne.value}/${teamTwo.value}/${encodedDate}/?sport_type=${sport}&gender=${gender}&level=${level}`,
+                `/delete-game/${teamOne.value}/${teamTwo.value}/${encodedGameId}/${encodedDate}/?sport_type=${sport}&gender=${gender}&level=${level}`,
                 {
                     headers: {"Content-Type": "application/json"},
                     withCredentials: true
