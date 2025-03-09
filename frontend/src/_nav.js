@@ -44,11 +44,6 @@ const Navigation = (isAdmin) => {
           },
           {
             component: CNavItem,
-            name: 'Clear Season',
-            to: '/admin/clear_season',
-          },
-          {
-            component: CNavItem,
             name: 'Delete Game',
             to: '/admin/delete_game',
           },
