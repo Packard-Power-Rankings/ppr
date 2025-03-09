@@ -14,7 +14,7 @@ const DeleteTeam = () => {
     const sport = useSelector((state) => state.sport);
     const gender = useSelector((state) => state.gender);
     const level = useSelector((state) => state.level);
-    const [ team, setTeam ] = useState(nul);
+    const [ team, setTeam ] = useState(null);
     const [ teamsOptions, setTeamsOptions ] = useState([]);
 
     const handleTeamDelete = async () => {
@@ -61,7 +61,7 @@ const DeleteTeam = () => {
                 <CRow>
                     <CCol>
                         <Select options={teamsOptions} placeholder="Select Team"
-                            isSearchable isDisabled={loading} value={team} onChange={setTeam} />
+                            isSearchable value={team} onChange={setTeam} />
                     </CCol>
                     <CCol>
                         <CButton as="input" type="button" color="danger" value="Delete Game" onClick={handleTeamDelete}/>
