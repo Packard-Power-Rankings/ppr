@@ -392,7 +392,12 @@ class AdminTeamsService():
             array_filters=[{"elem.opponent_id": team_id}]
         )
 
-        team_doc = self.csv_collection.find_one(query_base)
+        query_base2 = {
+            "sport_type": self.level_key[0],
+            "gender": self.level_key[1],
+            "level": self.level_key[2]
+        }
+        team_doc = await self.csv_collection.find_one(query_base2)
         if not team_doc or "csv_files" not in team_doc:
             print("No CSV files found for this query.")
             return
@@ -403,8 +408,8 @@ class AdminTeamsService():
             filename = csv_file["filename"]
             filedata = base64.b64decode(csv_file["filedata"])
 
-            # Read CSV data into a DataFrame
-            df = pd.read_csv(io.BytesIO(filedata))
+            decoded_filedata = filedata.decode("utf-8", errors="replace")
+            df = pd.read_csv(io.StringIO(decoded_filedata))
 
             # Replace old team name with new team name in all occurrences
             df.replace(to_replace={"team_name": {team_id: new_team_name},
@@ -422,7 +427,7 @@ class AdminTeamsService():
                 "sports_week": csv_file.get("sports_week", "")
             })
 
-        self.collection.update_one(
+        self.csv_collection.update_one(
             query_base,
             {"$set": {"csv_files": updated_csv_files}}
         )
