@@ -42,6 +42,7 @@ class AdminTeamsService():
         """
         self.sports_collection = database.get_collection('temp2')
         self.csv_collection = database.get_collection('csv_files')
+        self.flagged_games = database.get_collection('flagged_games')
         self.previous_season = database.get_collection('previous_season')
         self.level_key = level_key
         self.level_constant = LEVEL_CONSTANTS[level_key]
@@ -771,6 +772,85 @@ class AdminTeamsService():
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Internal Server Error"
             ) from exc
+
+    async def store_flagged_games(
+        self,
+        game_id: str,
+        team1_id: int,
+        team1_name: str,
+        team2_id: int,
+        team2_name: str
+    ):
+        query = {
+            "sport_type": self.level_key[0],
+            "gender": self.level_key[1],
+            "level": self.level_key[2]
+        }
+        response = await self.flagged_games.update_one(
+            query,
+            {"$push": { "flagged_games": {
+                'game_id': game_id,
+                'team1_id': team1_id,
+                'team1_name': team1_name,
+                'team2_id': team2_id,
+                'team2_name': team2_name
+            }}}
+        )
+        return {
+            'message': "Team was successfully reported" if response.modified_count else "Error marking game",
+            "game_flagged": 1 if response.modified_count else 0,
+            "status": 200   # Need to update this
+        }
+
+    async def clear_flagged_games(self):
+        query = {
+            "sport_type": self.level_key[0],
+            "gender": self.level_key[1],
+            "level": self.level_key[2]
+        }
+
+        response = await self.flagged_games.update_one(
+            query,
+            {"$set": {"flagged_games": []}}
+        )
+
+        return {
+            'message': "Flagged games have been removed" if response.modified_count else "There were not games to remove",
+            "status": 200
+        }
+
+    async def retrieve_flagged_games(self):
+        query = {
+            "sport_type": self.level_key[0],
+            "gender": self.level_key[1],
+            "level": self.level_key[2]
+        }
+        response = await self.flagged_games.find_one(
+            query,
+            {"_id": 0, "flagged_games": 1}
+        )
+
+        return response
+
+    async def check_flagged_games(
+        self,
+        game_id: str
+    ):
+        print(game_id)
+        query = {
+            "sport_type": self.level_key[0],
+            "gender": self.level_key[1],
+            "level": self.level_key[2],
+            "flagged_games.game_id": game_id
+        }
+        response = await self.flagged_games.find_one(
+            query
+        )
+        return {
+            "message": "Game has already been flagged and will be updated soon" if response else "Adding game",
+            "game_flagged": 1 if response else 0,
+            "status": 200
+        }
 
     async def _add_csv_file(
         self,
