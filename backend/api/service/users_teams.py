@@ -30,16 +30,14 @@ class UsersServices():
             gender=self.level_key[1],
             level=self.level_key[2]
         )
-        # projection = {
-        #     "teams": 1,
-        #     "_id": 0
-        # }
+
         pipeline = [
             {"$match": query},
             {"$unwind": "$teams"},
             {"$project": {
                 "_id": 0,
                 "team": {
+                    "id": "$teams.team_id",
                     "overall_rank": "$teams.overall_rank",
                     "team_name": "$teams.team_name",
                     "power_ranking": {"$slice": ["$teams.power_ranking", -1]},
@@ -76,6 +74,7 @@ class UsersServices():
             {"$match": {"teams.team_name": {"$regex": f"^{team_name}$", "$options": "i"}}},  # Filter for the specific team
             {"$project": {
                 "_id": 0,
+                "teams.team_id": 1,
                 "teams.division": 1,
                 "teams.conference": 1,
                 "teams.division_rank": 1,
@@ -88,13 +87,15 @@ class UsersServices():
                         "input": "$teams.season_opp",  # Input array for mapping
                         "as": "opp",
                         "in": {
+                            "opponent_id": "$$opp.opponent_id",
                             "opponent_name": "$$opp.opponent_name",
                             "home_team": "$$opp.home_team",
                             "home_score": "$$opp.home_score",
                             "away_score": "$$opp.away_score",
                             "home_z_score": "$$opp.home_z_score",
                             "away_z_score": "$$opp.away_z_score",
-                            "game_date": "$$opp.game_date"
+                            "game_date": "$$opp.game_date",
+                            "game_id": "$$opp.game_id"
                         }
                     }
                 }
