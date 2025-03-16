@@ -8,7 +8,7 @@ export const checkAuthentication = async () => {
             { withCredentials: true }
         );
 
-        if (response.data.status == 'valid') {
+        if (response.data.status === 'valid') {
             store.dispatch({ type: 'login' });
             return true;
         } else {
