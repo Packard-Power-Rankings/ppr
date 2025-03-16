@@ -201,6 +201,14 @@ class LogoutResponse(BaseModel):
     message: str
 
 
+class FlaggedGame(BaseModel):
+    game_id: str
+    team1_id: int
+    team1_name: str
+    team2_id: int
+    team2_name: str
+
+
 class NewTeamData(BaseModel):
     team_name: str = Field(...)
     division: Optional[str] = Field(default=None)
