@@ -57,14 +57,17 @@ const DeleteTeam = () => {
 
     return (
         <>
-            <CContainer>
-                <CRow>
+            <CContainer className="mt-4">
+                <CRow className="mb-3">
+                    <CCol><h4>Select a Team to Delete</h4></CCol>
+                </CRow>
+                <CRow className="mb-3">
                     <CCol>
                         <Select options={teamsOptions} placeholder="Select Team"
-                            isSearchable value={team} onChange={setTeam} />
+                            isSearchable isClearable value={team} onChange={setTeam} />
                     </CCol>
                     <CCol>
-                        <CButton as="input" type="button" color="danger" value="Delete Game" onClick={handleTeamDelete}/>
+                        <CButton as="input" disabled={!team} type="button" color="danger" value="Delete Game" onClick={handleTeamDelete}/>
                     </CCol>
                 </CRow>
             </CContainer>
