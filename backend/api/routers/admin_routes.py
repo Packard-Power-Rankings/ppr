@@ -33,7 +33,8 @@ from api.schemas.items import (
     InputMethod,
     UpdateTeamsData,
     LoginResponse,
-    LogoutResponse
+    LogoutResponse,
+    FlaggedGame
 )
 from api.service.admin_teams import AdminTeamsService
 from api.service.admin_service import AdminServices
@@ -306,7 +307,7 @@ async def task_checker(task_id: str):
 
 
 @router.put(
-    "/update_game/",
+    "/update-game/",
     dependencies=[require_admin()],
     description="Updates Games and CSV File"
 )
@@ -475,3 +476,84 @@ async def delete_team(
         )
     )
     return await team_service.delete_team(team_name, team_id)
+
+
+@router.post(
+    '/flagged-game',
+    description="Stores flagged games for admin to fix"
+)
+async def store_flagged_games(
+    game: FlaggedGame,
+    sport_input: InputMethod = Depends()
+):
+    team_service = admin_team_class(
+        (
+            sport_input.sport_type,
+            sport_input.gender,
+            sport_input.level
+        )
+    )
+
+    return await team_service.store_flagged_games(
+        game.game_id,
+        game.team1_id,
+        game.team1_name,
+        game.team2_id,
+        game.team2_name
+    )
+
+
+@router.delete(
+    '/clear-flagged',
+    dependencies=[require_admin()],
+    description='Clears flagged games once they have been updated'
+)
+async def clear_flagged_games(
+    sport_input: InputMethod = Depends()
+):
+    team_service = admin_team_class(
+        (
+            sport_input.sport_type,
+            sport_input.gender,
+            sport_input.level
+        )
+    )
+
+    return await team_service.clear_flagged_games()
+
+
+@router.get(
+    '/retrieve-flagged',
+    dependencies=[require_admin()],
+    description="Retrieves the stored flagged games"
+)
+async def retrieve_flagged_games(
+    sport_input: InputMethod = Depends()
+):
+    team_service = admin_team_class(
+        (
+            sport_input.sport_type,
+            sport_input.gender,
+            sport_input.level
+        )
+    )
+    return await team_service.retrieve_flagged_games()
+
+
+@router.get(
+    '/check-flagged/{game_id:path}',
+    description="Checks if game is already flagged"
+)
+async def check_flagged_game(
+    game_id: str,
+    sport_input: InputMethod = Depends()
+):
+    team_service = admin_team_class(
+        (
+            sport_input.sport_type,
+            sport_input.gender,
+            sport_input.level
+        )
+    )
+
+    return await team_service.check_flagged_games(game_id)
