@@ -42,7 +42,6 @@ const AddMissingTeams = ({ missingTeamNames, onClose }) => {
     const handleSubmit = async (e) => {
         // Add teams to database through backend endpoint
         e.preventDefault();
-        // console.log(formData);
         try {
             const response = await api.post(
                 `/add_teams/?sport_type=${sport}&gender=${gender}&level=${level}`,
