@@ -25,7 +25,7 @@ const Teams = () => {
         const dates = Object.keys(rankingObj);
         const latestDate = dates[0];
 
-        return rankingObj[latestDate].toFixed(2);
+        return parseFloat(rankingObj[latestDate]).toFixed(2);
     };
 
     const fetchTeams = async () => {
@@ -35,7 +35,6 @@ const Teams = () => {
             const teamsData = await api.get(
                 `/teams/?sport_type=${sport}&gender=${gender}&level=${level}`
             );
-            // console.log(teamsData.data.data.teams);
 
             setTeams(teamsData.data.data.teams);
             setError(null);
