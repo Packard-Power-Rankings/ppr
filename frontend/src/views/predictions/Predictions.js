@@ -118,7 +118,7 @@ const Predictions = () => {
                         <CCol sm={3}><strong>Team 1:</strong></CCol>
                         <CCol sm={6}>
                             <Select options={teamsOptions} placeholder="Select Team 1"
-                                isSearchable isDisabled={loading} value={teamOne} onChange={setTeamOne} />
+                                isSearchable isClearable isDisabled={loading} value={teamOne} onChange={setTeamOne} />
                         </CCol>
                     </CRow>
 
@@ -126,7 +126,7 @@ const Predictions = () => {
                         <CCol sm={3}><strong>Team 2:</strong></CCol>
                         <CCol sm={6}>
                             <Select options={teamsOptions} placeholder="Select Team 2"
-                                isSearchable isDisabled={loading} value={teamTwo} onChange={setTeamTwo} />
+                                isSearchable isClearable isDisabled={loading} value={teamTwo} onChange={setTeamTwo} />
                         </CCol>
                     </CRow>
 
