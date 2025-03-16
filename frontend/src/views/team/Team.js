@@ -13,10 +13,18 @@ import {
     CTableHeaderCell,
     CTableDataCell,
     CTableBody,
+    CFormCheck,
+    CModal,
+    CModalTitle,
+    CModalBody,
+    CModalHeader,
+    CModalFooter
 } from "@coreui/react";
 import { useParams } from "react-router-dom";
 import { useState } from "react";
 import api from "src/api";
+import { legacy_createStore } from "redux";
+import { check } from "prettier";
 
 const Team = () => {
     const { team_name, sport, gender, level } = useParams();
@@ -24,6 +32,8 @@ const Team = () => {
     const [ seasonOpp, setOpp ] = useState([])
     const [ loading, setLoading ] = useState(false);
     const [ error, setError ] = useState(null);
+    const [ gameFlagged, setGameFlagged ] = useState(false);
+    const [ message, setMessage ] = useState('');
 
     const getLatestPowerRanking = (powerRanking) => {
         if (!powerRanking || powerRanking.length === 0) return '-';
@@ -51,6 +61,50 @@ const Team = () => {
             setLoading(false);
         }
 
+    }
+
+    const flagGame = async (index) => {
+        console.log(team.team_id);
+        console.log(seasonOpp[index].opponent_id);
+        try {
+            const checkIfFlagged = await api.get(
+                `/check-flagged/${encodeURIComponent(seasonOpp[index].game_id)}?sport_type=${sport}&gender=${gender}&level=${level}`,
+                {
+                    headers: {"Content-Type": "application/json"},
+                    withCredentials: false
+                }
+            )
+            console.log(checkIfFlagged);
+            if (checkIfFlagged.data.game_flagged) {
+                setGameFlagged(true);
+                setMessage(checkIfFlagged.data.message);
+                return;
+            } else {
+                console.log(checkIfFlagged.data.message);
+            }
+            const storeFlaggedGame = await api.post(
+                `/flagged-game/?sport_type=${sport}&gender=${gender}&level=${level}`,
+                {
+                    game_id: seasonOpp[index].game_id,
+                    team1_id: team.team_id,
+                    team1_name: team_name,
+                    team2_id: seasonOpp[index].opponent_id,
+                    team2_name: seasonOpp[index].opponent_name
+                },
+                {
+                    headers: {"Content-Type": "application/json"},
+                    withCredentials: false
+                }
+            )
+            if (storeFlaggedGame.data.game_flagged) {
+                setGameFlagged(true);
+                setMessage(storeFlaggedGame.data.message);
+            } else {
+                console.log(storeFlaggedGame.data.message);
+            }
+        } catch (error) {
+            console.log("Failed storing flagged game", error);
+        }
     }
 
     useEffect(() => {
@@ -104,6 +158,7 @@ const Team = () => {
                         <CTableHeaderCell className="text-center py-3">Away Score</CTableHeaderCell>
                         <CTableHeaderCell className="text-center py-3">Away z-score</CTableHeaderCell>
                         <CTableHeaderCell className="text-center py-3">Result</CTableHeaderCell>
+                        <CTableHeaderCell scope="col" className="py-3">Flag Game</CTableHeaderCell>
                     </CTableRow>
                 </CTableHead>
                 <CTableBody>
@@ -125,10 +180,26 @@ const Team = () => {
                                     ? 'Loss'
                                     : 'Draw'}
                             </CTableDataCell>
+                            <CTableDataCell className="text-center py-3">
+                                <CFormCheck id="checkboxNoLabel" disabled={gameFlagged} value="" aria-label="..." onClick={() => flagGame(index)}/>
+                            </CTableDataCell>
                         </CTableRow>
                     ))}
                 </CTableBody>
             </CTable>
+            <CModal visible={gameFlagged} onClose={() => setGameFlagged(false)}>
+                <CModalHeader>
+                    <CModalTitle>Notification</CModalTitle>
+                </CModalHeader>
+                <CModalBody>
+                    {message}
+                </CModalBody>
+                <CModalFooter>
+                    <button className="btn btn-primary" onClick={() => setGameFlagged(false)}>
+                        OK
+                    </button>
+                </CModalFooter>
+            </CModal>
         </div>
     )
 }
