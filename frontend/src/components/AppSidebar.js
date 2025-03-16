@@ -35,7 +35,7 @@ const AppSidebar = () => {
       unfoldable={unfoldable}
       visible={sidebarShow}
       onVisibleChange={(visible) => {
-        dispatch({ type: 'set', sidebarShow: visible })
+        dispatch({ type: 'set', payload: { sidebarShow: visible } })
       }}
     >
       <CSidebarHeader className="border-bottom">
@@ -46,13 +46,15 @@ const AppSidebar = () => {
         <CCloseButton
           className="d-lg-none"
           dark
-          onClick={() => dispatch({ type: 'set', sidebarShow: false })}
+          onClick={() => {
+            dispatch({ type: 'set', payload: { sidebarShow: false } });
+          }}
         />
       </CSidebarHeader>
       <AppSidebarNav items={getNavigation} />
       <CSidebarFooter className="border-top d-none d-lg-flex">
         <CSidebarToggler
-          onClick={() => dispatch({ type: 'set', sidebarUnfoldable: !unfoldable })}
+          onClick={() => dispatch({ type: 'set', payload: { sidebarUnfoldable: !unfoldable } })}
         />
       </CSidebarFooter>
     </CSidebar>
