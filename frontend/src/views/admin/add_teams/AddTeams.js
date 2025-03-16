@@ -32,11 +32,13 @@ const AddTeams = () => {
     const [ fileMessage, setFileMessage ] = useState('');
     const [ filePopUp, setFilePopUp ] = useState(false);
     const [ fileName, setFileName ] = useState('');
+    const [ gameSubmit, setGameSubmit ] = useState(true);
 
     const handleFileUpload = (e) => {  // Reads the file and parses the csv file
         const file = e.target.files[0]
         if (!file) return;
 
+        setGameSubmit(false);
         setFileName(file.name);
         const reader = new FileReader();
         reader.onload = (event) => {
@@ -112,30 +114,33 @@ const AddTeams = () => {
 
     return (
         <div className="mb-3">
-            <CFormInput
-                type="file"
-                accept=".csv"
-                size="sm"
-                id="formFile"
-                onChange={handleFileUpload}
-            />
+            <div className="p-4 border rounded mb-4">
+                <h5 className="mb-3">Upload CSV File</h5>
+                <CFormInput
+                    type="file"
+                    accept=".csv"
+                    size="sm"
+                    id="formFile"
+                    onChange={handleFileUpload}
+                />
+            </div>
             {gameFile.length > 0 && (
                 <CTable>
                     <CTableHead>
                         <CTableRow>
-                            <CTableHeaderCell scope="col">Date</CTableHeaderCell>
-                            <CTableHeaderCell scope="col">Home Team</CTableHeaderCell>
-                            <CTableHeaderCell scope="col">Away Team</CTableHeaderCell>
-                            <CTableHeaderCell scope="col">Home Score</CTableHeaderCell>
-                            <CTableHeaderCell scope="col">Away Score</CTableHeaderCell>
-                            <CTableHeaderCell scope="col">Home Field Flag</CTableHeaderCell>
+                            <CTableHeaderCell scope="col" className="py-3">Date</CTableHeaderCell>
+                            <CTableHeaderCell scope="col" className="py-3">Home Team</CTableHeaderCell>
+                            <CTableHeaderCell scope="col" className="py-3">Away Team</CTableHeaderCell>
+                            <CTableHeaderCell scope="col" className="py-3">Home Score</CTableHeaderCell>
+                            <CTableHeaderCell scope="col" className="py-3">Away Score</CTableHeaderCell>
+                            <CTableHeaderCell scope="col" className="py-3">Home Field Flag</CTableHeaderCell>
                         </CTableRow>
                     </CTableHead>
                     <CTableBody>
                         {gameFile.map((row, rowIndex) => (
                             <CTableRow key={rowIndex}>
                                 {row.map((cell, colIndex) => (
-                                    <CTableDataCell key={colIndex}>
+                                    <CTableDataCell key={colIndex} className="py-3">
                                         <CFormInput
                                             type="text"
                                             value={cell}
@@ -166,7 +171,7 @@ const AddTeams = () => {
                 </CModalFooter>
             </CModal>
             <CFooter position="sticky" className="py-4">
-                <CButton onClick={handleSubmit} as="input" type="submit" color="primary" value="Submit" />
+                <CButton onClick={handleSubmit} disabled={gameSubmit} as="input" type="submit" color="primary" value="Submit" />
             </CFooter>
             {showModal && (
                 <AddMissingTeams
