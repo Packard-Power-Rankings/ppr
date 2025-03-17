@@ -117,7 +117,7 @@ const Predictions = () => {
                     <CRow className="mb-3">
                         <CCol sm={3}><strong>Team 1:</strong></CCol>
                         <CCol sm={6}>
-                            <Select options={teamsOptions} placeholder="Select Team 1"
+                            <Select options={teamsOptions} classNamePrefix="react-select" placeholder="Select Team 1"
                                 isSearchable isClearable isDisabled={loading} value={teamOne} onChange={setTeamOne} />
                         </CCol>
                     </CRow>
@@ -125,7 +125,7 @@ const Predictions = () => {
                     <CRow className="mb-3">
                         <CCol sm={3}><strong>Team 2:</strong></CCol>
                         <CCol sm={6}>
-                            <Select options={teamsOptions} placeholder="Select Team 2"
+                            <Select options={teamsOptions} classNamePrefix="react-select" placeholder="Select Team 2"
                                 isSearchable isClearable isDisabled={loading} value={teamTwo} onChange={setTeamTwo} />
                         </CCol>
                     </CRow>
