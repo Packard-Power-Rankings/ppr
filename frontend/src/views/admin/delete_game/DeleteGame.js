@@ -98,6 +98,7 @@ const DeleteGame = () => {
                 <CCol>
                     <Select
                         options={teamsOptions}
+                        classNamePrefix="react-select"
                         placeholder="Select Team 1"
                         isSearchable
                         isClearable
@@ -112,6 +113,7 @@ const DeleteGame = () => {
                 <CCol>
                     <Select
                         options={teamsOptions.filter(team => team.value !== teamOne?.value)}
+                        classNamePrefix="react-select"
                         placeholder="Select Team 2"
                         isSearchable
                         isClearable
@@ -140,6 +142,7 @@ const DeleteGame = () => {
                 <CCol>
                     <Select
                         options={gameData}
+                        classNamePrefix="react-select"
                         placeholder="Select Date"
                         isSearchable
                         isClearable
