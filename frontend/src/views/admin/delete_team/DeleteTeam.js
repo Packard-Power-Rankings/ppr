@@ -3,7 +3,8 @@ import {
     CContainer,
     CRow,
     CCol,
-    CButton
+    CButton,
+    CFormSelect
 } from "@coreui/react";
 import Select from "react-select";
 import api from "src/api";
@@ -63,7 +64,7 @@ const DeleteTeam = () => {
                 </CRow>
                 <CRow className="mb-3">
                     <CCol>
-                        <Select options={teamsOptions} placeholder="Select Team"
+                        <Select classNamePrefix="react-select" options={teamsOptions} placeholder="Select Team"
                             isSearchable isClearable value={team} onChange={setTeam} />
                     </CCol>
                     <CCol>
