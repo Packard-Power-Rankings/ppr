@@ -1,4 +1,6 @@
+import { element, exact } from 'prop-types'
 import React from 'react'
+import { name } from 'react-date-object/calendars/julian'
 
 const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 // const Colors = React.lazy(() => import('./views/theme/colors/Colors'))
@@ -58,6 +60,12 @@ const DeleteGame = React.lazy(() => import('./views/admin/delete_game/DeleteGame
 
 // const Widgets = React.lazy(() => import('./views/widgets/Widgets'))
 
+// Info
+const About = React.lazy(() => import('./views/info/about/About'))
+const TOS = React.lazy(() => import('./views/info/tos/TermsOfService'))
+const Privacy = React.lazy(() => import('./views/info/privacy/PrivacyPolicy'))
+const Cookies = React.lazy(() => import('./views/info/cookies/Cookies'))
+
 // Teams Info
 const Teams = React.lazy(() => import('./views/teams/Teams'))
 
@@ -70,6 +78,11 @@ const Predictions = React.lazy(() => import('./views/predictions/Predictions'))
 const routes = [
   { path: '/', exact: true, name: 'Home' },
   { path: '/dashboard', name: 'Dashboard', element: Dashboard },
+  { path: '/info', name: 'Info', element: About, exact: true},
+  { path: '/info/about', name: 'About', element: About },
+  { path: '/info/tos', name: 'Terms of Service', element: TOS },
+  { path: '/info/privacy', name: 'Privacy Policy', element: Privacy },
+  { path: '/info/cookies', name: 'Cookies Policy', element: Cookies },
   { path: '/teams/:sport/:gender/:level', name: 'Teams', element: Teams },
   { path: '/team/:team_name/:sport/:gender/:level', name: "Team", element: Team },
   { path: '/predictions', name: 'Predictions', element: Predictions },
