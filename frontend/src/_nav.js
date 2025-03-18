@@ -13,13 +13,35 @@ const Navigation = (isAdmin) => {
   const _nav = [
     {
       component: CNavTitle,
-      name: 'About'
+      name: 'Site Info'
     },
     {
-      component: CNavItem,
+      component: CNavGroup,
       name: 'Info',
-      to: '/about',
-      icon: <CIcon icon={cilInfo} customClassName="nav-icon" />
+      to: '/info',
+      icon: <CIcon icon={cilInfo} customClassName="nav-icon" />,
+      items: [
+        {
+          component: CNavItem,
+          name: 'About',
+          to: '/info/about'
+        },
+        {
+          component: CNavItem,
+          name: 'Terms Of Service',
+          to: '/info/tos'
+        },
+        {
+          component: CNavItem,
+          name: 'Privacy Policy',
+          to: '/info/privacy'
+        },
+        {
+          component: CNavItem,
+          name: 'Cookies Policy',
+          to: '/info/cookies'
+        }
+      ]
     },
     ...(isAdmin ? [
       {
