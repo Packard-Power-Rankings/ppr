@@ -4,10 +4,17 @@ import {
     CFormText,
     CFormInput,
     CRow,
-    CCol
+    CCol,
+    CButton,
+    CModal,
+    CModalHeader,
+    CModalTitle,
+    CModalBody,
+    CModalFooter
 } from "@coreui/react";
 import { useSelector } from "react-redux";
-import Select from "src/views/forms/select/Select";
+import Select from "react-select";
+import api from "src/api";
 
 const UpdateNames = () => {
     const sport = useSelector((state) => state.sport);
@@ -15,17 +22,23 @@ const UpdateNames = () => {
     const level = useSelector((state) => state.level);
     const [ newTeamName, setTeamName ] = useState('');
     const [ oldTeamName, setOldNames ] = useState([]);
+    const [ team, setTeam ] = useState(null);
+    const [ teamsOptions, setTeamsOptions ] = useState([]);
+    const [ filePopUp, setFilePopUp ] = useState(false);
 
-    const handleUpdateTeamName = async (oldTeamName, newTeamName) => {
+    const handleUpdateTeamName = async () => {
+        console.log(`team id ${oldTeamName.value}`)
         try {
-            const response = await put(
-                `/update-name/${TeamsArray.get(item.team_name==oldTeamName).value}/${newTeamName}/?sport_type=${sport}&gender=${gender}&level=${level}`,
+            const response = await api.put(
+                `/update-name/${oldTeamName.value}/${newTeamName}/?sport_type=${sport}&gender=${gender}&level=${level}`,
+                {},
                 {
                     headers: {"Content-Type": 'application/json'},
                     withCredentials: true
                 }
             )
-            console.log(response)
+            setFilePopUp(true);
+            console.log(response);
         }
         catch (error){
             console.log("Error when updating team name",error)
@@ -51,24 +64,50 @@ const UpdateNames = () => {
         }
     }
 
+    useEffect(() => {
+        handleTeamNameIds();
+    }, []);
+
     return (
         <div>
             <CForm>
                 <CRow>
                     <CCol>
-                        <CFormInput
-                            type="text"
-                            label='New Team Name'
-                            value={newTeamName}
-                            onChange={() => setTeamName(newTeamName)}
+                        <b>Current Team Name</b>
+                        <Select 
+                            options={teamsOptions}
+                            label='Select Team'
+                            placeholder="Select team..."
+                            isSearchable value={oldTeamName}
+                            onChange={setOldNames}
                         />
                     </CCol>
                     <CCol>
-                        <Select options={teamsOptions} placeholder="Select Team 1"
-                            isSearchable isDisabled={loading} value={oldTeamName} onChange={setOldNames} />
+                        <b>New Team Name</b>
+                        <CFormInput
+                            type="text"
+                            placeholder = "Enter new name..."
+                            value={newTeamName}
+                            onChange={(e) => setTeamName(e.target.value)}
+                        />
+                        <br/>
+                        <CButton as="input" type="button" color="primary" value="Update Team Name" onClick={handleUpdateTeamName}/>
                     </CCol>
                 </CRow>
             </CForm>
+            <CModal visible={filePopUp} onClose={() => setFilePopUp(false)}>
+                <CModalHeader>
+                    <CModalTitle>Notification</CModalTitle>
+                </CModalHeader>
+                <CModalBody>
+                    <b>{oldTeamName}</b> changed to <b>{newTeamName}</b>
+                </CModalBody>
+                <CModalFooter>
+                    <button className="btn btn-primary" onClick={() => setFilePopUp(false)}>
+                        OK
+                    </button>
+                </CModalFooter>
+            </CModal>
         </div>
     )
 }
