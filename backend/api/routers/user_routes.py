@@ -1,7 +1,7 @@
 from typing import Dict, Tuple
 from fastapi import APIRouter, Depends, HTTPException
-from api.schemas.items import GeneralInputMethod
-from api.schemas import items
+from api.schemas.items import InputMethod
+# from api.schemas import items
 from api.service.users_teams import UsersServices
 
 router = APIRouter()
@@ -14,10 +14,9 @@ def users_class(level_key: Tuple) -> "UsersServices":
     return _instance_cache[level_key]
 
 
-@router.get("/{sport_type}/", response_description="Display Teams Data")
+@router.get("/teams", response_description="Display Teams Data")
 async def list_teams(
-    sport_type: str,
-    search_params: GeneralInputMethod = Depends()
+    items: InputMethod = Depends()
 ):
     """
     Retrieve all teams for a specific sport, with optional filters.
@@ -26,28 +25,27 @@ async def list_teams(
     - **level**: Filter by competition level.
     """
     level_key: Tuple = (
-        sport_type,
-        search_params.gender,
-        search_params.level
+        items.sport_type,
+        items.gender,
+        items.level
     )
     sports_data = users_class(level_key)
     results = await sports_data.retrieve_sports_info()  # Await the async method
     return results
 
 
-@router.get("/{sport_type}/{team_name}/", response_description="Display Team Specific Data")
+@router.get("/teams/{team_name}", response_description="Display Team Specific Data")
 async def list_team_info(
-    sport_type: str,
     team_name: str,
-    search_params: GeneralInputMethod = Depends()
+    items: InputMethod = Depends()
 ):
     """
     Fetch sports or team data based on query parameters.
     """
     level_key: Tuple = (
-        search_params.sport_type,
-        search_params.gender,
-        search_params.level
+        items.sport_type,
+        items.gender,
+        items.level
     )
     sports_data = users_class(level_key)
     results = await sports_data.retrieve_team_info(team_name)
@@ -56,29 +54,32 @@ async def list_team_info(
         raise HTTPException(status_code=404, detail="Team not found")
     return results
 
-# @router.get("/teams_data", tags=["User"])
-# async def get_teams_data(sport_input: GeneralInputMethod):
-#     pass
 
-# @router.get("/team_data/{team_name}", tags=["User"])
-# async def get_team_data(
-#     team_name: str,
-#     sport_input: GeneralInputMethod
-# ):
-#     pass
+@router.get("/predictions", response_description="Get Sports Teams")
+async def get_sports_team_names(
+    items: InputMethod = Depends()
+):
+    level_key: Tuple = (
+        items.sport_type,
+        items.gender,
+        items.level
+    )
+    sports_data = users_class(level_key)
+    return await sports_data.retrieve_team_names()
 
 
-@router.get("/predictions/{team_one}/{team_two}/{home_field_adv}", tags=["User"])
+
+@router.get("/predictions/{team_one}/{team_two}/{home_field_adv}", response_description="Get Predictions")
 async def get_game_predictions(
     team_one: str,
     team_two: str,
     home_field_adv: bool,
-    sport_input: GeneralInputMethod = Depends()
+    items: InputMethod = Depends()
 ):
     level_key: Tuple = (
-        sport_input.sport_type,
-        sport_input.gender,
-        sport_input.level
+        items.sport_type,
+        items.gender,
+        items.level
     )
     sports_data = users_class(level_key)
     score_predictions = \

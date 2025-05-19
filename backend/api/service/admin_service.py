@@ -17,12 +17,12 @@ import os
 from typing import Annotated, Optional
 from datetime import datetime, timedelta, timezone
 import motor.motor_asyncio
-from fastapi import HTTPException, Depends, status
+from fastapi import HTTPException, Depends, status, Request, Response
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 import bcrypt
 import jwt
-from jwt.exceptions import InvalidTokenError
-from api.schemas.items import TokenData, Token
+from jwt.exceptions import InvalidTokenError, ExpiredSignatureError
+from api.schemas.items import TokenData, LoginResponse, LogoutResponse
 
 ACCESS_TOKEN_TIME = 60.0
 ALGORITHM = "HS256"
@@ -81,8 +81,9 @@ class AdminServices():
 
     async def login(
         self,
-        form_data: OAuth2PasswordRequestForm
-    ) -> Token:
+        form_data: OAuth2PasswordRequestForm,
+        response: Response
+    ) -> LoginResponse:
         """Verifies the admin username and the password are
         correct
 
@@ -96,11 +97,32 @@ class AdminServices():
             form_data.username,
             form_data.password
         )
-        return Token(access_token=access_token, token_type="bearer")
+
+        response.set_cookie(
+            key="access_token",
+            value=access_token,
+            httponly=True,
+            secure=False,       # Change for production
+            samesite='lax',     # Change for production
+            max_age=int(ACCESS_TOKEN_TIME * 60)
+        )
+        return LoginResponse(message="Login successful")
+
+    async def logout(
+        self,
+        response: Response
+    ) -> LogoutResponse:
+        response.delete_cookie(
+            key='access_token',
+            httponly=True,
+            secure=False,
+            samesite='lax'
+        )
+        return LogoutResponse(message="Logout Successful")
 
     @staticmethod
     async def get_current_admin(
-        token: str = Depends(oauth2_scheme)
+        request: Request
     ):
         """Gets the current admin based on the verified
         token
@@ -114,7 +136,7 @@ class AdminServices():
             for a set amount of time without reverification
         """
         admin_service = AdminServices()
-        return await admin_service.get_current_user(token)
+        return await admin_service.get_current_user(request)
 
     async def verify_admin(self, username: str, password: str) -> str:
         """Verifies that the admin is logging in
@@ -138,16 +160,17 @@ class AdminServices():
             )
 
         hash_pass = admin["password"]
+        # admin_username = admin['username']
         if self.check_password(password, hash_pass):
             return self.generate_access_token({"sub": username}, None)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid Password"
+            detail="Invalid Password or Username"
         )
 
     async def get_current_user(
         self,
-        token: Annotated[str, Depends(oauth2_scheme)]
+        request: Request
     ):
         """Gets the current user
 
@@ -166,6 +189,10 @@ class AdminServices():
             detail="Could not validate credentials",
             headers={"WWW-Authenticate": "Bearer"}
         )
+        token = request.cookies.get("access_token")
+        if not token:
+            raise credentials_exception
+
         try:
             payload = jwt.decode(
                 token,
@@ -176,8 +203,14 @@ class AdminServices():
             if username is None:
                 raise credentials_exception
             return TokenData(username=username)
+
+        except ExpiredSignatureError:  # Token is expired
+            return HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token expired, please log in again"
+            )
         except InvalidTokenError:
-            raise credentials_exception
+            return credentials_exception
         
     def generate_access_token(
         self,
@@ -201,12 +234,23 @@ class AdminServices():
             expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_TIME)
 
         to_encode.update({'exp': expire})
+        to_encode.update({'iat': datetime.now(timezone.utc)})
         encode_jwt = jwt.encode(
             to_encode,
             os.getenv('SECRET_KEY'),
             algorithm=ALGORITHM
         )
         return encode_jwt
+
+    async def validate_token(
+        self,
+        request: Request
+    ):
+        try:
+            user = await self.get_current_user(request)
+            return {"status": "valid", "username": user.username}
+        except HTTPException:
+            return {"status": "invalid"}
 
     @staticmethod
     def hashed_password(password: str) -> str:

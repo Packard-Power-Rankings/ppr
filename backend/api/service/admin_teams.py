@@ -3,15 +3,22 @@
 
 
 import os
+import io
+import asyncio
 from io import StringIO
 from typing import Any, List, Dict, Tuple
 import traceback
 import csv
+import pandas as pd
+import base64
 from datetime import datetime
 from fastapi import HTTPException, status, UploadFile
+import bson
 from bson.binary import Binary
 import motor.motor_asyncio
-from backend.api.config.constants import LEVEL_CONSTANTS
+from api.config.constants import LEVEL_CONSTANTS
+from api.utils.json_helper import query_params_builder
+
 
 MONGO_DETAILS = \
     f"mongodb+srv://{os.getenv("MONGO_USER")}:{os.getenv("MONGO_PASS")}@" \
@@ -33,15 +40,16 @@ class AdminTeamsService():
             level_key (Tuple): Tuple that contains three
             strings: sport_type, gender, level
         """
-        self.sports_collection = database.get_collection('temp')
-        self.csv_collection = database.get_collection('csv_files_temp')
+        self.sports_collection = database.get_collection('temp2')
+        self.csv_collection = database.get_collection('csv_files')
+        self.flagged_games = database.get_collection('flagged_games')
         self.previous_season = database.get_collection('previous_season')
         self.level_key = level_key
         self.level_constant = LEVEL_CONSTANTS[level_key]
         # self.teams_check: List[Dict[str, str]] = []
         # self.main_algorithm = MainAlgorithm(self, level_key)
 
-    async def store_csv_check_teams(
+    async def store_csv(
         self,
         sport_type: str,
         gender: str,
@@ -85,39 +93,43 @@ class AdminTeamsService():
                 file_content,
                 date
             )
-
-            # Creates a list for teams to check in db
-            team_check: List[str] = []
-            for team in csv_reader:
-                team_check.append(team[1].lower())
-                team_check.append(team[2].lower())
-
-            query_teams = {
-                "_id": self.level_constant.get('_id')
-            }
-            results = await self._find_teams(query_teams, team_check)
-            # If the results are not empty loop through and see
-            # which teams are not in the database and return the
-            # list of the teams that need to be added
-            if results:
-                teams: List[Dict[str, str]] = results[0].get('teams')
-                for team in teams:
-                    if team.get('team_name').lower() in [t.lower() for t in team_check]:
-                        team_check = [
-                            t for t in team_check 
-                            if t.lower() != team.get('team_name').lower()
-                        ]
-
-            # Close the CSV file after processing
-            await csv_file.close()
-
-            return {
-                "success": "File Uploaded and Teams Searched",
-                "status": status.HTTP_200_OK,
-                "missing_teams": team_check,
-                "files_uploaded": file_upload
-            }
+            if file_upload > 0:
+                return {
+                    "message": "File has been uploaded successfully",
+                    "status": status.HTTP_200_OK,
+                    "files_uploaded": file_upload
+                }
+            else:
+                return {
+                    "message": "No file was uploaded",
+                    "status": status.HTTP_200_OK,
+                    "files_uploaded": file_upload
+                }
         
+        except Exception as exc:
+            traceback.print_exc()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="An internal error has occurred."
+            ) from exc
+
+    async def find_missing_teams(
+        self,
+        teams: List[str]
+    ):
+        query_base = {
+            "_id": self.level_constant.get('_id'),
+            "sport_type": self.level_key[0],
+            "gender": self.level_key[1],
+            "level": self.level_key[2],
+        }
+
+        try:
+            documents = await self.sports_collection.find(query_base, {"teams.team_name": 1}).to_list(length=None)
+            found_team_names = {team["team_name"] for doc in documents for team in doc["teams"] if "team_name" in team}
+
+            missing_teams = list(set(teams) - found_team_names)
+            return missing_teams
         except Exception as exc:
             traceback.print_exc()
             raise HTTPException(
@@ -169,13 +181,13 @@ class AdminTeamsService():
             )
         if results.modified_count > 0:
             message.update(
-                message="Teams were added",
+                message="Teams were added successfully",
                 status=status.HTTP_200_OK,
                 number_of_files=results.modified_count
             )
         else:
             message.update(
-                message="Team already exists",
+                message="Team already exists in the database",
                 status=status.HTTP_200_OK,
                 number_of_files=results.modified_count
             )
@@ -188,14 +200,14 @@ class AdminTeamsService():
             iterations (int): Number of times to run
             the algorithm
         """
-        from utils.algorithm.run import MainAlgorithm
+        from api.utils.algorithm.run import MainAlgorithm
         algorithm = MainAlgorithm(self, self.level_key)
-        await algorithm.execute(iterations)
+        await algorithm.execute_algo(iterations)
 
     async def calculate_z_scores(self):
         """Calculates z scores from the potential power changes
         """
-        from utils.algorithm.run import MainAlgorithm
+        from api.utils.algorithm.run import MainAlgorithm
         z_scores = MainAlgorithm(self, self.level_key)
         await z_scores.execute_z_score_calc()
 
@@ -352,46 +364,493 @@ class AdminTeamsService():
             f"{home_team}_{away_team}_{date}"
         )
 
-    async def clear_season(self):
-        """Clears the season at the end of a season
-        and stores the previous season in a separate
-        database
+    async def update_team_name(
+        self,
+        team_id: int,
+        new_team_name: str
+    ):
         """
-        query_base = {
-            "_id": self.level_constant.get('_id')
-        }
-        await self.sports_collection.aggregate([
-            {"$match": {**query_base}},
-            {"$out": "previous_season"}
-        ])
-        update_params = {
-            "$set": {
-                "teams.$[].win_ratio": 0.0,
-                "teams.$[].wins": 0,
-                "teams.$[].losses": 0,
-                "teams.$[].season_opp": []
-            }
-        }
-        await self.sports_collection.update_one(query_base, update_params)
+        Updates a teams name in both the database and csv files
+        """
 
-        last_pr = self.sports_collection.find_one(
-            query_base,
-            {"teams.power_ranking": {"$slice": -1}}
+        query_base = {
+            "_id": self.level_constant.get('_id'),
+            "sport_type": self.level_key[0],
+            "gender": self.level_key[1],
+            "level": self.level_key[2]
+        }
+
+        await self.sports_collection.update_one(
+            {**query_base, "teams.team_id": team_id},
+            {
+                "$set": {"teams.$.team_name": new_team_name}
+            }
         )
-        if last_pr and "teams" in last_pr:
-            updates = []
-            for team in last_pr["teams"]:
-                if "power_ranking" in team and team["power_ranking"]:
-                    last_rank = team["power_ranking"][-1]
-                    updates.append(last_rank)
-            cleared_seasons = await self.sports_collection.update_one(
-                query_base,
-                {"$set": {
-                        f"teams.{i}.power_ranking": \
-                            [updates[i]] for i, _ in enumerate(updates)
+
+        await self.sports_collection.update_many(
+            {**query_base, "teams.season_opp.opponent_id": team_id},
+            {"$set": {"teams.$[].season_opp.$[elem].opponent_name": new_team_name}},
+            array_filters=[{"elem.opponent_id": team_id}]
+        )
+
+        query_base2 = {
+            "sport_type": self.level_key[0],
+            "gender": self.level_key[1],
+            "level": self.level_key[2]
+        }
+        team_doc = await self.csv_collection.find_one(query_base2)
+        if not team_doc or "csv_files" not in team_doc:
+            print("No CSV files found for this query.")
+            return
+
+        updated_csv_files = []
+
+        for csv_file in team_doc["csv_files"]:
+            filename = csv_file["filename"]
+            filedata = base64.b64decode(csv_file["filedata"])
+
+            decoded_filedata = filedata.decode("utf-8", errors="replace")
+            df = pd.read_csv(io.StringIO(decoded_filedata))
+
+            # Replace old team name with new team name in all occurrences
+            df.replace(to_replace={"team_name": {team_id: new_team_name},
+                                "opponent_name": {team_id: new_team_name}},
+                    inplace=True)
+
+            output = io.BytesIO()
+            df.to_csv(output, index=False)
+            new_filedata = base64.b64encode(output.getvalue()).decode('utf-8')
+
+            updated_csv_files.append({
+                "filename": filename,
+                "filedata": new_filedata,
+                "upload_date": csv_file.get("upload_date"),  # Preserve original upload_date
+                "sports_week": csv_file.get("sports_week", "")
+            })
+
+        self.csv_collection.update_one(
+            query_base,
+            {"$set": {"csv_files": updated_csv_files}}
+        )
+
+
+        return {
+            "results": f"Team {new_team_name} has been updated"
+        }
+
+    async def clear_season(self):
+        """
+        Clears the season and stores the previous season in a separate collection.
+        """
+
+        query_base = {
+            "_id": 1,
+            "sport_type": 1,
+            "gender": 1,
+            "level": 1,
+            "teams": 1
+        }
+
+        # Archive the current season into previous_season collection
+        pipeline = [
+            {"$project": query_base},
+            {"$out": "previous_season"}
+        ]
+        cursor = self.sports_collection.aggregate(pipeline)
+        await cursor.to_list(None)  # Execute the aggregation pipeline
+
+        update_pipeline = [
+            {"$match": {"_id": self.level_constant.get("_id")}},
+            {"$addFields": {
+                "teams": {
+                    "$map": {
+                        "input": "$teams",
+                        "as": "team",
+                        "in": {
+                            "$mergeObjects": [
+                                "$$team",
+                                {
+                                    "win_ratio": 0.0,
+                                    "wins": 0,
+                                    "losses": 0,
+                                    "season_opp": [],
+                                    "power_ranking": {
+                                        "$cond": [
+                                            {"$isArray": "$$team.power_ranking"},
+                                            {"$cond": [
+                                                {"$gt": [{"$size": "$$team.power_ranking"}, 0]},
+                                                [{"$arrayElemAt": ["$$team.power_ranking", -1]}],
+                                                []
+                                            ]},
+                                            []
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
                     }
                 }
-            )
+            }},
+            {"$merge": {
+                "into": self.sports_collection.name,  # Use the actual collection name
+                "on": "_id",
+                "whenMatched": "replace"
+            }}
+        ]
+
+        await self.sports_collection.aggregate(update_pipeline).to_list(None)
+
+        doc = await self.sports_collection.find_one({"_id": self.level_constant.get("_id")})
+
+        return {
+            "archived": True,
+            "teams_reset": doc is not None,
+            "return_data": "Cleared season" if doc is not None else "Failed to clear season",
+        }
+
+
+    async def get_team_names_and_ids(self):
+        query: Dict = query_params_builder()
+        query.update(
+            _id=self.level_constant.get('_id'),
+            sport_type=self.level_key[0],
+            gender=self.level_key[1],
+            level=self.level_key[2]
+        )
+
+        projection = {"teams.team_name": 1, "teams.team_id": 1, "_id": 0}
+
+        try:
+            cursor = self.sports_collection.find(query, projection)
+            documents = await cursor.to_list(length=None)
+
+            teams = [
+                {"team_name": team["team_name"], "team_id": team["team_id"]}
+                for doc in documents if "teams" in doc
+                for team in doc["teams"]
+            ]
+
+            if teams:
+                return {
+                    "message": "Successfully Found Teams",
+                    "status": status.HTTP_200_OK,
+                    "data": {"teams": teams}
+                }
+            return {
+                "message": "Did Not Find Any Teams",
+                "status": status.HTTP_204_NO_CONTENT,
+                "data": None
+            }
+        except Exception as exc:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Internal Server Error"
+            ) from exc
+
+    async def find_season_opp_dates(
+        self,
+        team_one: int,
+        team_two: int
+    ):
+        query = {
+            "_id": self.level_constant.get('_id'),
+            "sport_type": self.level_key[0],
+            "gender": self.level_key[1],
+            "level": self.level_key[2],
+            "teams.team_id": team_one
+        }
+
+        projection = {"teams.$": 1}
+
+        document = await self.sports_collection.find_one(
+            query,
+            projection
+        )
+
+        if not document:
+            return []
+        result = []
+        for team in document.get('teams', []):
+            for game in team.get('season_opp', []):
+                if game.get('opponent_id') == team_two:
+                    result.append({
+                        'game_date': game.get('game_date'),
+                        'game_id': game.get('game_id')
+                    })
+
+        return result
+
+    async def delete_game(
+        self,
+        team_one: int,
+        team_two: int,
+        game_id: str,
+        game_date: str
+    ):
+        # Need to clear the season_opp array for both teams, utilizing team id's
+        # and game id
+        query1 = {
+            "_id": self.level_constant.get('_id'),
+            "sport_type": self.level_key[0],
+            "gender": self.level_key[1],
+            "level": self.level_key[2],
+            "teams.team_id": team_one,
+            "teams.season_opp.game_id": game_id
+        }
+        update = {
+            "$pull": {
+                "teams.$.season_opp": {
+                    "game_id": game_id
+                }
+            }
+        }
+
+        query2 = {
+            "_id": self.level_constant.get('_id'),
+            "sport_type": self.level_key[0],
+            "gender": self.level_key[1],
+            "level": self.level_key[2],
+            "teams.team_id": team_two,
+            "teams.season_opp.game_id": game_id
+        }
+
+        query_csv = {
+            "_id": self.level_constant.get('_id'),
+            "sport_type": self.level_key[0],
+            "gender": self.level_key[1],
+            "level": self.level_key[2],
+            "csv_files.sports_week": game_date
+        }
+        try:
+            team_1_delete = await self.sports_collection.find_one_and_update(query1, update)
+            team_2_delete = await self.sports_collection.find_one_and_update(query2, update)
+
+            csv_file = await self.sports_collection.find_one(query_csv, {"csv_files.$": 1})
+
+            if csv_file and "csv_files" in csv_file:
+                csv_document = csv_file["csv_files"][0]
+
+                csv_string = csv_document["filedata"].decode("utf-8")
+                df = pd.read_csv(io.StringIO(csv_string), header=None)
+
+                df_filtered = df[~df.iloc[:, 1].isin([team_one, team_two])]
+
+                new_csv_string = df_filtered.to_csv(index=False, header=False)
+                new_filedata_binary = bson.Binary(new_csv_string.encode("utf-8"))
+
+                updated_csv = await self.sports_collection.update_one(
+                    query_csv,
+                    {"$set": {"csv_files.$.filedata": new_filedata_binary}}
+                )
+
+            return {
+                "message": "Game was successfully removed" if team_1_delete and team_2_delete else "Error removing both games",
+                "csv_file": "CSV file was successfully updated" if updated_csv else "CSV file was not updated",
+                "status": status.HTTP_200_OK
+            }
+        except Exception as exc:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Internal Server Error"
+            ) from exc
+
+    async def delete_team(
+        self,
+        team_name: str,
+        team_id: int
+    ):
+        # Needs to delete the team from the sports data collection
+        # Before the removal, need to get the array of opp ids and
+        # game dates. Makes removal faster for season_opp array and
+        # csv file deletions. Also, need to increment/decrement wins/losses
+
+        pipeline = [
+            {"$match": {  # Find the correct document
+                "_id": self.level_constant.get('_id'),
+                "sport_type": self.level_key[0],
+                "gender": self.level_key[1],
+                "level": self.level_key[2],
+                "teams.team_id": team_id,
+                "teams.team_name": team_name
+            }},
+            {"$unwind": "$teams"},
+            {"$match": {"teams.team_id": team_id}},
+            {"$unwind": "$teams.season_opp"},
+            {"$project": {
+                "_id": 0,
+                "opponent_id": "$teams.season_opp.opponent_id",
+                "game_date": "$teams.season_opp.game_date"
+            }}
+        ]
+
+        try:
+            team_data = await self.sports_collection.aggregate(pipeline).to_list(None)
+            if not team_data:
+                return {"message": "Team not found", "status": status.HTTP_404_NOT_FOUND}
+
+            opponent_ids = [item["opponent_id"] for item in team_data]
+            game_dates = [item["game_date"] for item in team_data]
+
+            for opponent_id in opponent_ids:
+                # Find the opponent team's document
+                query = {
+                    "_id": self.level_constant.get('_id'),
+                    "sport_type": self.level_key[0],
+                    "gender": self.level_key[1],
+                    "level": self.level_key[2],
+                    "teams.team_id": opponent_id
+                }
+
+                opponent_team = await self.sports_collection.find_one(query)
+
+                if opponent_team:
+                    for team in opponent_team["teams"]:
+                        if team["team_id"] == opponent_id:
+                            for game in team.get("season_opp", []):
+                                if game["opponent_id"] == team_id:
+                                    # Step 2a: Decrement wins/losses
+                                    if game["home_team"] == 1:  # Check if deleted team was home
+                                        winner = team_id if game["home_score"] > game["away_score"] else game["opponent_id"]
+                                    else:
+                                        winner = team_id if game["away_score"] > game["home_score"] else game["opponent_id"]
+
+                                    if winner == team_id:
+                                        update = {"$inc": {"teams.$.losses": -1}}  # Deleted team won, opponent lost
+                                    else:
+                                        update = {"$inc": {"teams.$.wins": -1}}  # Deleted team lost, opponent won
+
+                                    await self.sports_collection.update_one(query, update)
+
+                                    # Step 2b: Remove the game from `season_opp`
+                                    update_remove_game = {
+                                        "$pull": {"teams.$.season_opp": {"opponent_id": team_id}}
+                                    }
+                                    await self.sports_collection.update_one(query, update_remove_game)
+
+            for game_date in set(game_dates):
+                query_csv = {
+                    "_id": self.level_constant.get('_id'),
+                    "sport_type": self.level_key[0],
+                    "gender": self.level_key[1],
+                    "level": self.level_key[2],
+                    "csv_files.sports_week": game_date
+                }
+
+                csv_document = await self.sports_collection.find_one(query_csv, {"csv_files.$": 1})
+
+                if csv_document and "csv_files" in csv_document:
+                    csv_file = csv_document["csv_files"][0]  # Only one file matches
+
+                    # Decode the CSV and remove rows containing `team_name`
+                    csv_string = csv_file["filedata"].decode("utf-8")
+                    df = pd.read_csv(io.StringIO(csv_string), header=None)
+                    df_filtered = df[~df.iloc[:, 1].isin([team_name])]
+
+                    # Convert back to CSV and update MongoDB
+                    new_csv_string = df_filtered.to_csv(index=False, header=False)
+                    new_filedata_binary = bson.Binary(new_csv_string.encode("utf-8"))
+
+                    await self.sports_collection.update_one(
+                        query_csv,
+                        {"$set": {"csv_files.$.filedata": new_filedata_binary}}
+                    )
+
+            # Step 4: Delete the team itself from the teams array
+            query_delete_team = {
+                "_id": self.level_constant.get('_id'),
+                "sport_type": self.level_key[0],
+                "gender": self.level_key[1],
+                "level": self.level_key[2]
+            }
+            update_delete_team = {"$pull": {"teams": {"team_id": team_id}}}
+
+            await self.sports_collection.update_one(query_delete_team, update_delete_team)
+
+            return {"message": "Team successfully deleted", "status": status.HTTP_200_OK}
+        except Exception as exc:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Internal Server Error"
+            ) from exc
+
+    async def store_flagged_games(
+        self,
+        game_id: str,
+        team1_id: int,
+        team1_name: str,
+        team2_id: int,
+        team2_name: str
+    ):
+        query = {
+            "sport_type": self.level_key[0],
+            "gender": self.level_key[1],
+            "level": self.level_key[2]
+        }
+        response = await self.flagged_games.update_one(
+            query,
+            {"$push": { "flagged_games": {
+                'game_id': game_id,
+                'team1_id': team1_id,
+                'team1_name': team1_name,
+                'team2_id': team2_id,
+                'team2_name': team2_name
+            }}}
+        )
+        return {
+            'message': "Team was successfully reported" if response.modified_count else "Error marking game",
+            "game_flagged": 1 if response.modified_count else 0,
+            "status": 200   # Need to update this
+        }
+
+    async def clear_flagged_games(self):
+        query = {
+            "sport_type": self.level_key[0],
+            "gender": self.level_key[1],
+            "level": self.level_key[2]
+        }
+
+        response = await self.flagged_games.update_one(
+            query,
+            {"$set": {"flagged_games": []}}
+        )
+
+        return {
+            'message': "Flagged games have been removed" if response.modified_count else "There were not games to remove",
+            "status": 200
+        }
+
+    async def retrieve_flagged_games(self):
+        query = {
+            "sport_type": self.level_key[0],
+            "gender": self.level_key[1],
+            "level": self.level_key[2]
+        }
+        response = await self.flagged_games.find_one(
+            query,
+            {"_id": 0, "flagged_games": 1}
+        )
+
+        return response
+
+    async def check_flagged_games(
+        self,
+        game_id: str
+    ):
+        print(game_id)
+        query = {
+            "sport_type": self.level_key[0],
+            "gender": self.level_key[1],
+            "level": self.level_key[2],
+            "flagged_games.game_id": game_id
+        }
+        response = await self.flagged_games.find_one(
+            query
+        )
+        return {
+            "message": "Game has already been flagged and will be updated soon" if response else "Adding game",
+            "game_flagged": 1 if response else 0,
+            "status": 200
+        }
 
     async def _add_csv_file(
         self,

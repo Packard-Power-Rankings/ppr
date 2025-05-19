@@ -9,7 +9,8 @@ async def update_teams(df, teams_data, mongo_collection, team_level, date):
     for _, row in df.iterrows():
         home_team = teams_names_dict[row['home_team'].lower()]
         away_team = teams_names_dict[row['away_team'].lower()]
-        game_id = f"{row['home_team']}_{row['away_team']}_{row['date']}"
+        game_id = \
+            f"{teams_names_dict[row['home_team'].lower()]['team_id']}_{teams_names_dict[row['away_team'].lower()]['team_id']}_{row['date']}"
 
         game_home_exists = await mongo_collection.find_one(
             {
@@ -138,7 +139,7 @@ async def update_teams(df, teams_data, mongo_collection, team_level, date):
         )
     bulk_operation = []
     for teams in teams_data:
-        new_pr = next(iter(teams['power_ranking'][-1].values()))
+        new_pr = teams['power_ranking'][-1]
         bulk_operation.append(
             UpdateOne(
                 {

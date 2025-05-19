@@ -188,62 +188,48 @@ def process_team_data(
         if recent_opponents[i] == 0:
             continue
         depth1 = teams_id_dict[recent_opponents[i]]
-        # output_file.write(f"Depth 1: {depth1}\n")
         for k in range(0, 6):
             if k >= 5 or depth1['recent_opp'][k] == 0:
                 continue
             depth2 = teams_id_dict[depth1['recent_opp'][k]]
-            # output_file.write(f"Depth 2: {depth2}\n")
             if k == 0:
-                # output_file.write("Power Change 1\n")
                 depth2['power_ranking'][-1] += \
-                    (1.0/3.0) * ((0.5)**(i-1 + k)) * actual_power_change
+                    round(((1.0/3.0) * ((0.5)**(i-1 + k)) * actual_power_change), 5)
                 temp_loop_change += \
                     (1.0/3.0) * ((0.5)**(i-1 + k)) * actual_power_change
-                # output_file.write(f"Temp Loop Change {temp_loop_change}\n")
                 continue
             for m in range(0, 6):
                 if m >= 5 or depth2['recent_opp'][m] == 0:
                     continue
                 depth3 = teams_id_dict[depth2['recent_opp'][m]]
-                # output_file.write(f"Depth 3: {depth3}\n")
                 if m == 0:
-                    # output_file.write("Power Change 2\n")
                     depth3['power_ranking'][-1] += \
-                        (1.0/3.0) * ((0.5)**(i-1 + k + m)) * actual_power_change
+                        round(((1.0/3.0) * ((0.5)**(i-1 + k + m)) * actual_power_change), 5)
                     temp_loop_change += \
                         (1.0/3.0) * ((0.5)**(i-1 + k + m)) * actual_power_change
-                    # output_file.write(f"Temp Loop Change {temp_loop_change}\n")
                     continue
                 for l in range(0, 6):
                     if l >= 5 or depth3['recent_opp'][l] == 0:
                         continue
                     depth4 = teams_id_dict[depth3['recent_opp'][l]]
-                    # output_file.write(f"Depth 4: {depth4}\n")
                     if l == 0:
-                        # output_file.write("Power change 3\n")
                         depth4['power_ranking'][-1] += \
-                            (1.0/3.0) * ((0.5)**(i-1 + k + m + l)) * actual_power_change
+                            round(((1.0/3.0) * ((0.5)**(i-1 + k + m + l)) * actual_power_change), 5)
                         temp_loop_change += \
                             (1.0/3.0) * ((0.5)**(i-1 + k + m + l)) * actual_power_change
-                        # output_file.write(f"Temp Loop Change {temp_loop_change}\n")
                         continue
                     for q in range(0, 6):
                         if q >= 5 or depth4['recent_opp'][q] == 0:
                             continue
                         depth5 = teams_id_dict[depth4['recent_opp'][q]]
-                        # output_file.write(f"Depth 5: {depth5}\n")
                         if q == 0:
-                            # output_file.write("Power change 4\n")
                             depth5['power_ranking'][-1] += \
-                                (1.0/3.0) * ((0.5)**(i-1 + k + m + l + q)) * \
-                                actual_power_change
+                                round(((1.0/3.0) * ((0.5)**(i-1 + k + m + l + q)) * \
+                                actual_power_change), 5)
                             temp_loop_change += \
                                 (1.0/3.0) * ((0.5)**(i-1 + k + m + l + q)) * \
                                 actual_power_change
-                            # output_file.write(f"Temp Loop Change {temp_loop_change}\n")
                             continue
-        # print(temp_loop_change)
 
 
 def update_recent_opp_list(opp_list: List, team_num):
@@ -259,37 +245,32 @@ def nested_power_change(df, teams_id_dict, teams_names_dict):
         home_opponent_ids = home_team['recent_opp']
         home_opponent_ids.insert(0, home_team['team_id'])
 
-        home_last_entry = home_team['power_ranking'][-1]
-        home_key = next(iter(home_last_entry))
-        home_last_entry[home_key] = round(
-            home_last_entry[home_key] + row['home_power_change'],
-            5
-        )
+        print(home_team)
+
+        home_team['power_ranking'][-1] = \
+            round(home_team['power_ranking'][-1], 5) + round(row['home_power_change'], 5)
+
+        print(home_team)
 
         away_team = teams_names_dict[row['away_team'].lower()]
         away_opponent_ids = away_team['recent_opp']
         away_opponent_ids.insert(0, away_team['team_id'])
 
-        # print(f"Home Team's PR: {home_team['power_ranking']}\n")
-        # print(f"Away Team's PR: {away_team['power_ranking']}\n")
-
-        # print(f"Away Team PR Before Change: {away_team['power_ranking']}\n")
-        away_team['power_ranking'][-1] += row['away_power_change']
-        # print(f"Away Team PR After Change: {away_team['power_ranking']}\n")
+        away_team['power_ranking'][-1] = \
+            round(away_team['power_ranking'][-1], 5) + round(row['away_power_change'], 5)
 
         process_team_data(
             teams_id_dict,
             home_opponent_ids,
             round(row['home_power_change'], 5)
         )
-        # print(f"Home Team PR After Nested Loop: {home_team['power_ranking'][-1]}")
 
         process_team_data(
             teams_id_dict,
             away_opponent_ids,
             round(row['away_power_change'], 5)
         )
-        # print(f"Away Team PR After Nested Loop: {away_team['power_ranking'][-1]}")
+
         home_opponent_ids = update_recent_opp_list(
             home_opponent_ids,
             away_team['team_id']
@@ -332,13 +313,5 @@ def run_calculations(df, teams_data):
     df = expected_wl(df)
     df = calculate_power_difference(df)
     nested_power_change(df, teams_id_dict, teams_names_dict)
-    # df = set_adjusted_power_rankings(df, teams_names_dict)
-    # print(teams_data)
 
-    # for team in teams_data:
-    #     if team['team_name'] == "Webber":
-    #         print(team)
-
-    # df = calculate_z_scores(df)  # Ensure Z-scores are calculated and included
-    # print(df.to_string())
     return df, teams_data

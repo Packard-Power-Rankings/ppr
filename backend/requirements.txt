@@ -13,3 +13,4 @@ celery[redis]       # Celery task queue with Redis as a message broker
 redis               # Redis Python client
 hypothesis          # Hypothesis Unittest Framework
 pytest-asyncio      # Pytest async
+arq                 # Job queues and RPC in python with asyncio and redis

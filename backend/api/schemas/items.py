@@ -22,7 +22,7 @@ from pydantic import (
     model_validator
 )
 # from config.constants import LEVEL_CONSTANTS
-from fastapi import Form, HTTPException
+from fastapi import Form, HTTPException, UploadFile
 
 
 # Enum Definitions (fixed set of values)
@@ -191,6 +191,22 @@ class TokenData(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+
+class LoginResponse(BaseModel):
+    message: str
+
+
+class LogoutResponse(BaseModel):
+    message: str
+
+
+class FlaggedGame(BaseModel):
+    game_id: str
+    team1_id: int
+    team1_name: str
+    team2_id: int
+    team2_name: str
 
 
 class NewTeamData(BaseModel):

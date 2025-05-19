@@ -30,8 +30,34 @@ class UsersServices():
             gender=self.level_key[1],
             level=self.level_key[2]
         )
-        projection = {"teams": 1, "_id": 0}
-        return await self._sports_retrieval(query, projection)
+
+        pipeline = [
+            {"$match": query},
+            {"$unwind": "$teams"},
+            {"$project": {
+                "_id": 0,
+                "team": {
+                    "id": "$teams.team_id",
+                    "overall_rank": "$teams.overall_rank",
+                    "team_name": "$teams.team_name",
+                    "power_ranking": {"$slice": ["$teams.power_ranking", -1]},
+                    "division_rank": "$teams.division_rank",
+                    "division": "$teams.division",
+                    "wins": "$teams.wins",
+                    "losses": "$teams.losses"
+                }
+            }},
+            {"$group": {
+                "_id": None,
+                "teams": {"$push": "$team"}
+            }},
+            {"$project": {
+                "_id": 0,
+                "teams": 1
+            }}
+        ]
+
+        return await self._sports_retrieval(pipeline)
 
     async def retrieve_team_info(self, team_name):
         query: Dict = query_params_builder()
@@ -39,19 +65,73 @@ class UsersServices():
             _id=self.level_constants.get('_id'),
             sport_type=self.level_key[0],
             gender=self.level_key[1],
-            level=self.level_key[2],
-            teams={
-                "$elemMatch": {
-                    "team_name": {"$regex": f"^{team_name}$", "$options": "i"}
-                }
-            }
+            level=self.level_key[2]
         )
 
-        projection = {
-            "teams.$": 1,
-            "_id": 0
-        }
-        return await self._sports_retrieval(query, projection)
+        pipeline = [
+            {"$match": query},
+            {"$unwind": "$teams"},  # Unwind to access individual team entries
+            {"$match": {"teams.team_name": {"$regex": f"^{team_name}$", "$options": "i"}}},  # Filter for the specific team
+            {"$project": {
+                "_id": 0,
+                "teams.team_id": 1,
+                "teams.division": 1,
+                "teams.conference": 1,
+                "teams.division_rank": 1,
+                "teams.overall_rank": 1,
+                "teams.power_ranking": 1,
+                "teams.wins": 1,
+                "teams.losses": 1,
+                "teams.season_opp": {
+                    "$map": {
+                        "input": "$teams.season_opp",  # Input array for mapping
+                        "as": "opp",
+                        "in": {
+                            "opponent_id": "$$opp.opponent_id",
+                            "opponent_name": "$$opp.opponent_name",
+                            "home_team": "$$opp.home_team",
+                            "home_score": "$$opp.home_score",
+                            "away_score": "$$opp.away_score",
+                            "home_z_score": "$$opp.home_z_score",
+                            "away_z_score": "$$opp.away_z_score",
+                            "game_date": "$$opp.game_date",
+                            "game_id": "$$opp.game_id"
+                        }
+                    }
+                }
+            }}
+        ]
+        return await self._sports_retrieval(pipeline)
+
+    async def retrieve_team_names(self):
+        query: Dict = query_params_builder()
+        query.update(
+            _id=self.level_constants.get('_id'),
+            sport_type=self.level_key[0],
+            gender=self.level_key[1],
+            level=self.level_key[2]
+        )
+
+        pipeline = [
+            {"$match": query},
+            {"$unwind": "$teams"},
+            {"$project": {
+                "_id": 0,
+                "team": {
+                    "team_name": "$teams.team_name"
+                }
+            }},
+            {"$group": {
+                "_id": None,
+                "teams": {"$push": "$team"}
+            }},
+            {"$project": {
+                "_id": 0,
+                "teams": 1
+            }}
+        ]
+
+        return await self._sports_retrieval(pipeline)
 
     @staticmethod
     def sigmond_curve(vabs) -> float:
@@ -186,17 +266,15 @@ class UsersServices():
             return team_one, team_two
         return team_two, team_one
         
-    async def _sports_retrieval(self, query: Dict, projection: Dict):
+    async def _sports_retrieval(self, pipeline: list):
         try:
-            self.sports_data = await self.user_collection.find_one(
-                query,
-                projection
-            )
-            if self.sports_data:
+            cursor = self.user_collection.aggregate(pipeline)
+            result = await cursor.to_list(length=None)
+            if result and len(result) > 0:
                 return {
-                    "message": "Succesfully Found Teams",
+                    "message": "Successfully Found Teams",
                     "status": status.HTTP_200_OK,
-                    "data": self.sports_data
+                    "data": result[0]  # First document contains our grouped results
                 }
             return {
                 "message": "Did Not Find Any Teams",
