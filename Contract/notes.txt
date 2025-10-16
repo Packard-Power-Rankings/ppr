@@ -1,0 +1,7 @@
+-be able to add teams and delete mistakes
+-add a tab to change between weeks
+-show the states
+-be able to rank by division 
+-look for duplicates and typos
+-tie games
+-flag a game if a score is wrong
