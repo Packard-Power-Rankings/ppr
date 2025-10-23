@@ -1,0 +1,337 @@
+id,home_team_id,visitor_team_id,original_home_score,original_visitor_score,home_z_score,visitor_z_score,week_id,flagged,invalid,home_field_advantage
+43877,Abilene Chr,Cent Arkansas,41,34,2.046758015,-2.046758015,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44012,Air Force,Navy,7,34,-0.09228866,0.09228866,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44014,Akron,Bowling Green,20,27,-0.289224203,0.289224203,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44070,Alabama A&M,Jackson St,38,45,0.606841619,-0.606841619,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,FALSE
+43928,Alabama St,Florida A&M,13,28,-0.442632623,0.442632623,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43836,Albion,Adrian,38,27,1.366454548,-1.366454548,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43746,Alcorn St,Ark Pine Bluff,38,28,0.282208636,-0.282208636,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43862,Alfred,Hilbert,47,0,-0.359363946,0.359363946,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43841,Alfred St,Apprentice,21,7,0.979589718,-0.979589718,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44019,Allegheny,Case Western,14,58,0.10890423,-0.10890423,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43931,Allen,Albany GA,17,57,-1.163858725,1.163858725,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44047,Amherst,Middlebury,21,29,-0.359248403,0.359248403,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44053,Anna Maria,W New England,10,44,-0.347686163,0.347686163,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43952,Arizona,Texas Tech,22,28,0.023974721,-0.023974721,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43947,Arizona Chr,Eastern Oregon,22,48,-0.852334475,0.852334475,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43763,Arizona St,Kansas,35,31,0.53935111,-0.53935111,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43813,Arkansas,Tennessee,19,14,3.085276125,-3.085276125,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43767,Arkansas St,South Alabama,18,16,1.436841028,-1.436841028,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43882,Ashland,OH Dominican,26,6,0.253289326,-0.253289326,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43978,Augustana IL,North Park,27,30,-1.09073975,1.09073975,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43778,Augustana SD,MN Duluth,28,24,-0.706010169,0.706010169,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43919,Ave Maria,Thomas GA,28,14,0.386701511,-0.386701511,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43907,Baker KS,Missouri Val,26,16,-0.159371289,0.159371289,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43971,Ball St,W Michigan,42,45,-0.254707012,0.254707012,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44032,Benedict,North Greenville,21,38,-0.200111568,0.200111568,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43917,Berry,SW Univ TX,44,7,0.42608618,-0.42608618,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43908,Bethany KS,Ottawa KS,13,0,1.501895226,-1.501895226,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44060,Bethany WV,Grove City,22,62,0.521393915,-0.521393915,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44067,Bethel KS,Tabor,33,34,-0.921887339,0.921887339,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43879,Bethel TN,Cumberlands KY,28,17,0.219888594,-0.219888594,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43812,Bluffton,Anderson IN,37,9,0.918205962,-0.918205962,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43818,Boise St,Utah St,62,30,-0.685366453,0.685366453,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44002,Briar Cliff,Mt Marty,21,36,0.025990631,-0.025990631,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43876,Bridgewater MA,Worcester St,42,7,1.300022164,-1.300022164,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43889,Brockport St,St John Fisher,35,0,0.282867493,-0.282867493,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44016,Brown,Bryant,35,42,-3.384970919,3.384970919,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43741,Butler,Morehead St,40,6,1.046427353,-1.046427353,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43748,CO Mesa,Colorado Mines,14,13,1.21087648,-1.21087648,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43838,CSU-Pueblo,NM Highlands,67,28,-0.321920264,0.321920264,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43959,Cal Poly,Idaho St,38,41,-0.12991938,0.12991938,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43929,California,Miami FL,38,39,0.896575652,-0.896575652,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44062,Calvin,Alma,13,73,-0.491870495,0.491870495,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43930,Campbell,NC Central,14,45,-1.960777551,1.960777551,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43839,Campbellsville,Cumberland TN,27,14,0.637351259,-0.637351259,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43932,Capital,Heidelberg,22,45,-0.124533353,0.124533353,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43942,Carleton MN,Concordia Mhd,6,31,-0.024126367,0.024126367,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43743,Carnegie Mellon,Waynesburg,42,0,-0.021283179,0.021283179,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43789,Carroll MT,MT St Northern,43,12,-0.334066024,0.334066024,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43861,Carroll WI,Millikin,49,14,-0.333797611,0.333797611,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43744,Carson-Newman,Barton,28,17,-0.442688735,0.442688735,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43934,Carthage,Elmhurst,17,23,-0.406859349,0.406859349,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43833,Castleton,Westfield St,24,10,1.029141277,-1.029141277,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44382,Catawba,Anderson SC,44,41,-0.531071375,0.531071375,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44044,Catholic,Susquehanna,14,48,0.238106686,-0.238106686,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44030,Cent Methodist,MO Baptist,14,30,0.615736328,-0.615736328,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43905,Centenary,Lyon,35,14,0.297839725,-0.297839725,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43901,Central IA,Simpson IA,59,14,0.399071729,-0.399071729,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43888,Centre,Trinity TX,24,12,0.863245001,-0.863245001,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43745,Chadron St,Adams St,52,3,0.464127271,-0.464127271,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43834,Chapman,Cal Lutheran,24,20,-1.013623027,1.013623027,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43936,Charleston So,W Illinois,20,31,-1.113597187,1.113597187,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43835,Charleston WV,Glenville St,29,17,-0.499472029,0.499472029,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43754,Charlotte,East Carolina,55,24,1.774608049,-1.774608049,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43891,Chicago,Beloit,23,3,-0.437468736,0.437468736,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43937,Citadel,Furman,16,17,-2.109057281,2.109057281,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43938,Clarion,California PA,27,31,1.331784915,-1.331784915,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43939,Clark Atlanta,Savannah St,28,35,-2.668942486,2.668942486,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43747,Coastal Car,Old Dominion,45,37,1.056502531,-1.056502531,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43892,Colby,Bates,28,26,0.395320058,-0.395320058,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43957,Colgate,Holy Cross,7,38,-1.883261774,1.883261774,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43878,College of NJ,Montclair St,20,13,-0.433970865,0.433970865,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43831,Columbia,Princeton,34,17,0.489641439,-0.489641439,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43749,Connecticut,Temple,29,20,-0.328281568,0.328281568,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43933,Cornell,SUNY Albany,10,31,-2.767015247,2.767015247,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43804,Cornell IA,Ripon,37,34,-0.449401315,0.449401315,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43863,Cortland St,Morrisville St,41,0,0.017225258,-0.017225258,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44063,Culver-Stockton,Benedictine KS,21,56,0.09680752,-0.09680752,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44022,Dakota St,Mayville St,12,13,-2.213485363,2.213485363,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43830,Dartmouth,Penn,20,17,-0.548662651,0.548662651,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43953,Davenport,Grand Valley St,7,24,-0.424913445,0.424913445,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43779,Davidson,Marist,42,19,0.057042705,-0.057042705,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43869,Defiance,Manchester,35,3,-0.133427261,0.133427261,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43943,Delaware St,St Francis PA,17,28,-1.479301346,1.479301346,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43750,Delta St,Chowan,54,9,0.499350421,-0.499350421,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43819,Dickinson St ND,Valley City St,19,6,-0.207913782,0.207913782,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43865,Dordt,Doane,38,3,-0.558341261,0.558341261,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43902,Dubuque,Luther IA,64,7,0.123810116,-0.123810116,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43753,Duquesne,LIU Post,47,21,0.630191423,-0.630191423,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43945,E Illinois,SE Missouri St,27,38,0.159584566,-0.159584566,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43946,E New Mexico,C Washington,28,44,0.623547547,-0.623547547,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43995,ETSU,Chattanooga,10,17,-1.940803539,1.940803539,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43766,East Central OK,Ark Monticello,42,17,3.384287816,-3.384287816,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43950,Edward Waters,Fort Valley St,14,48,-0.760366488,0.760366488,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43755,Emory & Henry,Lenoir-Rhyne,31,20,1.558732163,-1.558732163,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43880,Emporia St,NE Oklahoma,48,14,0.108757401,-0.108757401,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44038,Eureka,Concordia IL,27,31,-0.813905912,0.813905912,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43906,Evangel,Avila,44,3,0.57982442,-0.57982442,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44024,Fairmont St,WV State,34,45,-2.230146721,2.230146721,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44025,Faulkner,Lindsey Wilson,21,47,-1.063935937,1.063935937,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43898,Fayetteville St,Bowie St,27,24,0.840349436,-0.840349436,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43900,Ferris St,Roosevelt,55,13,-0.365052493,0.365052493,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44037,Ferrum,Bridgewater VA,15,41,-0.425284211,0.425284211,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43756,Florida,UCF,24,13,0.895145332,-0.895145332,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44010,Florida St,Clemson,13,29,-0.27251633,0.27251633,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44018,Fordham,Lafayette,23,28,0.301627253,-0.301627253,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43840,Fort Hays St,C Missouri,31,21,0.679776519,-0.679776519,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43893,Framingham St,Fitchburg St,25,22,0.723000389,-0.723000389,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43864,Frank & Marsh,Dickinson,23,14,0.726461053,-0.726461053,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43909,Friends,Sterling,59,14,0.011314633,-0.011314633,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43858,Frostburg St,WV Wesleyan,49,16,-0.256364536,0.256364536,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43794,Gallaudet,Nichols,42,28,1.296478892,-1.296478892,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43873,Gannon,Seton Hill,23,17,0.912053982,-0.912053982,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43776,Georgia,Auburn,31,13,-0.558369665,0.558369665,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43752,Georgia Tech,Duke,24,14,1.97189851,-1.97189851,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43740,Gettysburg,McDaniel,20,7,0.293127377,-0.293127377,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43872,Graceland,Peru St,43,35,0.068269459,-0.068269459,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43762,Grand View,Clarke,89,0,0.59329957,-0.59329957,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43985,Gust Adolphus,Bethel MN,0,43,-1.130339208,1.130339208,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44054,Hamilton,Wesleyan CT,7,19,0.505534819,-0.505534819,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43894,Hampden-Sydney,Guilford,31,0,0.641634909,-0.641634909,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43954,Hampton,Rhode Island,44,46,0.181299854,-0.181299854,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43955,Hanover,Mt St Joseph,41,49,-0.570474157,0.570474157,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43764,Hardin-Simmons,Endicott,35,27,-0.125285515,0.125285515,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44052,Hartwick,Utica,7,65,-0.462602378,0.462602378,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43739,Harvard,New Hampshire,28,23,1.65677139,-1.65677139,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44064,Hastings,Dakota Wesleyan,10,31,-0.973495748,0.973495748,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43883,Henderson St,OK Baptist,52,7,0.997689815,-0.997689815,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43771,Hobart & Smith,Ithaca,16,7,0.651749511,-0.651749511,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43854,Hope,Trine,42,6,-0.4037811,0.4037811,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43895,Houston Chr,McNeese St,43,22,3.161929488,-3.161929488,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43800,Huntingdon,Belhaven MS,45,31,0.697339083,-0.697339083,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43961,IL Wesleyan,Washington StL,23,33,-0.056630164,0.056630164,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43843,IN Wesleyan,St Xavier IL,39,7,-0.035080696,0.035080696,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43768,Idaho,Northern Arizona,23,17,0.202928814,-0.202928814,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43802,Incarnate Word,Prairie View,56,28,-0.233427192,0.233427192,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43962,Indiana PA,Slippery Rock,32,33,-0.59450699,0.59450699,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43770,Iowa St,Baylor,43,21,0.209499451,-0.209499451,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43820,JC Smith,Virginia St,21,17,-0.396130239,0.396130239,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43737,Johns Hopkins,Rowan,20,13,-0.393000887,0.393000887,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43941,Judson IL,Concordia MI,6,45,-0.43004139,0.43004139,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43925,Juniata,Wilkes,7,54,-0.547203939,0.547203939,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43963,KY Wesleyan,Findlay,9,49,-0.148685344,0.148685344,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43844,Kean,Wm Paterson,25,18,-0.133454429,0.133454429,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43922,Kennesaw,Jacksonville St,24,63,-1.074777881,1.074777881,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43774,Kentucky St,Lane,24,20,2.221836392,-2.221836392,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43973,Keystone,Moravian,14,55,-0.615981483,0.615981483,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43852,Kutztown,Bloomsburg,42,10,0.195934292,-0.195934292,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44029,LaGrange,Maryville TN,13,38,-0.830022098,0.830022098,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43775,Lake Forest,Knox,42,0,-0.183547472,0.183547472,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43884,Lakeland,Benedictine IL,42,21,1.20594692,-1.20594692,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43915,Langston,Nelson,35,29,0.278578704,-0.278578704,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44028,Lawrence,Grinnell,14,17,-1.375375006,1.375375006,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43761,Lewis & Clark,George Fox,24,21,-0.069597355,0.069597355,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43777,Lincoln MO,Lincoln CA,40,14,0.679342427,-0.679342427,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43964,Lindenwood,Tennessee St,20,24,-1.931714541,1.931714541,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43868,Livingstone,Eliz. City St,23,17,-0.021832218,0.021832218,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43940,Loras,Coe,10,43,0.50916561,-0.50916561,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43966,Louisiana Chr,Panhandle St,40,48,-1.363422974,1.363422974,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43990,Louisville,SMU,27,34,-0.977356025,0.977356025,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43781,M Hardin-Baylor,E Texas Bap,42,28,0.168396766,-0.168396766,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43927,MA Maritime,MA Dartmouth,0,34,-0.440711539,0.440711539,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44049,MIT,Coast Guard,19,21,-1.088800426,1.088800426,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43970,MN Mankato,Sioux Falls,36,40,-2.460944703,2.460944703,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44020,MO Southern,C Oklahoma,24,59,-0.070605726,0.070605726,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43810,MT Tech,Southern Oregon,42,35,1.67324842,-1.67324842,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43896,Marietta,Ohio Northern,45,10,0.396092843,-0.396092843,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43759,Marshall,Appalachian St,52,37,0.127699041,-0.127699041,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43847,Martin Luther,MN Morris,21,14,-0.020875892,0.020875892,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44042,Mary ND,Concordia SP,13,19,-0.422224035,0.422224035,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43968,McKendree,Quincy,10,34,-3.185014691,3.185014691,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43870,McPherson,KS Wesleyan,42,13,1.949766828,-1.949766828,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44043,Merchant Marine,Salve Regina,28,31,-1.750429614,1.750429614,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43890,Mercyhurst,Buffalo St,55,0,0.061931282,-0.061931282,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43856,Michigan Tech,Wayne St MI,22,7,-0.179718466,0.179718466,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43784,Miles,Central St OH,16,7,-0.081212344,0.081212344,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43969,Millersville,E Stroudsburg,17,57,-0.058028261,0.058028261,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43817,Minnesota,USC,24,17,2.005962678,-2.005962678,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43904,Missouri S&T,SW Baptist,65,24,1.462418275,-1.462418275,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43867,Monmouth IL,Illinois Col,44,24,0.809805684,-0.809805684,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43972,Monmouth NJ,Delaware,35,42,-1.278972772,1.278972772,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44017,Montana,Weber St,48,55,-2.777705208,2.777705208,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43790,Montana St,N Colorado,55,17,0.178300181,-0.178300181,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44071,Morehouse,Tuskegee,0,42,-0.770131523,0.770131523,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,FALSE
+43792,Morgan St,Lincoln PA,41,0,0.030226997,-0.030226997,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43926,Muhlenberg,Ursinus,50,53,-1.021375283,1.021375283,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43987,Murray St,South Dakota,0,59,-0.890216118,0.890216118,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44027,Muskingum,John Carroll,10,35,-0.745169293,0.745169293,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43797,N Dakota St,North Dakota,41,17,0.619367884,-0.619367884,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43798,N Illinois,Massachusetts,34,20,0.059625145,-0.059625145,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43984,N Michigan,Saginaw Val,14,63,-0.022841493,0.022841493,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44011,NC State,Wake Forest,30,34,-1.058429954,1.058429954,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43848,NC Wesleyan,Methodist,19,17,0.458519064,-0.458519064,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43860,NE Wesleyan,Buena Vista,34,21,-0.53738198,0.53738198,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43958,NW Oklahoma St,Arkansas Tech,21,44,-1.523263751,1.523263751,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43805,Nebraska,Rutgers,14,7,0.786533256,-0.786533256,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43849,New Haven,American Intl,56,0,0.82832257,-0.82832257,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43976,Newberry,Mars Hill,9,34,-2.302784587,2.302784587,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43751,North Alabama,Utah Tech,60,14,1.051761771,-1.051761771,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44072,North American,Texas Col,21,25,1.278319146,-1.278319146,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,FALSE
+43981,North Carolina,Pittsburgh,24,34,-0.388586498,0.388586498,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43988,Northern Iowa,S Dakota St,3,41,-0.242985315,0.242985315,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43871,Northern St SD,Bemidji St,14,13,2.139901238,-2.139901238,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44009,Northwestern,Indiana,24,41,0.591176049,-0.591176049,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44050,Northwestern IA,Concordia NE,17,29,-1.462948895,1.462948895,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43799,Northwestern MN,Crown MN,69,14,0.629912912,-0.629912912,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44057,Northwood MI,Hillsdale,13,14,-1.73425924,1.73425924,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44058,Norwich,SUNY Maritime,14,37,0.13856718,-0.13856718,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44040,Oberlin,Kenyon,0,34,0.177988223,-0.177988223,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43827,Ohio St,Iowa,35,7,0.762676305,-0.762676305,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44039,Ohio Wesleyan,DePauw,14,53,0.06534762,-0.06534762,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44003,Oklahoma St,West Virginia,14,38,-1.826749724,1.826749724,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43773,Olivet MI,Kalamazoo,45,12,2.015313514,-2.015313514,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43846,Olivet Naz,Madonna,42,15,-0.566180017,0.566180017,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43738,Oregon,Michigan St,31,10,0.136996939,-0.136996939,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43828,Oregon St,Colorado St,39,31,0.36209186,-0.36209186,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43974,Otterbein,Mt Union,0,21,1.296547226,-1.296547226,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43980,Pac Lutheran,Whitworth,23,34,0.160592279,-0.160592279,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44033,Pace,Bentley,16,31,-0.075026445,0.075026445,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43801,Penn St,UCLA,27,11,-0.06023177,0.06023177,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43948,Permian Basin,Angelo St,7,36,-1.64977721,1.64977721,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43911,Pikeville,Reinhardt,47,21,3.214810604,-3.214810604,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43788,Pittsburg St,MO Western,31,20,-0.744235141,0.744235141,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44055,Plymouth St,W Connecticut,21,48,0.249469242,-0.249469242,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43910,Point,Kentucky Chr,30,22,-0.215687031,0.215687031,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44021,Pomona-Pitzer,Claremont M.S.,14,20,-0.300296628,0.300296628,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43982,Portland St,UC Davis,26,27,0.65374062,-0.65374062,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44051,Puget Sound,Pacific OR,34,62,0.106100595,-0.106100595,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43803,Redlands,La Verne,38,17,-0.145374395,0.145374395,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43842,Rhodes,Hendrix,34,29,1.796813819,-1.796813819,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43796,Richmond,NC A&T,20,17,-0.897799487,0.897799487,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43850,Rochester NY,Rensselaer,14,7,1.469580118,-1.469580118,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43935,Rocky Mtn,Col of Idaho,31,49,-0.06229655,0.06229655,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43758,Rose-Hulman,Franklin,24,14,1.745145378,-1.745145378,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43809,S Arkansas,Southern Nazarene,49,21,-0.535025251,0.535025251,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44056,S Connecticut,Assumption,28,35,0.632164921,-0.632164921,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43989,S Dakota Tech,Black Hills St,20,22,-1.886841855,1.886841855,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43960,S Illinois,Illinois St,10,45,-2.091208949,2.091208949,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44001,S Virginia,Brevard,21,55,-0.0611166,0.0611166,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43886,SE Louisiana,TX A&M Commerce,21,9,-0.458587153,0.458587153,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44035,SE Oklahoma,Ouachita,9,25,0.414502598,-0.414502598,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43881,SF Austin,Northwestern LA,59,17,0.222162595,-0.222162595,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43975,SW Minnesota,NE Kearney,0,35,0.209814833,-0.209814833,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43956,SW Oklahoma,Harding,3,57,-0.07925274,0.07925274,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43795,Sacred Heart,Norfolk St,10,3,1.69019744,-1.69019744,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43837,Salisbury,Chris Newport,42,38,-1.002982883,1.002982883,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43807,Samford,VMI,27,3,0.220232103,-0.220232103,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43829,San Diego,Presbyterian,27,21,-0.5802533,0.5802533,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43765,San Diego St,Hawaii,27,24,1.723561092,-1.723561092,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43793,San Jose St,Nevada,35,31,0.349085068,-0.349085068,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43851,Shaw NC,Bluefield St,35,17,-0.217140339,0.217140339,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43983,Shenandoah,Randolph-Macon,21,22,0.517246093,-0.517246093,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43845,Shepherd,Lock Haven,45,38,0.836641366,-0.836641366,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43998,Shorter,Valdosta St,6,59,-0.571331666,0.571331666,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44034,Siena Hts,St Francis IL,24,31,0.770744219,-0.770744219,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44008,South Carolina,Mississippi,3,27,-1.840946358,1.840946358,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43918,Southeastern FL,Webber,45,0,0.842756601,-0.842756601,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44013,Southern Miss,Louisiana,13,23,0.856568066,-0.856568066,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43977,Southern Univ,Nicholls St,7,51,-1.52830147,1.52830147,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43991,Southern Utah,Tarleton St,37,38,-0.11753879,0.11753879,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43913,Southwestern KS,St Mary KS,69,28,-0.064074956,0.064074956,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43897,Springfield,Worcester Tech,51,7,0.566195704,-0.566195704,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43874,St Anselm,Post,56,28,0.231658736,-0.231658736,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43811,St John's MN,Augsburg,45,20,-1.035645775,1.035645775,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43855,St Lawrence,Union NY,27,24,1.60583525,-1.60583525,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43899,St Norbert,Concordia WI,28,10,1.231823527,-1.231823527,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43866,St Olaf,Hamline,41,6,0.463698765,-0.463698765,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43885,St Scholastica,Macalester,30,28,-0.283069197,0.283069197,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44065,St Thomas FL,Keiser,27,31,-0.205659922,0.205659922,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43806,St Thomas MN,Stetson,34,24,-0.466570561,0.466570561,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43951,St Vincent,Geneva,13,16,0.045629047,-0.045629047,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43993,Stanford,Virginia Tech,7,31,-0.888050773,0.888050773,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44000,Stonehill,Wagner,7,28,-1.807024609,1.807024609,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43994,Stony Brook,Villanova,24,42,-1.606750576,1.606750576,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43924,TCU,Houston,19,30,-2.528844846,2.528844846,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43760,TN Martin,Gardner Webb,35,17,0.376488645,-0.376488645,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43853,TX A&M K'ville,Midwest TX St,40,13,0.702075264,-0.702075264,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43780,TX Lutheran,Austin Col,43,34,-1.321215656,1.321215656,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43742,TX Southern,VA-Lynchburg,28,10,-0.996253518,0.996253518,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43887,TX Wesleyan,Ark Baptist,77,0,-0.105700877,0.105700877,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43912,Taylor IN,St Francis IN,58,36,2.244927422,-2.244927422,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43986,Tennessee Tech,S Carolina St,20,22,-1.309391701,1.309391701,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43787,Texas A&M,Missouri,41,10,2.071802148,-2.071802148,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43903,Tiffin,Thomas More,51,10,1.370291788,-1.370291788,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43783,Toledo,Miami OH,30,20,0.885135644,-0.885135644,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43815,Towson,William & Mary,34,27,0.613109549,-0.613109549,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43921,Troy,Texas St,17,38,-0.89873051,0.89873051,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44061,Tufts,Trinity CT,24,42,-0.494833219,0.494833219,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44015,Tulsa,Army,7,49,-0.315234891,0.315234891,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44048,Tusculum,Limestone,21,49,-0.196412172,0.196412172,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43816,U New England,Dean,68,0,0.249165427,-0.249165427,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43997,UAB,Tulane,20,71,-0.773945388,0.773945388,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43772,ULM,James Madison,21,19,2.230891846,-2.230891846,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43923,UNLV,Syracuse,41,44,-2.001082863,2.001082863,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43920,UTEP,Sam Houston St,21,41,-0.221714377,0.221714377,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44036,UVA-Wise,Wingate,0,33,-0.756856609,0.756856609,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43992,Union KY,Bluefield Univ,7,20,-1.341746541,1.341746541,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43996,Upper Iowa,Truman St,23,26,-0.630634946,0.630634946,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43944,Valparaiso,Drake,3,27,-0.246147811,0.246147811,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43826,Vanderbilt,Alabama,40,35,2.983503197,-2.983503197,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43814,Virginia,Boston College,24,14,2.413916518,-2.413916518,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43822,Virginia Union,W Salem St,31,13,0.591938769,-0.591938769,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43825,W Carolina,Wofford,21,17,0.733913149,-0.733913149,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44004,W New Mexico,W Oregon,10,34,0.021031607,-0.021031607,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44068,W Woods,Mid Am Nazarene,7,70,0.444379169,-0.444379169,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44006,WI LaCrosse,WI Platteville,27,30,-1.782168643,1.782168643,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44041,WI Lutheran,Aurora,14,45,-0.046218172,0.046218172,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43824,WI River Falls,WI Eau Claire,71,14,1.282114217,-1.282114217,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44007,WI Stevens Pt,WI Stout,15,22,0.861817221,-0.861817221,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43859,WI Whitewater,WI Oshkosh,21,14,1.766069099,-1.766069099,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44066,Waldorf,Midland NE,14,28,0.908596707,-0.908596707,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43916,Walsh,Lake Erie,63,34,0.770945733,-0.770945733,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43949,Warner,FL Memorial,15,43,0.03311984,-0.03311984,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43979,Washburn,NW Missouri,34,51,-0.757446889,0.757446889,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43821,Washington,Michigan,27,17,2.421474872,-2.421474872,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43782,Washington & Lee,Averett,35,0,0.233048226,-0.233048226,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44045,Wayland,Ottawa AZ,28,42,0.438327826,-0.438327826,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43785,Wayne St NE,Minot St,27,21,-0.088155934,0.088155934,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43808,West Chester,Shippensburg,28,10,0.225283499,-0.225283499,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43786,West Florida,Mississippi Col,31,0,-0.049623106,0.049623106,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43967,West Georgia,Austin Peay,16,20,-1.176798414,1.176798414,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43857,West Liberty,Concord,31,10,1.082073971,-1.082073971,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43757,Western St CO,Ft Lewis,44,7,-0.291314156,0.291314156,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44046,Westminster MO,Greenville,14,35,0.415962277,-0.415962277,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44059,Westminster PA,Wash & Jeff,14,21,-0.665204966,0.665204966,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44005,Wheaton Il,N Central Il,27,55,-0.381271121,0.381271121,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44031,Wheeling,NC Pembroke,32,35,-1.639044704,1.639044704,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43965,Willamette,Linfield,0,72,-0.222775912,0.222775912,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43914,William Penn,St Ambrose,33,28,-0.168961104,0.168961104,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43875,Williams,Bowdoin,34,14,1.022603366,-1.022603366,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43791,Winona St,Moorhead St,33,6,1.820172163,-1.820172163,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43823,Wisconsin,Purdue,52,6,0.988013591,-0.988013591,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44023,Wittenberg,Denison,20,30,-0.863885034,0.863885034,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+44026,Wm Jewell,Indianapolis,20,23,1.137132308,-1.137132308,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43999,Wooster,Wabash,19,55,-0.197878741,0.197878741,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43832,Yale,Central Conn,23,22,-0.405932401,0.405932401,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
+43769,Youngstown St,Indiana St,21,14,-0.185872552,0.185872552,"Game Set 7.1, 2024 College Mens Football",FALSE,FALSE,TRUE
