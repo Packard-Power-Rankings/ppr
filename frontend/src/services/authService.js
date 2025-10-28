@@ -27,27 +27,41 @@ export const initilizeAuth = () => {
 };
 
 export const loginUser = async (credentials) => {
-    try {
-        const formData = new URLSearchParams();
-        formData.append('username', credentials.username);
-        formData.append('password', credentials.password);
+  try {
+    const formData = new URLSearchParams();
+    formData.append('username', credentials.username);
+    formData.append('password', credentials.password);
+    formData.append('grant_type', 'password'); // fine if backend ignores this
 
-        await api.post(
-            '/token/', formData,
-            {
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded"
-                },
-                withCredentials: true
-            }
-        )
-        // console.log(response);
-        store.dispatch({ type: 'login' });
-        return true;
-    } catch (error) {
-        console.error('Login Failed', error);
-        return false;
+    const res = await api.post(
+      '/token/',
+      formData,
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        // IMPORTANT: no withCredentials here anymore
+      }
+    );
+
+    // res.data should look like:
+    // { message: 'Login successful', access_token: '...' }
+    const { access_token } = res.data;
+
+    // store the token in your global state so you can use it later for Authorization headers
+    store.dispatch({ type: 'login', payload: access_token });
+
+    return true;
+  } catch (error) {
+    if (error.response) {
+      console.error('Login failed:', error.response.status, error.response.data);
+    } else if (error.request) {
+      console.error('No response from server:', error.message);
+    } else {
+      console.error('Request setup error:', error.message);
     }
+    return false;
+  }
 };
 
 export const logoutUser = async () => {

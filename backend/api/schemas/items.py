@@ -195,6 +195,7 @@ class Token(BaseModel):
 
 class LoginResponse(BaseModel):
     message: str
+    access_token: str
 
 
 class LogoutResponse(BaseModel):
