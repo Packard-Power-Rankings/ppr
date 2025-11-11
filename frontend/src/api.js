@@ -3,12 +3,7 @@ import axios from 'axios';
 const TOKEN_KEY = 'access_token';
 
 const api = axios.create({
-<<<<<<< Updated upstream
-    baseURL: "http://localhost:8000"
-    //withCredentials: true,
-=======
   baseURL: 'http://localhost:8000',
->>>>>>> Stashed changes
 });
 
 const getStoredToken = () => {

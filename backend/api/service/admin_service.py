@@ -94,7 +94,6 @@ class AdminServices():
             form_data.password
         )
 
-<<<<<<< Updated upstream
         """ NOT WORKING TO LOGIN
         response.set_cookie(
             key="access_token",
@@ -108,13 +107,11 @@ class AdminServices():
         return LoginResponse(
             message="Login successful",
             access_token=access_token,)
-=======
-        return LoginResponse(
+        """return LoginResponse(
             message="Login successful",
             access_token=access_token,
             token_type="bearer"
-        )
->>>>>>> Stashed changes
+        )"""
 
     async def logout(
         self,
