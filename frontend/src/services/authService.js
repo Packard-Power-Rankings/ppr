@@ -34,41 +34,40 @@ export const checkAuthentication = async () => {
 export const initilizeAuth = () => checkAuthentication();
 
 export const loginUser = async (credentials) => {
-  try {
-    const formData = new URLSearchParams();
-    formData.append('username', credentials.username);
-    formData.append('password', credentials.password);
-    formData.append('grant_type', 'password'); // fine if backend ignores this
+    try {
+        const formData = new URLSearchParams();
+        formData.append("username", credentials.username);
+        formData.append("password", credentials.password);
+        formData.append("grant_type", "password");
 
-    const res = await api.post(
-      '/token/',
-      formData,
-      {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        // IMPORTANT: no withCredentials here anymore
-      }
-    );
+        const response = await api.post(
+            "/token/",
+            formData,
+            {
+                headers: { "Content-Type": "application/x-www-form-urlencoded" }
+            }
+        );
 
-    // res.data should look like:
-    // { message: 'Login successful', access_token: '...' }
-    const { access_token } = res.data;
+        const { access_token: accessToken } = response.data;
+        if (!accessToken) {
+            throw new Error("No access token returned from login.");
+        }
 
-    // store the token in your global state so you can use it later for Authorization headers
-    store.dispatch({ type: 'login', payload: access_token });
-
-    return true;
-  } catch (error) {
-    if (error.response) {
-      console.error('Login failed:', error.response.status, error.response.data);
-    } else if (error.request) {
-      console.error('No response from server:', error.message);
-    } else {
-      console.error('Request setup error:', error.message);
+        localStorage.setItem(TOKEN_KEY, accessToken);
+        setAuthHeader(accessToken);
+        store.dispatch({ type: "login" });
+        return true;
+    } catch (error) {
+        if (error.response) {
+            console.error("Login failed:", error.response.status, error.response.data);
+        } else if (error.request) {
+            console.error("No response from server:", error.message);
+        } else {
+            console.error("Request setup error:", error.message);
+        }
+        removeToken();
+        return false;
     }
-    return false;
-  }
 };
 
 export const logoutUser = async () => {

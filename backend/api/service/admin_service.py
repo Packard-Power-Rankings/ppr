@@ -117,6 +117,7 @@ class AdminServices():
         self,
         response: Response
     ) -> LogoutResponse:
+        # Cookies are no longer used for auth, but keep the call for compatibility
         response.delete_cookie(
             key='access_token',
             httponly=True,
@@ -196,9 +197,6 @@ class AdminServices():
         token = None
         if auth_header and auth_header.startswith("Bearer "):
             token = auth_header.split(" ", 1)[1].strip()
-
-        if not token:
-            token = request.cookies.get("access_token")
 
         if not token:
             raise credentials_exception
