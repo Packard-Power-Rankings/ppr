@@ -196,6 +196,10 @@ class Token(BaseModel):
 class LoginResponse(BaseModel):
     message: str
     access_token: str
+<<<<<<< Updated upstream
+=======
+    token_type: str = Field(default="bearer")
+>>>>>>> Stashed changes
 
 
 class LogoutResponse(BaseModel):

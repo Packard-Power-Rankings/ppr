@@ -66,8 +66,7 @@ const AddTeams = () => {
                 `/upload_csv/?sport_type=${sport}&gender=${gender}&level=${level}`,
                 formData,
                 {
-                    headers: {"Content-Type": 'multipart/form-data'},
-                    withCredentials: true
+                    headers: {"Content-Type": 'multipart/form-data'}
                 }
             );
             setFileMessage(response.data.message);
@@ -91,8 +90,7 @@ const AddTeams = () => {
             const response = await api.post(
                 `/check-teams/?sport_type=${sport}&gender=${gender}&level=${level}`, teamNames,
                 {
-                    headers: {'Content-Type': "application/json"},
-                    withCredentials: true
+                    headers: {'Content-Type': "application/json"}
                 }
             )
             if (response.data.missing_teams?.length > 0) {

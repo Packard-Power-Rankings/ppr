@@ -33,8 +33,7 @@ const DeleteGame = () => {
             const response = await api.get(
                 `/teams-ids/?sport_type=${sport}&gender=${gender}&level=${level}`,
                 {
-                    headers: { "Content-Type": "application/json" },
-                    withCredentials: true
+                    headers: { "Content-Type": "application/json" }
                 }
             );
             const teamsArray = response.data.data.teams;
@@ -56,8 +55,7 @@ const DeleteGame = () => {
             const response = await api.get(
                 `/season-dates/${teamOne.value}/${teamTwo.value}/?sport_type=${sport}&gender=${gender}&level=${level}`,
                 {
-                    headers: { "Content-Type": "application/json" },
-                    withCredentials: true
+                    headers: { "Content-Type": "application/json" }
                 }
             );
             setGameData(response.data.map(item => ({
@@ -77,8 +75,7 @@ const DeleteGame = () => {
             const response = await api.delete(
                 `/delete-game/${teamOne.value}/${teamTwo.value}/${encodeURIComponent(gameDate.value)}/${encodeURIComponent(gameDate.label)}/?sport_type=${sport}&gender=${gender}&level=${level}`,
                 {
-                    headers: { "Content-Type": "application/json" },
-                    withCredentials: true
+                    headers: { "Content-Type": "application/json" }
                 }
             );
             console.log(response);

@@ -47,8 +47,7 @@ const AddMissingTeams = ({ missingTeamNames, onClose }) => {
                 `/add_teams/?sport_type=${sport}&gender=${gender}&level=${level}`,
                 formData,
                 {
-                    headers: {"Content-Type": "application/json"},
-                    withCredentials: true
+                    headers: {"Content-Type": "application/json"}
                 }
             );
             setModalMessage(response.data.message);
@@ -67,8 +66,7 @@ const AddMissingTeams = ({ missingTeamNames, onClose }) => {
                 {
                     headers: {
                         "Content-Type": "application/x-www-form-urlencoded"
-                    },
-                    withCredentials: true
+                    }
                 }
             )
 

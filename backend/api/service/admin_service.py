@@ -14,11 +14,11 @@
 """
 
 import os
-from typing import Annotated, Optional
+from typing import Optional
 from datetime import datetime, timedelta, timezone
 import motor.motor_asyncio
-from fastapi import HTTPException, Depends, status, Request, Response
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi import HTTPException, status, Request, Response
+from fastapi.security import OAuth2PasswordRequestForm
 import bcrypt
 import jwt
 from jwt.exceptions import InvalidTokenError, ExpiredSignatureError
@@ -33,9 +33,6 @@ MONGO_DETAILS = \
 client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_DETAILS)
 database = client['admin_details']
 admin = database.get_collection('admin')
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token/")
-
 
 class AdminServices():
     def __init__(self):
@@ -81,8 +78,7 @@ class AdminServices():
 
     async def login(
         self,
-        form_data: OAuth2PasswordRequestForm,
-        response: Response
+        form_data: OAuth2PasswordRequestForm
     ) -> LoginResponse:
         """Verifies the admin username and the password are
         correct
@@ -98,6 +94,7 @@ class AdminServices():
             form_data.password
         )
 
+<<<<<<< Updated upstream
         """ NOT WORKING TO LOGIN
         response.set_cookie(
             key="access_token",
@@ -111,6 +108,13 @@ class AdminServices():
         return LoginResponse(
             message="Login successful",
             access_token=access_token,)
+=======
+        return LoginResponse(
+            message="Login successful",
+            access_token=access_token,
+            token_type="bearer"
+        )
+>>>>>>> Stashed changes
 
     async def logout(
         self,
@@ -125,15 +129,12 @@ class AdminServices():
         return LogoutResponse(message="Logout Successful")
 
     @staticmethod
-    async def get_current_admin(
-        request: Request
-    ):
+    async def get_current_admin(request: Request):
         """Gets the current admin based on the verified
         token
 
         Args:
-            token (str, optional): Token from verification.
-            Defaults to Depends(oauth2_scheme).
+            request (Request): Incoming request
 
         Returns:
             TokenData: JSON Web Token to store in frontend
@@ -179,7 +180,7 @@ class AdminServices():
         """Gets the current user
 
         Args:
-            token (Annotated[str, Depends): Token Scheme
+            request (Request): Incoming request that holds auth info
 
         Raises:
             credentials_exception: Unauthorized
@@ -193,7 +194,15 @@ class AdminServices():
             detail="Could not validate credentials",
             headers={"WWW-Authenticate": "Bearer"}
         )
-        token = request.cookies.get("access_token")
+
+        auth_header = request.headers.get("Authorization")
+        token = None
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ", 1)[1].strip()
+
+        if not token:
+            token = request.cookies.get("access_token")
+
         if not token:
             raise credentials_exception
 
@@ -208,13 +217,13 @@ class AdminServices():
                 raise credentials_exception
             return TokenData(username=username)
 
-        except ExpiredSignatureError:  # Token is expired
-            return HTTPException(
+        except ExpiredSignatureError as exc:  # Token is expired
+            raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Token expired, please log in again"
-            )
-        except InvalidTokenError:
-            return credentials_exception
+            ) from exc
+        except InvalidTokenError as exc:
+            raise credentials_exception from exc
         
     def generate_access_token(
         self,

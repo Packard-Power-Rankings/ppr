@@ -70,8 +70,7 @@ const Team = () => {
             const checkIfFlagged = await api.get(
                 `/check-flagged/${encodeURIComponent(seasonOpp[index].game_id)}?sport_type=${sport}&gender=${gender}&level=${level}`,
                 {
-                    headers: {"Content-Type": "application/json"},
-                    withCredentials: false
+                    headers: {"Content-Type": "application/json"}
                 }
             )
             console.log(checkIfFlagged);
@@ -92,8 +91,7 @@ const Team = () => {
                     team2_name: seasonOpp[index].opponent_name
                 },
                 {
-                    headers: {"Content-Type": "application/json"},
-                    withCredentials: false
+                    headers: {"Content-Type": "application/json"}
                 }
             )
             if (storeFlaggedGame.data.game_flagged) {

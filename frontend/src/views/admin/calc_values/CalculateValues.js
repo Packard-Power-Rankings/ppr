@@ -50,8 +50,7 @@ const CalculateValues = () => {
             const response = await api.get(
                 `/task-status/${taskId}`,
                 {
-                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                    withCredentials: true,
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" }
                 }
             );
             return response.data;
@@ -95,8 +94,7 @@ const CalculateValues = () => {
         const response = await api.post(
             endpoint, {},
             {
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                withCredentials: true
+                headers: { "Content-Type": "application/x-www-form-urlencoded" }
             }
         );
         const taskId = response.data.task_id;

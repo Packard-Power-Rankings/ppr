@@ -23,8 +23,7 @@ const DeleteTeam = () => {
             const response = await api.delete(
                 `/delete-team/${team.label}/${team.value}/?sport_type=${sport}&gender=${gender}&level=${level}`,
                 {
-                    headers: {"Content-Type": 'application/json'},
-                    withCredentials: true
+                    headers: {"Content-Type": 'application/json'}
                 }
             )
             console.log(response);
@@ -38,8 +37,7 @@ const DeleteTeam = () => {
             const response = await api.get(
                 `/teams-ids/?sport_type=${sport}&gender=${gender}&level=${level}`,
                 {
-                    headers: {"Content-Type": 'application/json'},
-                    withCredentials: true
+                    headers: {"Content-Type": 'application/json'}
                 }
             )
             const teamsArray = response.data.data.teams

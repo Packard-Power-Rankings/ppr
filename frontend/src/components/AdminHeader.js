@@ -49,8 +49,7 @@ const AdminHeader = () => {
             const response = await api.delete(
                 `/clear-season/?sport_type=${sport}&gender=${gender}&level=${level}`,
                 {
-                    headers: {'Content-Type': 'application/json'},
-                    withCredentials: true
+                    headers: {'Content-Type': 'application/json'}
                 }
             );
             console.log(response);

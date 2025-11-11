@@ -69,7 +69,6 @@ def admin_team_class(level_key: Tuple) -> "AdminTeamsService":
 
 @router.post("/token/", response_model=LoginResponse)
 async def login_generate_token(
-    response: Response,
     form_data: OAuth2PasswordRequestForm = Depends(),
     admin_service: AdminServices = Depends()
 ):
@@ -84,7 +83,7 @@ async def login_generate_token(
     Returns:
         TokenData: Login token
     """
-    return await admin_service.login(form_data, response)
+    return await admin_service.login(form_data)
 
 
 @router.post("/logout/", response_model=LogoutResponse)
@@ -104,7 +103,7 @@ async def validate_token(
 
 
 def require_admin():
-    """Dependency for protected routes that checks cookie auth"""
+    """Dependency for protected routes that checks auth token"""
     async def wrapper(request: Request):
         return await AdminServices().get_current_user(request)
     return Depends(wrapper)
