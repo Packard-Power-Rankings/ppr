@@ -151,13 +151,21 @@ class AdminTeamsService():
             Any: Successful storage of new teams or an
             that the team already exists in the db
         """
-        message = {}
+        base_filter = {"_id": self.level_constant.get('_id')}
+        added, skipped = [], []
         team_id = await self._generate_team_id()
         for team in teams:
             team_id = team_id + 1
+            team_name = team.get("team_name")
+            existing = await self.sports_collection.find_one(
+                {**base_filter, "teams.team_name": team_name}
+            )
+            if existing:
+                skipped.append(team_name)
+                continue
             new_team_data = {
                 "team_id": team_id,
-                "team_name": team.get("team_name"),
+                "team_name": team_name,
                 "city": "",
                 "state": team.get('state'),
                 "division": team.get('division'),
@@ -172,26 +180,24 @@ class AdminTeamsService():
                 "recent_opp": [0, 0, 0, 0, 0],
                 "season_opp": []
             }
-            results = await self.sports_collection.update_one(
-                {
-                    "_id": self.level_constant.get('_id'),
-                    "teams.team_name": {"$ne": team.get("team_name")}
-                },
-                {"$addToSet": {"teams": new_team_data}}
+            result = await self.sports_collection.update_one(
+                base_filter,
+                {"$push": {"teams": new_team_data}}
             )
-        if results.modified_count > 0:
-            message.update(
-                message="Teams were added successfully",
-                status=status.HTTP_200_OK,
-                number_of_files=results.modified_count
-            )
+            if result.modified_count > 0:
+                added.append(team_name)
+        response_message = {
+            "status": status.HTTP_200_OK,
+            "added": added,
+            "skipped": skipped
+        }
+        if added:
+            response_message["message"] = "Teams were added successfully"
+        elif skipped:
+            response_message["message"] = "Teams already exist in the database"
         else:
-            message.update(
-                message="Team already exists in the database",
-                status=status.HTTP_200_OK,
-                number_of_files=results.modified_count
-            )
-        return message
+            response_message["message"] = "No teams were processed"
+        return response_message
 
     async def run_main_algorithm(self, iterations: int):
         """Runs the main algorithm
@@ -913,14 +919,9 @@ class AdminTeamsService():
             {'_id': self.level_constant.get('_id')},
             projection={"teams": 1, "_id": 0}
         )
-        if teams:
-            max_id = \
-                max(team['team_id'] \
-                    for team in teams["teams"] if 'team_id' in team)
-            new_team_id = max_id
-        else:
-            new_team_id = 1
-        return new_team_id
+        team_list = teams.get("teams", []) if teams else []
+        existing_ids = [team.get("team_id") for team in team_list if "team_id" in team]
+        return max(existing_ids) if existing_ids else 0
 
     async def retrieve_csv_file(self) -> Dict:
         """Retrieves the CSV file from the database
