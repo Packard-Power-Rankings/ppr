@@ -1,20 +1,18 @@
 import api, { setAuthHeader } from "src/api";
 import { store } from "src/store";
 
-const TOKEN_KEY = "access_token";
-
 const removeToken = () => {
-    localStorage.removeItem(TOKEN_KEY);
     setAuthHeader(null);
     store.dispatch({ type: "logout" });
 };
 
 export const checkAuthentication = async () => {
-    const token = localStorage.getItem(TOKEN_KEY);
+    const token = localStorage.getItem("access_token");
     if (!token) {
         removeToken();
         return false;
     }
+    setAuthHeader(token);
 
     try {
         const response = await api.get("/validate-token/");
@@ -39,16 +37,16 @@ export const loginUser = async (credentials) => {
         formData.append('username', credentials.username);
         formData.append('password', credentials.password);
 
-        await api.post(
-            '/token/', formData,
+        const { data } = await api.post(
+            '/token/',
+            formData,
             {
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded"
-                },
-                withCredentials: true
+                }
             }
-        )
-        // console.log(response);
+        );
+        setAuthHeader(data.access_token);
         store.dispatch({ type: 'login' });
         return true;
     } catch (error) {

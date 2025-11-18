@@ -15,7 +15,7 @@ import {
     CModalBody,
     CModalFooter
 } from "@coreui/react";
-import api from "src/api";
+import api, { setAuthHeader } from "src/api";
 import Papa from "papaparse";
 import { useSelector } from "react-redux";
 import AddMissingTeams from "./AddMissingTeams";
@@ -103,6 +103,13 @@ const AddTeams = () => {
             console.error("Error Occured Fetching Teams", error)
         }
     }
+
+    useEffect(() => {
+        const token = localStorage.getItem("access_token");
+        if (token) {
+            setAuthHeader(token);
+        }
+    }, []);
 
     useEffect(() => {
         if (teamNames.length > 0) {

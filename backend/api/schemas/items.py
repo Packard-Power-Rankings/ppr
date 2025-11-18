@@ -193,10 +193,6 @@ class Token(BaseModel):
     token_type: str
 
 
-class LoginResponse(BaseModel):
-    message: str
-
-
 class LogoutResponse(BaseModel):
     message: str
 

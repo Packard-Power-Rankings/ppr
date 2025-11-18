@@ -16,4 +16,19 @@ export const setAuthHeader = (token) => {
     }
 };
 
+const storedToken = localStorage.getItem(TOKEN_KEY);
+if (storedToken) {
+    setAuthHeader(storedToken);
+}
+
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    } else {
+        delete config.headers.Authorization;
+    }
+    return config;
+});
+
 export default api

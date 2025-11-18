@@ -22,7 +22,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 import bcrypt
 import jwt
 from jwt.exceptions import InvalidTokenError, ExpiredSignatureError
-from api.schemas.items import TokenData, LoginResponse, LogoutResponse
+from api.schemas.items import TokenData, Token, LogoutResponse
 
 ACCESS_TOKEN_TIME = 60.0
 ALGORITHM = "HS256"
@@ -71,7 +71,6 @@ class AdminServices():
             result = await self.admin_collection.insert_one(new_admin)
             return str(result.inserted_id)
         except Exception as exc:
-            print("create_admin error:", exc)
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Error has occurred"
@@ -80,7 +79,7 @@ class AdminServices():
     async def login(
         self,
         form_data: OAuth2PasswordRequestForm
-    ) -> LoginResponse:
+    ) -> Token:
         """Verifies the admin username and the password are
         correct
 
@@ -90,23 +89,16 @@ class AdminServices():
         Returns:
             Token: Returns the login token
         """
-        await self.verify_admin(
+        access_token = await self.verify_admin(
             form_data.username,
             form_data.password
         )
-        return LoginResponse(message="Login successful")
+        return Token(access_token=access_token, token_type="bearer")
 
     async def logout(
         self,
         response: Response
     ) -> LogoutResponse:
-        # Cookies are no longer used for auth, but keep the call for compatibility
-        response.delete_cookie(
-            key='access_token',
-            httponly=True,
-            secure=False,
-            samesite='lax'
-        )
         return LogoutResponse(message="Logout Successful")
 
     @staticmethod

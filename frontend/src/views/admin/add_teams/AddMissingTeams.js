@@ -14,7 +14,7 @@ import {
     CFormInput
 } from "@coreui/react";
 import Select from "react-select";
-import api from "src/api";
+import api, { setAuthHeader } from "src/api";
 import { useSelector } from "react-redux";
 
 const AddMissingTeams = ({ missingTeamNames, onClose }) => {
@@ -99,6 +99,13 @@ const AddMissingTeams = ({ missingTeamNames, onClose }) => {
         }
     }
 
+
+    useEffect(() => {
+        const token = localStorage.getItem("access_token");
+        if (token) {
+            setAuthHeader(token);
+        }
+    }, []);
 
     useEffect(() => {
         handleMissingTeams();

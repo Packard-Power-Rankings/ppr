@@ -33,10 +33,10 @@ from api.service.tasks import run_main_algorithm, calc_z_score
 from api.schemas.items import (
     InputMethod,
     UpdateTeamsData,
-    LoginResponse,
     LogoutResponse,
     FlaggedGame,
-    SetupAdminRequest
+    SetupAdminRequest,
+    Token
 )
 from api.service.admin_teams import AdminTeamsService
 from api.service.admin_service import AdminServices
@@ -69,7 +69,7 @@ def admin_team_class(level_key: Tuple) -> "AdminTeamsService":
     return _instance_cache[level_key]
 
 
-@router.post("/token/", response_model=LoginResponse)
+@router.post("/token/", response_model=Token)
 async def login_generate_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
     admin_service: AdminServices = Depends()
