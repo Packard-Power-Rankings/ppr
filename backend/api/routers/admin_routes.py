@@ -11,6 +11,7 @@
 
 
 from __future__ import annotations
+import os
 import traceback
 from typing import Tuple, List, Dict
 # from celery.result import AsyncResult
@@ -34,7 +35,8 @@ from api.schemas.items import (
     UpdateTeamsData,
     LoginResponse,
     LogoutResponse,
-    FlaggedGame
+    FlaggedGame,
+    SetupAdminRequest
 )
 from api.service.admin_teams import AdminTeamsService
 from api.service.admin_service import AdminServices
@@ -100,6 +102,35 @@ async def validate_token(
     admin_service: AdminServices = Depends()
 ):
     return await admin_service.validate_token(request)
+
+
+@router.post("/setup/admin/")
+async def setup_admin_account(
+    request: Request,
+    setup_request: SetupAdminRequest,
+    admin_service: AdminServices = Depends()
+):
+    """One-time endpoint for creating the initial admin user via curl."""
+    expected_token = os.getenv("SETUP_TOKEN")
+    provided_token = request.headers.get("X-Setup-Token")
+
+    if not expected_token:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Setup token is not configured"
+        )
+
+    if provided_token != expected_token:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Invalid setup token"
+        )
+
+    admin_id = await admin_service.create_admin(
+        setup_request.username,
+        setup_request.password
+    )
+    return {"message": "Admin created", "id": admin_id}
 
 
 def require_admin():

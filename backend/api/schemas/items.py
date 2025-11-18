@@ -201,6 +201,11 @@ class LogoutResponse(BaseModel):
     message: str
 
 
+class SetupAdminRequest(BaseModel):
+    username: str
+    password: str
+
+
 class FlaggedGame(BaseModel):
     game_id: str
     team1_id: int

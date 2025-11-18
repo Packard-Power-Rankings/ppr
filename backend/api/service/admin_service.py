@@ -71,6 +71,7 @@ class AdminServices():
             result = await self.admin_collection.insert_one(new_admin)
             return str(result.inserted_id)
         except Exception as exc:
+            print("create_admin error:", exc)
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Error has occurred"
@@ -89,18 +90,9 @@ class AdminServices():
         Returns:
             Token: Returns the login token
         """
-        access_token = await self.verify_admin(
+        await self.verify_admin(
             form_data.username,
             form_data.password
-        )
-
-        response.set_cookie(
-            key="access_token",
-            value=access_token,
-            httponly=True,
-            secure=False,       # Change for production
-            samesite='lax',     # Change for production
-            max_age=int(ACCESS_TOKEN_TIME * 60)
         )
         return LoginResponse(message="Login successful")
 

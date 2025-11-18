@@ -26,6 +26,8 @@ services:
     environment:
       - PYTHONPATH=/app
       - MONGO_URI=mongodb://${MONGO_USER}:${MONGO_PASS}@db:${MONGO_PORT}/${MONGO_DB_NAME}
+      - SETUP_TOKEN=poiuytrewq0987654321
+      - SECRET_KEY=qwertyuiopasdfghjklzxcvbnm0
     depends_on:
       redis:
         condition: service_healthy
