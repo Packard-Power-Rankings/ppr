@@ -94,7 +94,6 @@ class AdminServices():
             form_data.password
         )
 
-        """ NOT WORKING TO LOGIN
         response.set_cookie(
             key="access_token",
             value=access_token,
@@ -102,16 +101,8 @@ class AdminServices():
             secure=False,       # Change for production
             samesite='lax',     # Change for production
             max_age=int(ACCESS_TOKEN_TIME * 60)
-            )"""
-        print(">>> DEV LOGIN PATH, NO COOKIE <<<")
-        return LoginResponse(
-            message="Login successful",
-            access_token=access_token,)
-        """return LoginResponse(
-            message="Login successful",
-            access_token=access_token,
-            token_type="bearer"
-        )"""
+        )
+        return LoginResponse(message="Login successful")
 
     async def logout(
         self,

@@ -36,36 +36,23 @@ export const initilizeAuth = () => checkAuthentication();
 export const loginUser = async (credentials) => {
     try {
         const formData = new URLSearchParams();
-        formData.append("username", credentials.username);
-        formData.append("password", credentials.password);
-        formData.append("grant_type", "password");
+        formData.append('username', credentials.username);
+        formData.append('password', credentials.password);
 
-        const response = await api.post(
-            "/token/",
-            formData,
+        await api.post(
+            '/token/', formData,
             {
-                headers: { "Content-Type": "application/x-www-form-urlencoded" }
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                withCredentials: true
             }
-        );
-
-        const { access_token: accessToken } = response.data;
-        if (!accessToken) {
-            throw new Error("No access token returned from login.");
-        }
-
-        localStorage.setItem(TOKEN_KEY, accessToken);
-        setAuthHeader(accessToken);
-        store.dispatch({ type: "login" });
+        )
+        // console.log(response);
+        store.dispatch({ type: 'login' });
         return true;
     } catch (error) {
-        if (error.response) {
-            console.error("Login failed:", error.response.status, error.response.data);
-        } else if (error.request) {
-            console.error("No response from server:", error.message);
-        } else {
-            console.error("Request setup error:", error.message);
-        }
-        removeToken();
+        console.error('Login Failed', error);
         return false;
     }
 };
