@@ -17,7 +17,7 @@ database = client["sports_data"]
 
 class UsersServices():
     def __init__(self, level_key: Tuple):
-        self.user_collection = database.get_collection('temp')
+        self.user_collection = database.get_collection('temp2')
         self.level_constants = LEVEL_CONSTANTS[level_key]
         self.level_key = level_key
         self.sports_data = []
