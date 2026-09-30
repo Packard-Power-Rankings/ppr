@@ -26,13 +26,14 @@ from api.schemas.items import TokenData, Token, LogoutResponse
 
 ACCESS_TOKEN_TIME = 60.0
 ALGORITHM = "HS256"
-MONGO_DETAILS = \
-    f"mongodb+srv://{os.getenv("MONGO_USER")}:{os.getenv("MONGO_PASS")}@" \
+MONGO_DETAILS = os.getenv("MONGO_URI") or \
+    f"mongodb+srv://{os.getenv('MONGO_USER')}:{os.getenv('MONGO_PASS')}@" \
     "sports-cluster.mx1mo.mongodb.net/" \
     "?retryWrites=true&w=majority&appName=Sports-Cluster"
 client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_DETAILS)
 database = client['admin_details']
 admin = database.get_collection('admin')
+
 
 class AdminServices():
     def __init__(self):
@@ -194,7 +195,7 @@ class AdminServices():
             ) from exc
         except InvalidTokenError as exc:
             raise credentials_exception from exc
-        
+
     def generate_access_token(
         self,
         data: dict,
@@ -214,7 +215,8 @@ class AdminServices():
         if expires_delta:
             expire = datetime.now(timezone.utc) + expires_delta
         else:
-            expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_TIME)
+            expire = datetime.now(timezone.utc) + \
+                timedelta(minutes=ACCESS_TOKEN_TIME)
 
         to_encode.update({'exp': expire})
         to_encode.update({'iat': datetime.now(timezone.utc)})

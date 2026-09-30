@@ -1,0 +1,51 @@
+[
+  {
+    "team_name": "Northstar Academy",
+    "division": "6A",
+    "conference": null,
+    "power_ranking": 125.0,
+    "state": "CO"
+  },
+  {
+    "team_name": "Cedar Valley",
+    "division": "6A",
+    "conference": null,
+    "power_ranking": 115.0,
+    "state": "CO"
+  },
+  {
+    "team_name": "Mesa Vista",
+    "division": "5A",
+    "conference": null,
+    "power_ranking": 108.0,
+    "state": "CO"
+  },
+  {
+    "team_name": "Riverbend Prep",
+    "division": "5A",
+    "conference": null,
+    "power_ranking": 102.0,
+    "state": "CO"
+  },
+  {
+    "team_name": "Frontier Tech",
+    "division": "4A",
+    "conference": null,
+    "power_ranking": 96.0,
+    "state": "CO"
+  },
+  {
+    "team_name": "Aspen Heights",
+    "division": "4A",
+    "conference": null,
+    "power_ranking": 90.0,
+    "state": "CO"
+  },
+  {
+    "team_name": "QA Reserve",
+    "division": "3A",
+    "conference": null,
+    "power_ranking": 80.0,
+    "state": "CO"
+  }
+]

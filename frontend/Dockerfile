@@ -1,5 +1,4 @@
-# Use an official Node.js image
-FROM node:18
+FROM node:20
 
 # Set the working directory
 WORKDIR /app
@@ -7,8 +6,8 @@ WORKDIR /app
 # Copy package.json and package-lock.json
 COPY package.json package-lock.json ./
 
-# Install dependencies
-RUN npm install
+# Install the exact dependency versions in package-lock.json
+RUN npm ci
 
 # Copy the rest of the application code
 COPY . .

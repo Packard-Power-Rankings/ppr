@@ -1,0 +1,38 @@
+[
+  {
+    "sport_type": "football",
+    "gender": "mens",
+    "level": "high_school",
+    "flagged_games": []
+  },
+  {
+    "sport_type": "football",
+    "gender": "mens",
+    "level": "college",
+    "flagged_games": []
+  },
+  {
+    "sport_type": "basketball",
+    "gender": "mens",
+    "level": "high_school",
+    "flagged_games": []
+  },
+  {
+    "sport_type": "basketball",
+    "gender": "mens",
+    "level": "college",
+    "flagged_games": []
+  },
+  {
+    "sport_type": "basketball",
+    "gender": "womens",
+    "level": "high_school",
+    "flagged_games": []
+  },
+  {
+    "sport_type": "basketball",
+    "gender": "womens",
+    "level": "college",
+    "flagged_games": []
+  }
+]

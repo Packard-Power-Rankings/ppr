@@ -1,0 +1,44 @@
+[
+  {
+    "_id": {"$oid": "67017efbb2d2f30e9c5ecc52"},
+    "sport_type": "football",
+    "gender": "mens",
+    "level": "high_school",
+    "teams": []
+  },
+  {
+    "_id": {"$oid": "67017efbb2d2f30e9c5ecc53"},
+    "sport_type": "football",
+    "gender": "mens",
+    "level": "college",
+    "teams": []
+  },
+  {
+    "_id": {"$oid": "67017efbb2d2f30e9c5ecc54"},
+    "sport_type": "basketball",
+    "gender": "mens",
+    "level": "high_school",
+    "teams": []
+  },
+  {
+    "_id": {"$oid": "67017efbb2d2f30e9c5ecc55"},
+    "sport_type": "basketball",
+    "gender": "mens",
+    "level": "college",
+    "teams": []
+  },
+  {
+    "_id": {"$oid": "67017efbb2d2f30e9c5ecc56"},
+    "sport_type": "basketball",
+    "gender": "womens",
+    "level": "high_school",
+    "teams": []
+  },
+  {
+    "_id": {"$oid": "67017efbb2d2f30e9c5ecc57"},
+    "sport_type": "basketball",
+    "gender": "womens",
+    "level": "college",
+    "teams": []
+  }
+]

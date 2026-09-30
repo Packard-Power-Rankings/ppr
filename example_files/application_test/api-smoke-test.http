@@ -1,0 +1,205 @@
+@baseUrl = http://localhost:8000
+@setupToken = replace-with-SETUP_TOKEN
+@adminUsername = sample-admin
+@adminPassword = sample-password-change-me
+@sport = basketball
+@gender = mens
+@level = high_school
+
+# IDs are deterministic only when teams.json is added to an empty seeded dataset.
+@northstarId = 1
+@cedarId = 2
+@mesaId = 3
+@riverbendId = 4
+@frontierId = 5
+@aspenId = 6
+@qaReserveId = 7
+
+### Create the one-time admin account. Skip when an admin already exists.
+POST {{baseUrl}}/setup/admin/
+X-Setup-Token: {{setupToken}}
+Content-Type: application/json
+
+{
+  "username": "{{adminUsername}}",
+  "password": "{{adminPassword}}"
+}
+
+### Log in and capture the JWT for later requests.
+# @name login
+POST {{baseUrl}}/token/
+Content-Type: application/x-www-form-urlencoded
+
+username={{adminUsername}}&password={{adminPassword}}
+
+### Validate the captured token.
+GET {{baseUrl}}/validate-token/
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+### Retrieve valid division and state choices.
+GET {{baseUrl}}/sports/?sport_type={{sport}}&gender={{gender}}&level={{level}}
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+### Confirm that all game teams are initially missing.
+POST {{baseUrl}}/check-teams/?sport_type={{sport}}&gender={{gender}}&level={{level}}
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+[
+  "Northstar Academy",
+  "Cedar Valley",
+  "Mesa Vista",
+  "Riverbend Prep",
+  "Frontier Tech",
+  "Aspen Heights",
+  "QA Reserve"
+]
+
+### Add teams in a deterministic order.
+POST {{baseUrl}}/add_teams/?sport_type={{sport}}&gender={{gender}}&level={{level}}
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+< ./teams.json
+
+### Upload week 1.
+POST {{baseUrl}}/upload_csv/?sport_type={{sport}}&gender={{gender}}&level={{level}}
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: multipart/form-data; boundary=fixture-boundary
+
+--fixture-boundary
+Content-Disposition: form-data; name="csv_file"; filename="week-01.csv"
+Content-Type: text/csv
+
+< ./week-01.csv
+--fixture-boundary--
+
+### Upload week 2.
+POST {{baseUrl}}/upload_csv/?sport_type={{sport}}&gender={{gender}}&level={{level}}
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: multipart/form-data; boundary=fixture-boundary
+
+--fixture-boundary
+Content-Disposition: form-data; name="csv_file"; filename="week-02.csv"
+Content-Type: text/csv
+
+< ./week-02.csv
+--fixture-boundary--
+
+### Upload week 3.
+POST {{baseUrl}}/upload_csv/?sport_type={{sport}}&gender={{gender}}&level={{level}}
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: multipart/form-data; boundary=fixture-boundary
+
+--fixture-boundary
+Content-Disposition: form-data; name="csv_file"; filename="week-03.csv"
+Content-Type: text/csv
+
+< ./week-03.csv
+--fixture-boundary--
+
+### Upload week 4.
+POST {{baseUrl}}/upload_csv/?sport_type={{sport}}&gender={{gender}}&level={{level}}
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: multipart/form-data; boundary=fixture-boundary
+
+--fixture-boundary
+Content-Disposition: form-data; name="csv_file"; filename="week-04.csv"
+Content-Type: text/csv
+
+< ./week-04.csv
+--fixture-boundary--
+
+### Start one ranking pass.
+# @name algorithmJob
+POST {{baseUrl}}/run_algorithm/1/?sport_type={{sport}}&gender={{gender}}&level={{level}}
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{}
+
+### Poll until the ranking job reports complete.
+GET {{baseUrl}}/task-status/{{algorithmJob.response.body.$.task_id}}
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+### Start z-score calculation after the ranking job completes.
+# @name zScoreJob
+POST {{baseUrl}}/calc_z_scores/?sport_type={{sport}}&gender={{gender}}&level={{level}}
+Authorization: Bearer {{login.response.body.$.access_token}}
+Content-Type: application/json
+
+{}
+
+### Poll until the z-score job reports complete.
+GET {{baseUrl}}/task-status/{{zScoreJob.response.body.$.task_id}}
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+### Public team list: compare records with expected-records.json.
+GET {{baseUrl}}/teams/?sport_type={{sport}}&gender={{gender}}&level={{level}}
+
+### Public team detail and game history.
+GET {{baseUrl}}/teams/Northstar%20Academy/?sport_type={{sport}}&gender={{gender}}&level={{level}}
+
+### Public prediction team choices.
+GET {{baseUrl}}/predictions/?sport_type={{sport}}&gender={{gender}}&level={{level}}
+
+### Public score prediction with home-field advantage.
+GET {{baseUrl}}/predictions/Northstar%20Academy/Mesa%20Vista/true/?sport_type={{sport}}&gender={{gender}}&level={{level}}
+
+### Fetch current IDs before using maintenance requests.
+GET {{baseUrl}}/teams-ids/?sport_type={{sport}}&gender={{gender}}&level={{level}}
+
+### Flag the week-01 Northstar/Cedar game from the public workflow.
+POST {{baseUrl}}/flagged-game/?sport_type={{sport}}&gender={{gender}}&level={{level}}
+Content-Type: application/json
+
+{
+  "game_id": "{{northstarId}}_{{cedarId}}_2026-01-09",
+  "team1_id": {{northstarId}},
+  "team1_name": "Northstar Academy",
+  "team2_id": {{cedarId}},
+  "team2_name": "Cedar Valley"
+}
+
+### Confirm the game is flagged.
+GET {{baseUrl}}/check-flagged/{{northstarId}}_{{cedarId}}_2026-01-09?sport_type={{sport}}&gender={{gender}}&level={{level}}
+
+### Retrieve flagged games as an admin.
+GET {{baseUrl}}/retrieve-flagged?sport_type={{sport}}&gender={{gender}}&level={{level}}
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+### Clear flagged games.
+DELETE {{baseUrl}}/clear-flagged?sport_type={{sport}}&gender={{gender}}&level={{level}}
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+### Maintenance: correct the Northstar/Cedar score.
+PUT {{baseUrl}}/update-game/?date=2026-01-09&home_team=Northstar%20Academy&away_team=Cedar%20Valley&home_score=73&away_score=61&sport_type={{sport}}&gender={{gender}}&level={{level}}
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+### Maintenance: rename the QA team.
+PUT {{baseUrl}}/update-name/{{qaReserveId}}/QA%20Reserve%20Renamed?sport_type={{sport}}&gender={{gender}}&level={{level}}
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+### Maintenance: restore the QA team name.
+PUT {{baseUrl}}/update-name/{{qaReserveId}}/QA%20Reserve?sport_type={{sport}}&gender={{gender}}&level={{level}}
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+### Maintenance: find dates for Northstar/Cedar games.
+GET {{baseUrl}}/season-dates/{{northstarId}}/{{cedarId}}?sport_type={{sport}}&gender={{gender}}&level={{level}}
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+### Destructive: delete the week-01 Northstar/Cedar game.
+DELETE {{baseUrl}}/delete-game/{{northstarId}}/{{cedarId}}/{{northstarId}}_{{cedarId}}_2026-01-09/2026-01-09?sport_type={{sport}}&gender={{gender}}&level={{level}}
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+### Destructive: delete the QA team after its maintenance checks.
+DELETE {{baseUrl}}/delete-team/QA%20Reserve/{{qaReserveId}}/?sport_type={{sport}}&gender={{gender}}&level={{level}}
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+### Highly destructive: archive and clear the sample season. Run last.
+DELETE {{baseUrl}}/clear-season/?sport_type={{sport}}&gender={{gender}}&level={{level}}
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+### Log out locally after all protected requests are complete.
+POST {{baseUrl}}/logout/
+Authorization: Bearer {{login.response.body.$.access_token}}

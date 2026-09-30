@@ -1,27 +1,24 @@
-# Use an official Python runtime as a parent image
-FROM python:3-slim
+FROM python:3.12-slim
 
-# Set the working directory
 WORKDIR /app
 
-# Upgrade pip
-RUN python -m pip install --upgrade pip
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
 
-# Copy the requirements file into the container
 COPY requirements.txt .
 
-# Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN python -m pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt && \
+    groupadd --gid 10001 app && \
+    useradd --uid 10001 --gid app --create-home app
 
-# Copy the rest of the code into the container
-COPY . .
+COPY --chown=app:app . .
 
 ENV PYTHONPATH=/app
 
-# Create a non-root user and switch to it
+USER app
 
-# Expose the port FastAPI will run on
 EXPOSE 8000
 
-# Run the FastAPI application
-CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]

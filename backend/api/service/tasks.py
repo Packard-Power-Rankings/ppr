@@ -1,6 +1,5 @@
-from arq import create_pool
-from arq.connections import RedisSettings
 from api.service.admin_teams import AdminTeamsService
+from api.config.redis import get_redis_settings
 
 
 async def run_main_algorithm(ctx, level_key, iterations: int):
@@ -19,4 +18,4 @@ async def calc_z_score(ctx, level_key):
 class WorkerSettings:
     """Configuration for Arq Worker"""
     functions = [run_main_algorithm, calc_z_score]
-    redis_settings = RedisSettings(host="redis", port=6379)
+    redis_settings = get_redis_settings()

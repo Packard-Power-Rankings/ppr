@@ -1,49 +1,138 @@
-# FastAPI Layout
+# FastAPI Backend
 
-## File Structure
-In the other read me I showed the details of how the files will be structured for the backend portion of this application.
+The backend exposes the public rankings API, protected admin operations, MongoDB access, and Redis-backed ranking jobs. It runs as `api.main:app` from the backend container.
 
+For the complete system architecture, see [`../../docs/README.md`](../../docs/README.md). For local startup and automated test commands, see the root [`../../README.md`](../../README.md).
+
+## Structure
+
+```text
+backend/
+|-- Dockerfile
+|-- requirements.txt
+`-- api/
+    |-- main.py                  FastAPI application entry point
+    |-- routers/
+    |   |-- user_routes.py      Public teams and predictions
+    |   `-- admin_routes.py     Authentication, ingestion, jobs, and CRUD
+    |-- schemas/
+    |   `-- items.py            Pydantic request and response models
+    |-- service/
+    |   |-- users_teams.py      Public queries and score predictions
+    |   |-- admin_service.py    Admin setup, passwords, and JWTs
+    |   |-- admin_teams.py      CSV storage and team/game operations
+    |   `-- tasks.py            ARQ worker functions
+    |-- config/
+    |   `-- constants.py        Dataset IDs and ranking constants
+    `-- utils/
+        |-- algorithm/          MongoDB-integrated ranking pipeline
+        |-- dependencies.py
+        |-- json_helper.py
+        `-- update_algo_vals.py
 ```
-📦backend
- ┣ 📂app
- ┃ ┣ 📂crud
- ┃ ┃ ┗ 📜__init__.py
- ┃ ┣ 📂external_services
- ┃ ┃ ┗ 📜__init__.py
- ┃ ┣ 📂models
- ┃ ┃ ┗ 📜__init__.py
- ┃ ┣ 📂routers
- ┃ ┃ ┗ 📜__init__.py
- ┃ ┣ 📂schemas
- ┃ ┃ ┗ 📜__init__.py
- ┃ ┣ 📂utils
- ┃ ┃ ┗ 📜__init__py
- ┃ ┣ 📜__init__.py
- ┃ ┣ 📜dependencies.py
- ┃ ┗ 📜main.py
- ┣ 📂tests
- ┃ ┗ 📜__init__.py
- ┣ 📜Dockerfile
- ┗ 📜requirements.txt
+
+## Request Model
+
+Most endpoints require three query parameters:
+
+```text
+sport_type=football|basketball
+gender=mens|womens
+level=high_school|college
 ```
-So far this is what I have:
 
-* Crud File
-    + This file contains all the crud operations: create, read, update, and delete hence the name of the file
-    + All functionality with https requests will be handled through this file
-* External Services
-    + This is will hold models for handling specific services, such as emails and other things.
-* Models
-    + Models file will contain the files specific to creating the structure of the database and where things will go when requested
-* Routers
-    + This file will contain the files that will define routes and endpoints
-* Schema
-    + The schema file will be what holds all the Pydantic models which aid in defining the structure of received/sent details to the api
-* Utils
-    + This will contain certain files that might pertain to authorization and validation but I am unsure if this is needed yet
-* dependencies.py
-    + Sets the dependencies that are required by the router
-* main.py
-    + Used to initialize the FastAPI application
+Together they form the dataset key `(sport_type, gender, level)`. `config/constants.py` maps supported keys to a MongoDB document ID and the algorithm's `k_value`, home advantage, average game score, and game-set length.
 
-This is what I have got so far with this but we might have to change the structure of this to include an aws file that will be used to define a external service communication.
+Routes have no source-code prefix. With the default development Compose configuration, the API root is `http://localhost:8000` and interactive documentation is available at `http://localhost:8000/docs`. The Lightsail deployment sets `ROOT_PATH=/api`, and Caddy exposes the same routes at `https://<domain>/api` with documentation under `/api/docs`.
+
+## Public Routes
+
+| Method and path | Purpose |
+| --- | --- |
+| `GET /teams/` | List teams and current rankings for a dataset |
+| `GET /teams/{team_name}/` | Return one team's ranking and game history |
+| `GET /predictions/` | Return team names for the prediction form |
+| `GET /predictions/{team_one}/{team_two}/{home_field_adv}/` | Calculate predicted scores |
+| `POST /flagged-game/` | Report a game for admin review |
+| `GET /check-flagged/{game_id}` | Check whether a game was already reported |
+
+Public queries are implemented in `service/users_teams.py` and read from `sports_data.temp2`.
+
+## Admin Routes
+
+Authentication routes are `/setup/admin/`, `/token/`, `/validate-token/`, and `/logout/`. Protected routes require a Bearer JWT signed with `SECRET_KEY`.
+
+Admin operations include:
+
+- Retrieving valid sport metadata
+- Checking and adding missing teams
+- Uploading game CSVs
+- Queueing ranking and z-score calculations
+- Polling job status
+- Updating team names and game scores
+- Deleting games or teams
+- Reviewing and clearing flagged games
+- Archiving and clearing a season
+
+The current model permits one admin account. `/setup/admin/` requires the `X-Setup-Token` header and refuses to create another account when one already exists.
+
+## CSV Ingestion
+
+Game files are headerless and contain six columns:
+
+```text
+date,home_team,away_team,home_score,away_score,neutral_site
+```
+
+`neutral_site=999` disables home-field advantage; normal home games use `0`. Uploaded bytes are stored in `sports_data.csv_files` and processed later by the worker.
+
+## Background Jobs
+
+`POST /run_algorithm/{iterations}` and `POST /calc_z_scores/` enqueue ARQ jobs in Redis and immediately return a `task_id`. The worker starts from `api.service.tasks.WorkerSettings` and invokes `AdminTeamsService`, which connects the job to the production algorithm under `utils/algorithm/`.
+
+The frontend and smoke-test script poll `GET /task-status/{task_id}` until the job completes or fails.
+
+## Data Storage
+
+| Database | Collection | Responsibility |
+| --- | --- | --- |
+| `sports_data` | `temp2` | Dataset documents containing nested teams and games |
+| `sports_data` | `csv_files` | Uploaded weekly game files |
+| `sports_data` | `flagged_games` | Games reported for review |
+| `sports_data` | `previous_season` | Archived season data |
+| `admin_details` | `admin` | Admin username and bcrypt password hash |
+
+The MongoDB connection comes from `MONGO_URI`, while the Python services currently select the `sports_data` and `admin_details` database names directly. ARQ reads `REDIS_HOST`, `REDIS_PORT`, `REDIS_DATABASE`, `REDIS_PASSWORD`, and `REDIS_SSL`; local development uses their defaults, while production enables Redis authentication.
+
+## Local Workflow
+
+From the repository root:
+
+```bash
+make app-up
+make app-logs
+make app-down
+```
+
+Run the automated API and algorithm workflow with:
+
+```bash
+make test-app
+```
+
+When fixture data already exists:
+
+```bash
+make test-app-reset CONFIRM_TEST_RESET=1
+```
+
+If a disposable local database has an unknown admin password:
+
+```bash
+make test-admin-reset CONFIRM_ADMIN_RESET=1
+make test-app
+```
+
+The admin reset deletes the existing `admin_details.admin` account. It is intended only for isolated local development.
+
+See [`../../example_files/application_test/README.md`](../../example_files/application_test/README.md) for fixtures, assertions, maintenance checks, and troubleshooting.

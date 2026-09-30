@@ -20,18 +20,20 @@ from api.config.constants import LEVEL_CONSTANTS
 from api.utils.json_helper import query_params_builder
 
 
-MONGO_DETAILS = \
-    f"mongodb+srv://{os.getenv("MONGO_USER")}:{os.getenv("MONGO_PASS")}@" \
+MONGO_DETAILS = os.getenv("MONGO_URI") or \
+    f"mongodb+srv://{os.getenv('MONGO_USER')}:{os.getenv('MONGO_PASS')}@" \
     "sports-cluster.mx1mo.mongodb.net/" \
     "?retryWrites=true&w=majority&appName=Sports-Cluster"
 client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_DETAILS)
 database = client["sports_data"]
+
 
 class AdminTeamsService():
     """Admin Level CRUD operations for HTTP endpoints
     containing all the logic for operations with the
     database
     """
+
     def __init__(self, level_key: Tuple):
         """Initializes MongoDB connections, constants,
         and Child Class
@@ -105,7 +107,7 @@ class AdminTeamsService():
                     "status": status.HTTP_200_OK,
                     "files_uploaded": file_upload
                 }
-        
+
         except Exception as exc:
             traceback.print_exc()
             raise HTTPException(
@@ -126,7 +128,8 @@ class AdminTeamsService():
 
         try:
             documents = await self.sports_collection.find(query_base, {"teams.team_name": 1}).to_list(length=None)
-            found_team_names = {team["team_name"] for doc in documents for team in doc["teams"] if "team_name" in team}
+            found_team_names = {
+                team["team_name"] for doc in documents for team in doc["teams"] if "team_name" in team}
 
             missing_teams = list(set(teams) - found_team_names)
             return missing_teams
@@ -136,7 +139,6 @@ class AdminTeamsService():
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An internal error has occurred."
             ) from exc
-
 
     async def add_teams_to_db(
         self,
@@ -420,8 +422,8 @@ class AdminTeamsService():
 
             # Replace old team name with new team name in all occurrences
             df.replace(to_replace={"team_name": {team_id: new_team_name},
-                                "opponent_name": {team_id: new_team_name}},
-                    inplace=True)
+                                   "opponent_name": {team_id: new_team_name}},
+                       inplace=True)
 
             output = io.BytesIO()
             df.to_csv(output, index=False)
@@ -430,7 +432,8 @@ class AdminTeamsService():
             updated_csv_files.append({
                 "filename": filename,
                 "filedata": new_filedata,
-                "upload_date": csv_file.get("upload_date"),  # Preserve original upload_date
+                # Preserve original upload_date
+                "upload_date": csv_file.get("upload_date"),
                 "sports_week": csv_file.get("sports_week", "")
             })
 
@@ -438,7 +441,6 @@ class AdminTeamsService():
             query_base,
             {"$set": {"csv_files": updated_csv_files}}
         )
-
 
         return {
             "results": f"Team {new_team_name} has been updated"
@@ -484,8 +486,10 @@ class AdminTeamsService():
                                         "$cond": [
                                             {"$isArray": "$$team.power_ranking"},
                                             {"$cond": [
-                                                {"$gt": [{"$size": "$$team.power_ranking"}, 0]},
-                                                [{"$arrayElemAt": ["$$team.power_ranking", -1]}],
+                                                {"$gt": [
+                                                    {"$size": "$$team.power_ranking"}, 0]},
+                                                [{"$arrayElemAt": [
+                                                    "$$team.power_ranking", -1]}],
                                                 []
                                             ]},
                                             []
@@ -513,7 +517,6 @@ class AdminTeamsService():
             "teams_reset": doc is not None,
             "return_data": "Cleared season" if doc is not None else "Failed to clear season",
         }
-
 
     async def get_team_names_and_ids(self):
         query: Dict = query_params_builder()
@@ -642,7 +645,8 @@ class AdminTeamsService():
                 df_filtered = df[~df.iloc[:, 1].isin([team_one, team_two])]
 
                 new_csv_string = df_filtered.to_csv(index=False, header=False)
-                new_filedata_binary = bson.Binary(new_csv_string.encode("utf-8"))
+                new_filedata_binary = bson.Binary(
+                    new_csv_string.encode("utf-8"))
 
                 updated_csv = await self.sports_collection.update_one(
                     query_csv,
@@ -721,9 +725,12 @@ class AdminTeamsService():
                                         winner = team_id if game["away_score"] > game["home_score"] else game["opponent_id"]
 
                                     if winner == team_id:
-                                        update = {"$inc": {"teams.$.losses": -1}}  # Deleted team won, opponent lost
+                                        # Deleted team won, opponent lost
+                                        update = {
+                                            "$inc": {"teams.$.losses": -1}}
                                     else:
-                                        update = {"$inc": {"teams.$.wins": -1}}  # Deleted team lost, opponent won
+                                        # Deleted team lost, opponent won
+                                        update = {"$inc": {"teams.$.wins": -1}}
 
                                     await self.sports_collection.update_one(query, update)
 
@@ -745,7 +752,8 @@ class AdminTeamsService():
                 csv_document = await self.sports_collection.find_one(query_csv, {"csv_files.$": 1})
 
                 if csv_document and "csv_files" in csv_document:
-                    csv_file = csv_document["csv_files"][0]  # Only one file matches
+                    # Only one file matches
+                    csv_file = csv_document["csv_files"][0]
 
                     # Decode the CSV and remove rows containing `team_name`
                     csv_string = csv_file["filedata"].decode("utf-8")
@@ -753,8 +761,10 @@ class AdminTeamsService():
                     df_filtered = df[~df.iloc[:, 1].isin([team_name])]
 
                     # Convert back to CSV and update MongoDB
-                    new_csv_string = df_filtered.to_csv(index=False, header=False)
-                    new_filedata_binary = bson.Binary(new_csv_string.encode("utf-8"))
+                    new_csv_string = df_filtered.to_csv(
+                        index=False, header=False)
+                    new_filedata_binary = bson.Binary(
+                        new_csv_string.encode("utf-8"))
 
                     await self.sports_collection.update_one(
                         query_csv,
@@ -794,7 +804,7 @@ class AdminTeamsService():
         }
         response = await self.flagged_games.update_one(
             query,
-            {"$push": { "flagged_games": {
+            {"$push": {"flagged_games": {
                 'game_id': game_id,
                 'team1_id': team1_id,
                 'team1_name': team1_name,
@@ -920,7 +930,8 @@ class AdminTeamsService():
             projection={"teams": 1, "_id": 0}
         )
         team_list = teams.get("teams", []) if teams else []
-        existing_ids = [team.get("team_id") for team in team_list if "team_id" in team]
+        existing_ids = [team.get("team_id")
+                        for team in team_list if "team_id" in team]
         return max(existing_ids) if existing_ids else 0
 
     async def retrieve_csv_file(self) -> Dict:

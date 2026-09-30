@@ -1,0 +1,9 @@
+[
+  {"team_name": "Northstar Academy", "wins": 3, "losses": 2},
+  {"team_name": "Cedar Valley", "wins": 1, "losses": 3},
+  {"team_name": "Mesa Vista", "wins": 3, "losses": 1},
+  {"team_name": "Riverbend Prep", "wins": 3, "losses": 1},
+  {"team_name": "Frontier Tech", "wins": 2, "losses": 2},
+  {"team_name": "Aspen Heights", "wins": 1, "losses": 3},
+  {"team_name": "QA Reserve", "wins": 0, "losses": 1}
+]

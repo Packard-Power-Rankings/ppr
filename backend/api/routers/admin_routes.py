@@ -16,7 +16,7 @@ import traceback
 from typing import Tuple, List, Dict
 # from celery.result import AsyncResult
 # from celery import states
-from arq.connections import create_pool, RedisSettings
+from arq.connections import create_pool
 from arq.jobs import Job
 from fastapi import (
     APIRouter,
@@ -48,6 +48,7 @@ from api.config.constants import (
     CONFERENCE_CB,
     STATES
 )
+from api.config.redis import get_redis_settings
 
 router = APIRouter()
 admin_service = AdminServices()
@@ -289,7 +290,7 @@ async def main_algorithm_exc(
     sport_input: InputMethod = Depends()
 ):
     try:
-        redis = await create_pool(RedisSettings(host="redis", port=6379))
+        redis = await create_pool(get_redis_settings())
         job = await redis.enqueue_job(
             "run_main_algorithm",
             (sport_input.sport_type, sport_input.gender, sport_input.level),
@@ -309,7 +310,7 @@ async def calc_z_scores(
     sport_input: InputMethod = Depends()
 ):
     try:
-        redis = await create_pool(RedisSettings(host="redis", port=6379))
+        redis = await create_pool(get_redis_settings())
         job = await redis.enqueue_job(
             "calc_z_score",
             (sport_input.sport_type, sport_input.gender, sport_input.level)
@@ -326,7 +327,7 @@ async def calc_z_scores(
 )
 async def task_checker(task_id: str):
     try:
-        redis = await create_pool(RedisSettings(host="redis", port=6379))
+        redis = await create_pool(get_redis_settings())
         job_info = Job(job_id=task_id, redis=redis)
         return {
             "info": await job_info.info(),

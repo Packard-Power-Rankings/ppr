@@ -25,9 +25,9 @@ services:
       - app-network
     environment:
       - PYTHONPATH=/app
-      - MONGO_URI=mongodb://${MONGO_USER}:${MONGO_PASS}@db:${MONGO_PORT}/${MONGO_DB_NAME}
-      - SETUP_TOKEN=poiuytrewq0987654321
-      - SECRET_KEY=qwertyuiopasdfghjklzxcvbnm0
+      - MONGO_URI=mongodb://${MONGO_USER}:${MONGO_PASS}@db:${MONGO_PORT}/${MONGO_DB_NAME}?authSource=admin
+      - SETUP_TOKEN=${SETUP_TOKEN}
+      - SECRET_KEY=${SECRET_KEY}
     depends_on:
       redis:
         condition: service_healthy
@@ -35,7 +35,7 @@ services:
         condition: service_started
     env_file:
       - .env
-  
+
   arq_worker:
     build: ./backend
     command: ["arq", "api.service.tasks.WorkerSettings"]
@@ -46,6 +46,7 @@ services:
       - app-network
     environment:
       - PYTHONPATH=/app
+      - MONGO_URI=mongodb://${MONGO_USER}:${MONGO_PASS}@db:${MONGO_PORT}/${MONGO_DB_NAME}?authSource=admin
     depends_on:
       redis:
         condition: service_healthy
