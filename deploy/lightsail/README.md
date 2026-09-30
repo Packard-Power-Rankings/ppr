@@ -58,11 +58,10 @@ openssl rand -hex 32
 
 The generated domain settings for `rankings.example.com` are:
 
-```env
-DOMAIN=rankings.example.com
-CORS_ORIGINS=https://rankings.example.com
-ALLOWED_HOSTS=rankings.example.com
-```
+````env
+DOMAIN=packardpowerrankings.com
+CORS_ORIGINS=packardpowerrankings.com/
+ALLOWED_HOSTS=packardpowerrankings.com/
 
 Do not put `https://` in `DOMAIN` or `ALLOWED_HOSTS`. Passwords should use the documented hexadecimal format because `MONGO_PASS` is embedded in a MongoDB connection URI.
 
@@ -70,7 +69,7 @@ Validate the file and rendered Compose configuration without starting anything:
 
 ```bash
 make lightsail-check
-```
+````
 
 ## 4. Deploy
 
@@ -96,8 +95,8 @@ make lightsail-health
 The application and API documentation are available at:
 
 ```text
-https://rankings.example.com/
-https://rankings.example.com/api/docs
+https://packardpowerrankings.com/
+https://packardpowerrankings.com/api/docs
 ```
 
 ## 5. Create the First Admin
