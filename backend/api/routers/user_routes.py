@@ -3,15 +3,27 @@ from fastapi import APIRouter, Depends, HTTPException
 from api.schemas.items import InputMethod
 # from api.schemas import items
 from api.service.users_teams import UsersServices
+from api.service.archive_service import ArchiveService
 
 router = APIRouter()
 _instance_cache: Dict[Tuple, "UsersServices"] = {}
+archive_service = ArchiveService()
 
 
 def users_class(level_key: Tuple) -> "UsersServices":
     if level_key not in _instance_cache:
         _instance_cache[level_key] = UsersServices(level_key)
     return _instance_cache[level_key]
+
+
+@router.get("/archives/", response_description="List season ranking archives")
+async def list_archives():
+    return archive_service.list_archives()
+
+
+@router.get("/archives/{year}", response_description="Display a season archive")
+async def get_archive(year: int):
+    return archive_service.get_archive(year)
 
 
 @router.get("/teams", response_description="Display Teams Data")

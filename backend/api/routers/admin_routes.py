@@ -24,6 +24,7 @@ from fastapi import (
     File,
     UploadFile,
     HTTPException,
+    Query,
     status,
     Response,
     Request
@@ -39,6 +40,7 @@ from api.schemas.items import (
     Token
 )
 from api.service.admin_teams import AdminTeamsService
+from api.service.archive_service import ArchiveService
 from api.service.admin_service import AdminServices
 # from api.service.celery import celery
 from api.config.constants import (
@@ -52,6 +54,7 @@ from api.config.redis import get_redis_settings
 
 router = APIRouter()
 admin_service = AdminServices()
+archive_service = ArchiveService()
 _instance_cache: Dict[Tuple, "AdminTeamsService"] = {}
 
 
@@ -139,6 +142,29 @@ def require_admin():
     async def wrapper(request: Request):
         return await AdminServices().get_current_user(request)
     return Depends(wrapper)
+
+
+@router.get(
+    "/archive-season/status",
+    dependencies=[require_admin()],
+    description="Check whether the current season archive already exists",
+)
+async def archive_season_status(
+    year: int | None = Query(default=None, ge=2000, le=9999),
+):
+    return archive_service.archive_status(year)
+
+
+@router.post(
+    "/archive-season/",
+    dependencies=[require_admin()],
+    description="Create public static pages for the current season rankings",
+)
+async def archive_season(
+    year: int | None = Query(default=None, ge=2000, le=9999),
+    overwrite: bool = Query(default=False),
+):
+    return await archive_service.archive_current_season(year, overwrite)
 
 
 def dict_to_list(data_dict):
@@ -373,7 +399,8 @@ async def update_game(
         update_data.home_score,
         update_data.away_team,
         update_data.away_score,
-        update_data.date
+        update_data.date,
+        update_data.game_id
     )
     return results
 

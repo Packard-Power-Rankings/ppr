@@ -1,7 +1,7 @@
 @baseUrl = http://localhost:8000
 @setupToken = replace-with-SETUP_TOKEN
-@adminUsername = sample-admin
-@adminPassword = sample-password-change-me
+@adminUsername = test-admin
+@adminPassword = test-admin-password
 @sport = basketball
 @gender = mens
 @level = high_school
@@ -135,10 +135,10 @@ GET {{baseUrl}}/task-status/{{zScoreJob.response.body.$.task_id}}
 Authorization: Bearer {{login.response.body.$.access_token}}
 
 ### Public team list: compare records with expected-records.json.
-GET {{baseUrl}}/teams/?sport_type={{sport}}&gender={{gender}}&level={{level}}
+GET {{baseUrl}}/teams?sport_type={{sport}}&gender={{gender}}&level={{level}}
 
 ### Public team detail and game history.
-GET {{baseUrl}}/teams/Northstar%20Academy/?sport_type={{sport}}&gender={{gender}}&level={{level}}
+GET {{baseUrl}}/teams/Northstar%20Academy?sport_type={{sport}}&gender={{gender}}&level={{level}}
 
 ### Public prediction team choices.
 GET {{baseUrl}}/predictions/?sport_type={{sport}}&gender={{gender}}&level={{level}}

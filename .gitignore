@@ -157,8 +157,6 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
-.env.production
 backups/
 .venv
 env/
@@ -251,6 +249,9 @@ $RECYCLE.BIN/
 
 # End of https://www.toptal.com/developers/gitignore/api/react,python,macos,windows
 *.env
+!.env/
+.env/*
+!.env/*.example
 data/
 .devcontainer
 .vscode

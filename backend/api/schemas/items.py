@@ -154,6 +154,7 @@ class OpponentData(BaseModel):
 
 class UpdateTeamsData(BaseModel):
     date: str = Field(..., description="Week Played")
+    game_id: Optional[str] = Field(default=None, description="Stored Game ID")
     home_team: str = Field(..., description="Home Team Name")
     away_team: str = Field(..., description="Away Team Name")
     home_score: int = Field(..., description="Home Team Score")
@@ -162,6 +163,7 @@ class UpdateTeamsData(BaseModel):
 
 async def update_method(
     date: str = Form(...),
+    game_id: Optional[str] = Form(default=None),
     home_team: str = Form(...),
     away_team: str = Form(...),
     home_score: int = Form(...),
@@ -171,6 +173,7 @@ async def update_method(
     try:
         return UpdateTeamsData(
             date=date,
+            game_id=game_id,
             home_team=home_team,
             away_team=away_team,
             home_score=home_score,

@@ -20,17 +20,18 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y docker-compose
 
-      # Create the .env file with environment variables from GitHub Secrets
-      - name: Create .env file
+      # Create the development environment file from GitHub Secrets.
+      - name: Create development environment file
         run: |
-          echo "MONGO_DB_NAME=${{ secrets.MONGO_DB_NAME }}" >> .env
-          echo "MONGO_USER=${{ secrets.MONGO_USER }}" >> .env
-          echo "MONGO_PASS=${{ secrets.MONGO_PASS }}" >> .env
-          echo "MONGO_PORT=${{ secrets.MONGO_PORT }}" >> .env
-          echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
+          mkdir -p .env
+          echo "MONGO_DB_NAME=${{ secrets.MONGO_DB_NAME }}" >> .env/development
+          echo "MONGO_USER=${{ secrets.MONGO_USER }}" >> .env/development
+          echo "MONGO_PASS=${{ secrets.MONGO_PASS }}" >> .env/development
+          echo "MONGO_PORT=${{ secrets.MONGO_PORT }}" >> .env/development
+          echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env/development
 
-      # Run Docker Compose with the .env file
+      # Run Docker Compose with the development environment file.
       - name: Build and Test
         run: |
-          docker-compose up --build -d
+          docker-compose --env-file .env/development up --build -d
           # Additional test or build commands here

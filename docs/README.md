@@ -20,10 +20,12 @@ Redis :6379 ------> ARQ worker ------> ranking algorithm
 
 Separate development path:
 
-CSV fixtures ------> isotests/algorithm ------> generated CSV output
+CSV fixtures ------> tests/isolation/algorithm ------> generated CSV output
 ```
 
-The public side reads rankings and predictions from MongoDB. The admin side loads game data and starts calculations that update MongoDB. Redis and the ARQ worker keep those calculations out of normal HTTP request processing.
+The public side reads rankings and predictions from MongoDB. Its canonical entry point is `/`, with public ranking and prediction pages under `/teams`, `/team`, and `/predictions`. The admin side lives under `/admin`, loads game data, and starts calculations that update MongoDB. Redis and the ARQ worker keep those calculations out of normal HTTP request processing.
+
+Season archives are filesystem snapshots rather than live MongoDB views. FastAPI writes ranked JSON and self-contained HTML into the shared `archive_data` volume. React reads the JSON through `/api/archives`, while Caddy serves the generated pages directly under `/archive/<year>/`.
 
 The AWS Lightsail production topology adds Caddy in front of the same logical services:
 
@@ -95,7 +97,7 @@ backend/api/
 |-- config/                   Dataset IDs and sport-specific constants
 `-- utils/algorithm/          Production ranking pipeline
 
-isotests/algorithm/
+tests/isolation/algorithm/
 |-- run.py                    Standalone pipeline entry point
 |-- upload.py                 CSV loading and validation
 |-- data_cleaning.py          Input normalization
@@ -177,6 +179,8 @@ There is one admin account in the current model.
 4. The frontend stores it under `access_token` in browser local storage.
 5. The shared Axios client sends `Authorization: Bearer <token>` on protected requests.
 6. Admin routes call `require_admin()` to validate the token.
+
+The browser validates a stored token when the application starts. Public routes remain available without authentication, `/admin/login` is the dedicated sign-in page, and every `/admin` application route is wrapped by `RequireAdmin`. A signed-out visitor is returned to the admin page they originally requested after a successful login. Caddy and the React development server both fall back to `index.html`, so clean browser URLs continue to work when opened directly or refreshed.
 
 Logging out removes the token from the browser. The backend does not currently maintain a token revocation list.
 
@@ -281,7 +285,7 @@ There are two similar but differently connected algorithm implementations:
 | Location | Data source | Output | Use |
 | --- | --- | --- | --- |
 | `backend/api/utils/algorithm/` | MongoDB teams and stored CSVs | MongoDB updates | Running application |
-| `isotests/algorithm/` | Local CSV fixtures | Generated CSVs | Isolated development and comparison |
+| `tests/isolation/algorithm/` | Local CSV fixtures | Generated CSVs | Isolated development and comparison |
 
 The standalone runner starts with `TEAMSNEW.csv`, processes `GAMES1.csv` through `GAMES3.csv` in order, carries updated team state forward, and writes generated output files. Changes to shared ranking behavior may need to be applied to both workspaces so they do not drift.
 
@@ -329,8 +333,8 @@ That path follows the same direction as a real request and avoids beginning with
 
 ## End-to-End Test Data
 
-[`example_files/application_test/`](../example_files/application_test/) contains a fresh-database seed, team metadata, connected weekly game files, expected records, negative cases, and an HTTP smoke-test sequence. Its README describes the safe execution order and identifies the final destructive maintenance checks.
+[`tests/application/`](../tests/application/) contains a fresh-database seed, team metadata, connected weekly game files, expected records, negative cases, and an HTTP smoke-test sequence. Its README describes the safe execution order and identifies the final destructive maintenance checks.
 
-Run the automated happy-path suite from the repository root with `make test-app`. Repeat it with `make test-app-reset CONFIRM_TEST_RESET=1`, which resets only the fixture's Basketball/Men's/High School dataset before testing. Destructive maintenance endpoint checks are kept behind `make test-app-maintenance CONFIRM_DESTRUCTIVE=1`.
+Run the automated happy-path suite from the repository root with `make test-app`. Use `make test-app-reset CONFIRM_TEST_RESET=1` to replace every local application collection with the full fixture baseline: six datasets, 60 current teams, 60 games, six uploaded CSV records, six flagged games, and six previous-season datasets. Destructive maintenance endpoint checks are kept behind `make test-app-maintenance CONFIRM_DESTRUCTIVE=1`.
 
-The test creates `sample-admin` only when no admin exists. For an existing account, provide `TEST_ADMIN_USERNAME` and `TEST_ADMIN_PASSWORD` to `make test-app`. A forgotten local-only credential can be replaced through the separately guarded `make test-admin-reset CONFIRM_ADMIN_RESET=1` target; this deletes and recreates the `admin_details.admin` account and must not be used with shared or production data.
+The default test account is `test-admin` with password `test-admin-password`. The full fixture reset recreates that account; the separately guarded `make test-admin-reset CONFIRM_ADMIN_RESET=1` target replaces only `admin_details.admin`. Both reset commands are for isolated local data and must not be used with shared or production databases.

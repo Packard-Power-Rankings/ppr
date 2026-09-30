@@ -3,7 +3,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-ENV_FILE="${1:-$ROOT_DIR/.env.production}"
+ENV_FILE="${1:-$ROOT_DIR/.env/production}"
 
 fail() {
   printf '[lightsail] ERROR: %s\n' "$*" >&2

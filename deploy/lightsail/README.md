@@ -105,7 +105,7 @@ Create the single initial admin from the Lightsail shell. This avoids putting th
 
 ```bash
 set -a
-source .env.production
+source .env/production
 set +a
 read -r -p "Admin username: " ADMIN_USERNAME
 read -r -s -p "Admin password: " ADMIN_PASSWORD
@@ -148,7 +148,7 @@ make lightsail-up
 make lightsail-health
 ```
 
-Do not run `docker compose down --volumes`. The `mongo_data`, `redis_data`, `caddy_data`, and `caddy_config` volumes contain persistent state.
+Do not run `docker compose down --volumes`. The `mongo_data`, `redis_data`, `archive_data`, `caddy_data`, and `caddy_config` volumes contain persistent state.
 
 ## Backups
 
@@ -158,15 +158,15 @@ Create a compressed logical MongoDB backup before deployments and data maintenan
 make lightsail-backup
 ```
 
-Backups are written with owner-only permissions under the ignored `backups/` directory. Copy them to storage outside the instance. A disk snapshot alone is not a substitute for a tested database restore.
+MongoDB and generated season archive backups are written with owner-only permissions under the ignored `backups/` directory. Copy both files to storage outside the instance. A disk snapshot alone is not a substitute for a tested restore.
 
 To restore a backup, stop application writes first and deliberately run `mongorestore --drop`:
 
 ```bash
 make lightsail-down
-docker compose --env-file .env.production -f docker-compose.lightsail.yml up -d --wait db
+docker compose --env-file .env/production -f docker-compose.lightsail.yml up -d --wait db
 cat backups/ppr-mongodb-YYYYMMDDTHHMMSSZ.archive.gz |
-  docker compose --env-file .env.production -f docker-compose.lightsail.yml \
+  docker compose --env-file .env/production -f docker-compose.lightsail.yml \
     exec -T db sh -c \
     'exec mongorestore --username "$MONGO_INITDB_ROOT_USERNAME" --password "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin --archive --gzip --drop'
 make lightsail-up
@@ -177,7 +177,7 @@ The restore command replaces collections present in the archive. Take another ba
 ## Security Notes
 
 - Only Caddy publishes host ports. Never add public MongoDB or Redis ports.
-- Keep `.env.production` out of Git and readable only by the deployment user (`chmod 600 .env.production`).
+- Keep `.env/production` out of Git and readable only by the deployment user (`chmod 600 .env/production`).
 - Enable Lightsail automatic snapshots and AWS billing alerts.
 - Apply Ubuntu security updates regularly and rebuild images after dependency updates.
 - Review `make lightsail-logs` after each deployment; Docker log rotation is capped at three 10 MB files per container.

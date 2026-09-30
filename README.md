@@ -35,16 +35,17 @@ Packard Power Rankings is a full-stack sports rankings application. The backend 
 |       |-- views/                   # Dashboard, teams, predictions, admin pages
 |       |-- assets/                  # Images, avatars, and brand helpers
 |       `-- scss/                    # CoreUI/custom styles
-|-- isotests/
-|   `-- algorithm/                   # Standalone algorithm test workspace
+|-- tests/
+|   |-- backend/                     # Backend service and algorithm tests
+|   |-- frontend/                    # React component and workflow tests
+|   |-- application/                 # End-to-end runner, requests, and fixtures
+|   `-- isolation/algorithm/         # Standalone algorithm test workspace
 |-- docs/
 |   `-- README.md                    # Architecture and workflow mental model
 |-- deploy/
 |   `-- lightsail/                   # AWS host bootstrap, Caddy, and runbook
-|-- scripts/
-|   `-- application_smoke_test.sh   # Automated end-to-end API workflow
+|-- scripts/                         # AWS setup, health, and backup helpers
 |-- example_files/                   # Sample CSV/text inputs
-|   `-- application_test/            # End-to-end fixtures and API smoke tests
 |-- databases/                       # SQLite database snapshots/reference files
 |-- old_db/                          # Older database snapshots
 |-- archived_files/                  # Older model/algorithm references
@@ -52,7 +53,9 @@ Packard Power Rankings is a full-stack sports rankings application. The backend 
 |-- Makefile                         # Development and smoke-test commands
 |-- docker-compose.yml               # MongoDB, Redis, backend, worker, frontend
 |-- docker-compose.lightsail.yml     # HTTPS production stack for AWS Lightsail
-|-- .env.production.example          # Production environment template
+|-- .env/
+|   |-- development.example          # Local environment template
+|   `-- production.example           # Production environment template
 |-- workflow_requirements.txt
 `-- README.md
 ```
@@ -71,12 +74,20 @@ Build and start the complete application:
 make app-up
 ```
 
+The frontend container compares `package-lock.json` with its persisted `node_modules` volume at startup. When the lockfile changes or dependencies are incomplete, it runs `npm ci` automatically before starting React; that startup can take a few extra seconds.
+
 After the containers start:
 
-- Frontend: <http://localhost:3000>
+- Public frontend: <http://localhost:3000/>
+- Admin login: <http://localhost:3000/admin/login>
+- Protected admin area: <http://localhost:3000/admin>
 - FastAPI docs: <http://localhost:8000/docs>
 - MongoDB: `localhost:27017`
 - Redis: `localhost:6379`
+
+The frontend uses normal browser paths rather than hash URLs. Public pages live under `/`, `/teams`, and `/predictions`; all administration pages live under `/admin`. Opening an admin URL while signed out redirects to `/admin/login`, then returns to the originally requested page after a successful login. The legacy `/login` path redirects to `/admin/login`.
+
+Published season rankings are available through `/archives`. An administrator can use **Archive Season** from any admin page to snapshot every sport/gender/level dataset for the current year. The action requires confirmation and requires a second explicit overwrite confirmation when that year already exists. It creates self-contained public pages under `/archive/<year>/` without changing current teams or games.
 
 Follow backend and worker logs while debugging:
 
@@ -93,12 +104,28 @@ make app-down
 The equivalent direct startup command remains available:
 
 ```bash
-docker compose up -d --build
+docker compose --env-file .env/development up -d --build
 ```
+
+## Automated Tests
+
+All test code and fixtures are organized under [`tests/`](tests/README.md). Run the backend and frontend unit suites with:
+
+```bash
+make test
+```
+
+Run unit tests, frontend lint, and a production frontend build together with:
+
+```bash
+make test-check
+```
+
+Focused targets are available for backend service tests, backend algorithm tests, frontend app/routing tests, admin workflows, and public team views. Run `make help` for the complete list.
 
 ## Application Test Workflow
 
-The end-to-end smoke test uses the fixture data under `example_files/application_test/` and targets Basketball/Men's/High School. On an empty fixture dataset, run:
+The end-to-end smoke test uses the fixture data under `tests/application/` and targets Basketball/Men's/High School. On an empty fixture dataset, run:
 
 ```bash
 make test-app
@@ -120,26 +147,28 @@ A successful run ends with:
 [application-test] PASS: application happy-path smoke test
 ```
 
-The test refuses to run over an already populated fixture dataset. To reset only that dataset and rerun:
+The test refuses to run over an already populated fixture dataset. To replace the complete local test database with deterministic fixtures, run:
 
 ```bash
 make test-app-reset CONFIRM_TEST_RESET=1
 ```
+
+This guarded reset replaces all documents in `sports_data.temp2`, `sports_data.csv_files`, `sports_data.flagged_games`, `sports_data.previous_season`, and `admin_details.admin`. It loads all six supported datasets with 10 teams and 10 games each, then verifies the database and API responses. Do not point it at shared or production data.
 
 ### Test Admin
 
 On a database with no admin, the test attempts to create:
 
 ```text
-username: sample-admin
-password: sample-password-change-me
+username: test-admin
+password: test-admin-password
 ```
 
 If a local admin already exists, pass its credentials without storing them in the repository:
 
 ```bash
-TEST_ADMIN_USERNAME=admin \
-TEST_ADMIN_PASSWORD='your-password' \
+TEST_ADMIN_USERNAME=custom-test-admin \
+TEST_ADMIN_PASSWORD='custom-test-password' \
 make test-app
 ```
 
@@ -162,11 +191,17 @@ make test-app-maintenance CONFIRM_DESTRUCTIVE=1
 
 The confirmation variables are deliberate safeguards. The reset and maintenance targets modify or remove fixture data.
 
-For request-by-request debugging, use [`api-smoke-test.http`](example_files/application_test/api-smoke-test.http). See the [fixture guide](example_files/application_test/README.md) for expected records, negative inputs, optional environment variables, and known application behavior exposed by the tests.
+For request-by-request debugging, use [`api-smoke-test.http`](tests/application/api-smoke-test.http). See the [fixture guide](tests/application/README.md) for expected records, negative inputs, optional environment variables, and known application behavior exposed by the tests.
 
 ## Environment
 
-Docker Compose expects a `.env` file in the repository root. A local development file should define:
+Environment files are grouped under `.env/`. Copy the tracked development template when setting up a new checkout:
+
+```bash
+cp .env/development.example .env/development
+```
+
+The ignored `.env/development` file should define:
 
 ```env
 MONGO_DB_NAME=ppr
@@ -186,7 +221,7 @@ The repository includes a separate production stack for a single AWS Lightsail i
 Start by reading the [AWS Lightsail deployment guide](deploy/lightsail/README.md). The main commands are:
 
 ```bash
-make lightsail-init DOMAIN=rankings.example.com
+make lightsail-init DOMAIN=packardpowerrankings.com
 make lightsail-check
 make lightsail-up
 make lightsail-status
@@ -194,7 +229,7 @@ make lightsail-health
 make lightsail-backup
 ```
 
-Production configuration lives in the ignored `.env.production` file created from `.env.production.example`. Local development continues to use `.env` and `docker-compose.yml`.
+Production configuration lives in the ignored `.env/production` file created by `make lightsail-init` using `.env/production.example` as its reference. Local development uses `.env/development` and `docker-compose.yml`. Override either location with `APP_ENV=/path/to/file` or `LIGHTSAIL_ENV=/path/to/file` when needed.
 
 ## Backend
 
@@ -216,22 +251,24 @@ The frontend lives in `frontend/` and is a Create React App/CoreUI application.
 - `src/components/` and `src/layout/` define the shared application chrome.
 - `src/api.js` and `src/services/authService.js` centralize frontend API calls and authentication helpers.
 - `src/_nav.js` defines sidebar navigation.
+- `src/routes.js` defines public and protected admin routes; `src/components/RequireAdmin.js` enforces the admin boundary after validating the stored token.
 
 Useful local commands from `frontend/`:
 
 ```bash
 npm install
 npm start
-npm test
 npm run build
 ```
+
+Run the centralized frontend suite from the repository root with `make test-frontend`.
 
 ## Algorithm Workspaces
 
 There are two copies of the algorithm pipeline:
 
 - `backend/api/utils/algorithm/` is the version wired into the backend service layer.
-- `isotests/algorithm/` is a standalone CSV-based workspace for experimenting with inputs and comparing outputs.
+- `tests/isolation/algorithm/` is a standalone CSV-based workspace for experimenting with inputs and comparing outputs.
 
 Both follow the same general flow:
 
@@ -259,7 +296,7 @@ Team pages use z-scores to show how impactful a game was relative to average gam
 - `archived_files/` keeps older model and algorithm references.
 - `databases/` and `old_db/` contain database snapshots used for reference or migration work.
 - `example_files/` contains sample source data.
-- `example_files/application_test/` contains a documented end-to-end fixture pack for the current API and UI workflows.
+- `tests/application/` contains a documented end-to-end fixture pack for the current API and UI workflows.
 - `Contract/` contains project contract documents and notes.
 
 ## Git Branch Management & Best Practices

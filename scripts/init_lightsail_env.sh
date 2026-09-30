@@ -2,7 +2,8 @@
 
 set -euo pipefail
 
-OUTPUT_FILE="${1:-.env.production}"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+OUTPUT_FILE="${1:-$ROOT_DIR/.env/production}"
 DOMAIN="${2:-}"
 
 if [[ -z "$DOMAIN" ]]; then
@@ -25,6 +26,7 @@ command -v openssl >/dev/null 2>&1 || {
   exit 1
 }
 
+mkdir -p "$(dirname "$OUTPUT_FILE")"
 umask 077
 MONGO_PASS="$(openssl rand -hex 32)"
 REDIS_PASSWORD="$(openssl rand -hex 32)"

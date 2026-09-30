@@ -29,7 +29,7 @@ export const checkAuthentication = async () => {
     }
 };
 
-export const initilizeAuth = () => checkAuthentication();
+export const initializeAuth = () => checkAuthentication();
 
 export const loginUser = async (credentials) => {
     try {

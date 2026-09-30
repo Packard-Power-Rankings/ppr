@@ -1,0 +1,203 @@
+{
+  "season_year": 2026,
+  "datasets": [
+    {
+      "_id": "67017efbb2d2f30e9c5ecc52",
+      "sport_type": "football",
+      "gender": "mens",
+      "level": "high_school",
+      "state": "CO",
+      "conference": null,
+      "divisions": ["6A", "6A", "5A", "5A", "4A", "4A", "3A", "3A", "2A", "2A"],
+      "team_names": [
+        "Summit Ridge High",
+        "Pioneer Valley High",
+        "Canyon View High",
+        "Timberline High",
+        "Prairie Central High",
+        "Red Rock High",
+        "Clearwater High",
+        "Mountain Crest High",
+        "Lakewood North High",
+        "Heritage Plains High"
+      ],
+      "games": [
+        ["2026-09-04", 1, 2, 28, 14, 0],
+        ["2026-09-04", 3, 4, 21, 17, 0],
+        ["2026-09-05", 5, 6, 35, 20, 0],
+        ["2026-09-05", 7, 8, 24, 27, 0],
+        ["2026-09-06", 9, 10, 31, 7, 999],
+        ["2026-09-11", 2, 3, 10, 24, 0],
+        ["2026-09-11", 4, 5, 14, 30, 0],
+        ["2026-09-12", 6, 7, 21, 13, 0],
+        ["2026-09-12", 8, 9, 17, 28, 0],
+        ["2026-09-13", 10, 1, 20, 34, 999]
+      ]
+    },
+    {
+      "_id": "67017efbb2d2f30e9c5ecc53",
+      "sport_type": "football",
+      "gender": "mens",
+      "level": "college",
+      "state": "CO",
+      "conference": "Mountain West",
+      "divisions": ["NCAA 1 FBS", "NCAA 1 FBS", "NCAA 1 FBS", "NCAA 1 FBS", "NCAA 1 FBS", "NCAA 2", "NCAA 2", "NCAA 2", "NCAA 2", "NCAA 2"],
+      "team_names": [
+        "Front Range University",
+        "Western Plains State",
+        "Mesa Polytechnic",
+        "Northern Basin College",
+        "Centennial University",
+        "High Desert State",
+        "Pikes Peak College",
+        "Rocky Mountain Tech",
+        "Arkansas Valley University",
+        "San Luis College"
+      ],
+      "games": [
+        ["2026-09-03", 1, 2, 38, 24, 0],
+        ["2026-09-03", 3, 4, 27, 21, 0],
+        ["2026-09-04", 5, 6, 42, 17, 0],
+        ["2026-09-04", 7, 8, 20, 23, 0],
+        ["2026-09-05", 9, 10, 31, 30, 999],
+        ["2026-09-10", 2, 3, 14, 35, 0],
+        ["2026-09-10", 4, 5, 17, 28, 0],
+        ["2026-09-11", 6, 7, 24, 10, 0],
+        ["2026-09-11", 8, 9, 21, 26, 0],
+        ["2026-09-12", 10, 1, 13, 34, 999]
+      ]
+    },
+    {
+      "_id": "67017efbb2d2f30e9c5ecc54",
+      "sport_type": "basketball",
+      "gender": "mens",
+      "level": "high_school",
+      "state": "CO",
+      "conference": null,
+      "divisions": ["6A", "6A", "5A", "5A", "4A", "4A", "3A", "3A", "2A", "2A"],
+      "team_names": [
+        "Northstar Academy",
+        "Cedar Valley",
+        "Mesa Vista",
+        "Riverbend Prep",
+        "Frontier Tech",
+        "Aspen Heights",
+        "QA Reserve",
+        "Pine Ridge",
+        "Silver Creek",
+        "Monarch Prep"
+      ],
+      "games": [
+        ["2026-01-09", 1, 2, 73, 61, 0],
+        ["2026-01-09", 3, 4, 68, 65, 0],
+        ["2026-01-10", 5, 6, 71, 58, 0],
+        ["2026-01-10", 7, 8, 54, 62, 0],
+        ["2026-01-11", 9, 10, 76, 70, 999],
+        ["2026-01-16", 2, 3, 59, 67, 0],
+        ["2026-01-16", 4, 5, 72, 66, 0],
+        ["2026-01-17", 6, 7, 64, 57, 0],
+        ["2026-01-17", 8, 9, 69, 74, 0],
+        ["2026-01-18", 10, 1, 63, 78, 999]
+      ]
+    },
+    {
+      "_id": "67017efbb2d2f30e9c5ecc55",
+      "sport_type": "basketball",
+      "gender": "mens",
+      "level": "college",
+      "state": "CO",
+      "conference": "Mountain West",
+      "divisions": ["NCAA 1", "NCAA 1", "NCAA 1", "NCAA 1", "NCAA 1", "NCAA 2", "NCAA 2", "NCAA 2", "NCAA 2", "NCAA 2"],
+      "team_names": [
+        "Capital City University",
+        "Great Divide State",
+        "Eastern Mesa College",
+        "Foothills University",
+        "Continental Tech",
+        "South Platte State",
+        "Royal Gorge College",
+        "West Slope University",
+        "High Country State",
+        "Four Corners College"
+      ],
+      "games": [
+        ["2026-01-08", 1, 2, 82, 74, 0],
+        ["2026-01-08", 3, 4, 77, 71, 0],
+        ["2026-01-09", 5, 6, 88, 69, 0],
+        ["2026-01-09", 7, 8, 65, 68, 0],
+        ["2026-01-10", 9, 10, 79, 73, 999],
+        ["2026-01-15", 2, 3, 70, 81, 0],
+        ["2026-01-15", 4, 5, 75, 84, 0],
+        ["2026-01-16", 6, 7, 72, 66, 0],
+        ["2026-01-16", 8, 9, 74, 80, 0],
+        ["2026-01-17", 10, 1, 69, 86, 999]
+      ]
+    },
+    {
+      "_id": "67017efbb2d2f30e9c5ecc56",
+      "sport_type": "basketball",
+      "gender": "womens",
+      "level": "high_school",
+      "state": "CO",
+      "conference": null,
+      "divisions": ["6A", "6A", "5A", "5A", "4A", "4A", "3A", "3A", "2A", "2A"],
+      "team_names": [
+        "Aurora Central High",
+        "Golden Summit High",
+        "Cherry Hills High",
+        "Boulder Creek High",
+        "Pueblo Vista High",
+        "Loveland Ridge High",
+        "Durango Valley High",
+        "Greeley West High",
+        "Castle Rock High",
+        "Grand Junction High"
+      ],
+      "games": [
+        ["2026-01-07", 1, 2, 67, 55, 0],
+        ["2026-01-07", 3, 4, 61, 58, 0],
+        ["2026-01-08", 5, 6, 70, 52, 0],
+        ["2026-01-08", 7, 8, 56, 60, 0],
+        ["2026-01-09", 9, 10, 64, 59, 999],
+        ["2026-01-14", 2, 3, 53, 66, 0],
+        ["2026-01-14", 4, 5, 62, 69, 0],
+        ["2026-01-15", 6, 7, 63, 51, 0],
+        ["2026-01-15", 8, 9, 57, 65, 0],
+        ["2026-01-16", 10, 1, 54, 71, 999]
+      ]
+    },
+    {
+      "_id": "67017efbb2d2f30e9c5ecc57",
+      "sport_type": "basketball",
+      "gender": "womens",
+      "level": "college",
+      "state": "CO",
+      "conference": "Mountain West",
+      "divisions": ["NCAA 1", "NCAA 1", "NCAA 1", "NCAA 1", "NCAA 1", "NCAA 2", "NCAA 2", "NCAA 2", "NCAA 2", "NCAA 2"],
+      "team_names": [
+        "Mountain State University",
+        "Colorado Prairie College",
+        "Western Canyon University",
+        "Northern Peaks State",
+        "Centennial Women College",
+        "Mesa Grande University",
+        "Front Range Tech",
+        "Southern Basin College",
+        "Alpine State University",
+        "Plains Metropolitan College"
+      ],
+      "games": [
+        ["2026-01-06", 1, 2, 75, 63, 0],
+        ["2026-01-06", 3, 4, 70, 66, 0],
+        ["2026-01-07", 5, 6, 79, 60, 0],
+        ["2026-01-07", 7, 8, 62, 65, 0],
+        ["2026-01-08", 9, 10, 72, 68, 999],
+        ["2026-01-13", 2, 3, 58, 73, 0],
+        ["2026-01-13", 4, 5, 67, 76, 0],
+        ["2026-01-14", 6, 7, 69, 57, 0],
+        ["2026-01-14", 8, 9, 61, 71, 0],
+        ["2026-01-15", 10, 1, 64, 80, 999]
+      ]
+    }
+  ]
+}

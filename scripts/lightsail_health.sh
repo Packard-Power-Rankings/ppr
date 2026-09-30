@@ -3,7 +3,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-ENV_FILE="${LIGHTSAIL_ENV:-$ROOT_DIR/.env.production}"
+ENV_FILE="${LIGHTSAIL_ENV:-$ROOT_DIR/.env/production}"
 
 "$ROOT_DIR/scripts/validate_lightsail_env.sh" "$ENV_FILE" >/dev/null
 

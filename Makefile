@@ -1,10 +1,15 @@
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
-LIGHTSAIL_ENV ?= .env.production
+APP_ENV ?= .env/development
+APP_COMPOSE = docker compose --env-file $(APP_ENV)
+LIGHTSAIL_ENV ?= .env/production
 LIGHTSAIL_COMPOSE = docker compose --env-file $(LIGHTSAIL_ENV) -f docker-compose.lightsail.yml
 
-.PHONY: help app-up app-down app-logs test-app test-app-reset test-app-maintenance test-admin-reset \
+.PHONY: help app-up app-down app-logs test test-check test-backend \
+	test-backend-service test-backend-algorithm test-frontend test-frontend-app \
+	test-frontend-admin test-frontend-archive test-frontend-teams test-lint test-build test-app \
+	test-app-reset test-app-maintenance test-admin-reset \
 	lightsail-init lightsail-check lightsail-up lightsail-down lightsail-restart \
 	lightsail-logs lightsail-status lightsail-health lightsail-backup
 
@@ -14,8 +19,20 @@ help:
 	@echo "  make app-up                  Build and start the local stack"
 	@echo "  make app-down                Stop the local stack"
 	@echo "  make app-logs                Follow backend and worker logs"
+	@echo "  make test                    Run backend and frontend unit tests"
+	@echo "  make test-check              Run unit tests, lint, and production build"
+	@echo "  make test-backend            Run all backend tests"
+	@echo "  make test-backend-service    Run backend service tests"
+	@echo "  make test-backend-algorithm  Run backend algorithm tests"
+	@echo "  make test-frontend           Run all frontend tests"
+	@echo "  make test-frontend-app       Run app routing and breadcrumb tests"
+	@echo "  make test-frontend-admin     Run admin workflow tests"
+	@echo "  make test-frontend-archive   Run public archive tests"
+	@echo "  make test-frontend-teams     Run public team page tests"
+	@echo "  make test-lint               Run frontend lint checks"
+	@echo "  make test-build              Create the frontend production build"
 	@echo "  make test-app                Run the happy-path application smoke test"
-	@echo "  make test-app-reset          Reset only fixture data, then run the test"
+	@echo "  make test-app-reset          Replace all local app data with full fixtures"
 	@echo "  make test-app-maintenance    Run destructive maintenance endpoint checks"
 	@echo "  make test-admin-reset        Replace the local admin with test credentials"
 	@echo
@@ -34,25 +51,62 @@ help:
 	@echo "Reset and maintenance targets require an explicit confirmation variable."
 
 app-up:
-	docker compose up -d --build
+	$(APP_COMPOSE) up -d --build
 
 app-down:
-	docker compose down
+	$(APP_COMPOSE) down
 
 app-logs:
-	docker compose logs -f backend arq_worker
+	$(APP_COMPOSE) logs -f backend arq_worker
+
+test: test-backend test-frontend
+
+test-check: test test-lint test-build
+
+test-backend: app-up
+	$(APP_COMPOSE) exec -T backend pytest -q tests
+
+test-backend-service: app-up
+	$(APP_COMPOSE) exec -T backend pytest -q tests/service
+
+test-backend-algorithm: app-up
+	$(APP_COMPOSE) exec -T backend pytest -q tests/algorithm
+
+test-frontend: app-up
+	$(APP_COMPOSE) exec -T frontend npm test -- --watchAll=false --runInBand
+
+test-frontend-app: app-up
+	$(APP_COMPOSE) exec -T frontend npm test -- --watchAll=false --runInBand \
+		--runTestsByPath tests/App.test.js tests/navigation.test.js \
+		tests/components/AppBreadcrumb.test.js
+
+test-frontend-admin: app-up
+	$(APP_COMPOSE) exec -T frontend npm test -- --watchAll=false --runInBand tests/views/admin
+
+test-frontend-archive: app-up
+	$(APP_COMPOSE) exec -T frontend npm test -- --watchAll=false --runInBand \
+		tests/views/archive tests/views/admin/dashboard/AdminDashboard.test.js
+
+test-frontend-teams: app-up
+	$(APP_COMPOSE) exec -T frontend npm test -- --watchAll=false --runInBand tests/views/teams
+
+test-lint: app-up
+	$(APP_COMPOSE) exec -T frontend npm run lint -- --quiet
+
+test-build: app-up
+	$(APP_COMPOSE) exec -T frontend npm run build
 
 test-app: app-up
-	./scripts/application_smoke_test.sh
+	APP_ENV="$(APP_ENV)" ./tests/application/application_smoke_test.sh
 
 test-app-reset: app-up
-	CONFIRM_TEST_RESET="$(CONFIRM_TEST_RESET)" ./scripts/application_smoke_test.sh --reset
+	APP_ENV="$(APP_ENV)" CONFIRM_TEST_RESET="$(CONFIRM_TEST_RESET)" ./tests/application/application_smoke_test.sh --reset
 
 test-app-maintenance: app-up
-	CONFIRM_DESTRUCTIVE="$(CONFIRM_DESTRUCTIVE)" ./scripts/application_smoke_test.sh --maintenance
+	APP_ENV="$(APP_ENV)" CONFIRM_DESTRUCTIVE="$(CONFIRM_DESTRUCTIVE)" ./tests/application/application_smoke_test.sh --maintenance
 
 test-admin-reset: app-up
-	CONFIRM_ADMIN_RESET="$(CONFIRM_ADMIN_RESET)" ./scripts/application_smoke_test.sh --reset-admin
+	APP_ENV="$(APP_ENV)" CONFIRM_ADMIN_RESET="$(CONFIRM_ADMIN_RESET)" ./tests/application/application_smoke_test.sh --reset-admin
 
 lightsail-init:
 	./scripts/init_lightsail_env.sh "$(LIGHTSAIL_ENV)" "$(DOMAIN)"

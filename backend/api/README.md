@@ -120,11 +120,13 @@ Run the automated API and algorithm workflow with:
 make test-app
 ```
 
-When fixture data already exists:
+To replace all local application collections with the complete fixture baseline:
 
 ```bash
 make test-app-reset CONFIRM_TEST_RESET=1
 ```
+
+The reset creates 10 teams and 10 games for each supported dataset and also seeds uploaded CSV, flagged-game, previous-season, and test-admin records. It is destructive and is intended only for isolated local development.
 
 If a disposable local database has an unknown admin password:
 
@@ -133,6 +135,6 @@ make test-admin-reset CONFIRM_ADMIN_RESET=1
 make test-app
 ```
 
-The admin reset deletes the existing `admin_details.admin` account. It is intended only for isolated local development.
+The default local test account is `test-admin` / `test-admin-password`. The admin reset deletes the existing `admin_details.admin` account and recreates that account. It is intended only for isolated local development.
 
-See [`../../example_files/application_test/README.md`](../../example_files/application_test/README.md) for fixtures, assertions, maintenance checks, and troubleshooting.
+See [`../../tests/application/README.md`](../../tests/application/README.md) for fixtures, assertions, maintenance checks, and troubleshooting.

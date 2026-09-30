@@ -4,7 +4,7 @@ import { useLocation } from 'react-router-dom'
 import { AppContent, AppSidebar, AppFooter, AppHeader, AdminHeader } from '../components/index'
 
 const DefaultLayout = () => {
-  const isAdmin = useSelector((state) => state.isAdmin);
+  const isAdmin = useSelector((state) => state.isAdmin && state.authReady);
   const location = useLocation();
 
   const isAdminLocation = location.pathname.startsWith('/admin');

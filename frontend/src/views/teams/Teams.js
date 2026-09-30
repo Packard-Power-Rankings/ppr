@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import api from "src/api";
+import { formatDatasetName } from "src/utils/displayNames";
 import {
     CTable,
     CTableHead,
@@ -15,11 +16,11 @@ import {
 const Teams = () => {
     const { sport, gender, level } = useParams();
     const [teams, setTeams] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+    const [requestStatus, setRequestStatus] = useState('loading');
     const [searchTerm, setSearchTerm] = useState("");
     const [sortColumn, setSortColumn] = useState(null);
     const [sortDirection, setSortDirection] = useState("asc");
+    const selectionName = formatDatasetName({ sport, gender, level });
 
     const getLatestPowerRanking = (powerRanking) => {
         if (!powerRanking || powerRanking.length === 0) return '-';
@@ -29,24 +30,49 @@ const Teams = () => {
         return parseFloat(rankingObj[latestDate]).toFixed(2);
     };
 
-    const fetchTeams = async () => {
-        try {
-            setLoading(true);
-            const teamsData = await api.get(
-                `/teams/?sport_type=${sport}&gender=${gender}&level=${level}`
-            );
-            setTeams(teamsData.data.data.teams);
-            setError(null);
-        } catch (error) {
-            console.log("Error fetching teams data", error);
-            setError("Failed To Get Teams Data");
-        } finally {
-            setLoading(false);
-        }
-    };
-
     useEffect(() => {
+        let isCurrentRequest = true;
+
+        const fetchTeams = async () => {
+            setRequestStatus('loading');
+            setTeams([]);
+
+            try {
+                const { data: response } = await api.get('/teams/', {
+                    params: {
+                        sport_type: sport,
+                        gender,
+                        level,
+                    },
+                });
+
+                if (!isCurrentRequest) return;
+
+                if (response?.status === 204 && response?.data === null) {
+                    setRequestStatus('empty');
+                    return;
+                }
+
+                const loadedTeams = response?.data?.teams;
+                if (!Array.isArray(loadedTeams)) {
+                    throw new Error('Teams response did not contain a teams array');
+                }
+
+                setTeams(loadedTeams);
+                setRequestStatus(loadedTeams.length === 0 ? 'empty' : 'success');
+            } catch (error) {
+                if (!isCurrentRequest) return;
+
+                console.error("Error fetching teams data", error);
+                setRequestStatus('error');
+            }
+        };
+
         fetchTeams();
+
+        return () => {
+            isCurrentRequest = false;
+        };
     }, [sport, gender, level]);
 
     const handleSearch = (event) => {
@@ -82,7 +108,7 @@ const Teams = () => {
         return 0;
     });
 
-    if (loading) {
+    if (requestStatus === 'loading') {
         return (
             <div className="d-flex justify-content-center p-4">
                 <CSpinner />
@@ -90,8 +116,20 @@ const Teams = () => {
         );
     }
 
-    if (error) {
-        return <div className="text-danger p-3">{error}</div>;
+    if (requestStatus === 'empty') {
+        return (
+            <div className="text-primary p-3" role="status">
+                No Data Found in Database for {selectionName}
+            </div>
+        );
+    }
+
+    if (requestStatus === 'error') {
+        return (
+            <div className="text-danger p-3" role="alert">
+                Failed to Load {selectionName} Data
+            </div>
+        );
     }
 
     return (

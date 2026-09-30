@@ -1,7 +1,7 @@
 import pytest
 import pandas as pd
 from io import StringIO
-from upload import upload_csv
+from api.utils.algorithm.upload import upload_csv
 
 
 def test_upload_csv_valid_file():

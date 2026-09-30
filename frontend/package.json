@@ -2,7 +2,7 @@
   "name": "@coreui/coreui-free-react-admin-template-cra",
   "version": "5.0.0",
   "description": "CoreUI Free React Admin Template",
-  "homepage": ".",
+  "homepage": "/",
   "bugs": {
     "url": "https://github.com/coreui/coreui-free-react-admin-template-cra/issues"
   },
@@ -17,7 +17,7 @@
     "eject": "react-scripts eject",
     "lint": "eslint \"src/**/*.js\"",
     "start": "react-scripts start",
-    "test": "react-scripts test",
+    "test": "react-scripts test --roots tests",
     "test:cov": "npm test -- --coverage --watchAll=false",
     "test:debug": "react-scripts --inspect-brk test --runInBand"
   },
@@ -71,6 +71,14 @@
   "engines": {
     "node": ">=10",
     "npm": ">=6"
+  },
+  "jest": {
+    "testMatch": [
+      "<rootDir>/tests/**/*.test.js"
+    ],
+    "moduleNameMapper": {
+      "^react-router/dom$": "<rootDir>/node_modules/react-router/dist/development/dom-export.js"
+    }
   },
   "browserslist": {
     "production": [

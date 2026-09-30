@@ -1,12 +1,10 @@
-import React, { useState } from 'react'
+import React from 'react'
 import {
     CDropdown,
     CDropdownHeader,
     CDropdownMenu,
     CDropdownToggle,
-    CFormInput,
     CButton,
-    CAlert
 } from '@coreui/react'
 import {
     cilSettings,
@@ -17,56 +15,18 @@ import CIcon from '@coreui/icons-react'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 
-import { loginUser, logoutUser } from 'src/services/authService'
+import { logoutUser } from 'src/services/authService'
 
 const AppHeaderDropdown = () => {
-    const isAdmin = useSelector((state) => state.isAdmin);
+    const isAdmin = useSelector((state) => state.isAdmin && state.authReady);
     const navigate = useNavigate();
-    const [isLoginVisible, setIsLoginVisible] = useState(false);
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState(null);
 
     const handleLogout = async () => {
         try {
-            const request = logoutUser();
-            if (request) {
-                setIsLoginVisible(false);
-                navigate('/');
-            } else {
-                throw error;
-            }
+            await logoutUser();
+            navigate('/');
         } catch (error) {
             console.error("An error has occurred", error);
-        }
-    }
-
-    const handleLogin = async (e) => {
-        e.preventDefault();
-        setError(null);
-
-        if (!username || !password) {
-            setError(true);
-            return;
-        }
-        const credentials = {
-            'username': username,
-            'password': password
-        }
-
-        try {
-            const success = await loginUser(credentials);
-
-            if (success) {
-                setUsername('');
-                setPassword('');
-                setIsLoginVisible(false);
-                navigate('/admin/calc_values');
-            } else {
-                throw error;
-            }
-        } catch (error) {
-            setError("Invalid username or password. Please try again.");
         }
     }
 
@@ -82,43 +42,11 @@ const AppHeaderDropdown = () => {
             >
                 <CDropdownHeader className="bg-body-secondary fw-semibold mb-2 text-center">Admin</CDropdownHeader>
 
-                {!isAdmin && !isLoginVisible && (
+                {!isAdmin && (
                     <div className="d-flex justify-content-center">
-                        <CButton color="primary" className="w-100" onClick={() => setIsLoginVisible(true)}>
+                        <CButton color="primary" className="w-100" onClick={() => navigate('/admin/login')}>
                             <CIcon icon={cilSettings} className='me-2' />
-                            Login
-                        </CButton>
-                    </div>
-                )}
-
-                {isLoginVisible && !isAdmin && (
-                    <div className="p-2">
-                        {error && <CAlert color="danger" className="py-1 text-center">{error}</CAlert>}
-
-                        <CFormInput
-                            type="text"
-                            placeholder="Username"
-                            value={username}
-                            onChange={(e) => {
-                                setUsername(e.target.value);
-                                setError(null);
-                            }}
-                            invalid={error}
-                            className="mb-2 p-2 rounded"
-                        />
-                        <CFormInput
-                            type="password"
-                            placeholder="Password"
-                            value={password}
-                            onChange={(e) => {
-                                setPassword(e.target.value);
-                                setError(null);
-                            }}
-                            invalid={error}
-                            className="mb-2 p-2 rounded"
-                        />
-                        <CButton color="success" className="w-100 rounded" onClick={handleLogin}>
-                            Login
+                            Admin Login
                         </CButton>
                     </div>
                 )}

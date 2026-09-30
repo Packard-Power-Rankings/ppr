@@ -1,5 +1,6 @@
 import React from 'react'
 import { useSelector, useDispatch } from 'react-redux'
+import { NavLink } from 'react-router-dom'
 
 import {
   CCloseButton,
@@ -23,7 +24,7 @@ const AppSidebar = () => {
   const dispatch = useDispatch()
   const unfoldable = useSelector((state) => state.sidebarUnfoldable)
   const sidebarShow = useSelector((state) => state.sidebarShow)
-  const isAdmin = useSelector((state) => state.isAdmin);
+  const isAdmin = useSelector((state) => state.isAdmin && state.authReady);
 
   const getNavigation = navigation(isAdmin);
 
@@ -39,7 +40,7 @@ const AppSidebar = () => {
       }}
     >
       <CSidebarHeader className="border-bottom">
-        <CSidebarBrand to="/">
+        <CSidebarBrand as={NavLink} to="/">
           <CIcon customClassName="sidebar-brand-full" icon={logo} height={32} />
           <CIcon customClassName="sidebar-brand-narrow" icon={logo} height={32} />
         </CSidebarBrand>

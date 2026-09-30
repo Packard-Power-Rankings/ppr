@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
-import { useDispatch } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
+import { useSelector } from 'react-redux'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import {
     CButton,
     CCard,
@@ -12,6 +12,7 @@ import {
     CInputGroup,
     CInputGroupText,
     CRow,
+    CSpinner,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilLockLocked, cilUser } from '@coreui/icons'
@@ -23,8 +24,14 @@ const Login = () => {
     const [errorMessage, setErrorMessage] = useState('');
     const [error, setError] = useState(false);
 
-    const dispatch = useDispatch();
+    const authReady = useSelector((state) => state.authReady);
+    const isAdmin = useSelector((state) => state.isAdmin);
+    const location = useLocation();
     const navigate = useNavigate();
+    const previousLocation = location.state?.from;
+    const returnTo = previousLocation
+        ? `${previousLocation.pathname}${previousLocation.search}${previousLocation.hash}`
+        : '/admin';
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -45,20 +52,29 @@ const Login = () => {
             const success = await loginUser(credentials);
 
             if (success) {
-                dispatch({ type: 'login' });
-                navigate('/admin/calc_values')
+                navigate(returnTo, { replace: true });
             } else {
                 setErrorMessage("Invalid username or password");
                 setError(true);
             }
         } catch (error) {
             console.error("Failed to sign in", error);
+            setErrorMessage("Unable to sign in. Please try again.");
+            setError(true);
         }
     };
 
-    const handleForgotPassword = () => {
-        alert("Forgot password functionality not implemented yet.");
-    };
+    if (!authReady) {
+        return (
+            <div className="bg-body-tertiary min-vh-100 d-flex align-items-center justify-content-center">
+                <CSpinner color="primary" />
+            </div>
+        );
+    }
+
+    if (isAdmin) {
+        return <Navigate to="/admin" replace />;
+    }
 
     return (
         <div className="bg-body-tertiary min-vh-100 d-flex flex-row align-items-center">
@@ -68,8 +84,8 @@ const Login = () => {
                         <CCard className="p-4">
                             <CCardBody>
                                 <CForm onSubmit={handleSubmit}>
-                                    <h1>Login</h1>
-                                    <p className="text-body-secondary">Sign In to your account</p>
+                                    <h1>Admin Login</h1>
+                                    <p className="text-body-secondary">Sign in to manage rankings data.</p>
                                     {errorMessage && <p className="text-danger text-center">{errorMessage}</p>}
                                     <CInputGroup className="mb-3">
                                         <CInputGroupText>
@@ -94,15 +110,15 @@ const Login = () => {
                                             invalid={error}
                                         />
                                     </CInputGroup>
-                                    <CRow>
-                                        <CCol xs={6}>
-                                            <CButton type='submit' color="primary" className="px-4">
+                                    <CRow className="g-2">
+                                        <CCol xs={12}>
+                                            <CButton type="submit" color="primary" className="w-100">
                                                 Login
                                             </CButton>
                                         </CCol>
-                                        <CCol xs={6} className="text-right">
-                                            <CButton color="link" className="px-0" onClick={handleForgotPassword}>
-                                                Forgot password?
+                                        <CCol xs={12} className="text-center">
+                                            <CButton color="link" onClick={() => navigate('/')}>
+                                                Return to public site
                                             </CButton>
                                         </CCol>
                                     </CRow>

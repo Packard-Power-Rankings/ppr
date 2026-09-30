@@ -12,13 +12,15 @@ services:
     networks:
       - app-network
     env_file:
-      - .env
+      - .env/development
 
   backend:
     build: ./backend
     command: uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
     volumes:
       - ./backend:/app
+      - ./tests/backend:/app/tests:ro
+      - archive_data:/var/lib/ppr-archives
     ports:
       - "8000:8000"
     networks:
@@ -28,13 +30,14 @@ services:
       - MONGO_URI=mongodb://${MONGO_USER}:${MONGO_PASS}@db:${MONGO_PORT}/${MONGO_DB_NAME}?authSource=admin
       - SETUP_TOKEN=${SETUP_TOKEN}
       - SECRET_KEY=${SECRET_KEY}
+      - ARCHIVE_DIR=/var/lib/ppr-archives
     depends_on:
       redis:
         condition: service_healthy
       db:
         condition: service_started
     env_file:
-      - .env
+      - .env/development
 
   arq_worker:
     build: ./backend
@@ -53,7 +56,7 @@ services:
       backend:
         condition: service_started
     env_file:
-      - .env
+      - .env/development
 
   redis:
     image: redis:latest
@@ -72,10 +75,12 @@ services:
 
   frontend:
     build: ./frontend
-    command: npm start
+    command: ["sh", "./docker-entrypoint.dev.sh"]
     volumes:
       - ./frontend:/app
+      - ./tests/frontend:/app/tests:ro
       - /app/node_modules
+      - archive_data:/app/public/archive:ro
     ports:
       - "3000:3000"
     depends_on:
@@ -84,6 +89,7 @@ services:
       - app-network
 
 volumes:
+  archive_data:
   mongo_data:
   node_modules:
   redis_data:

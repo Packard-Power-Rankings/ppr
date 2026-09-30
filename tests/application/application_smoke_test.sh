@@ -2,11 +2,15 @@
 
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-FIXTURE_DIR="$ROOT_DIR/example_files/application_test"
+TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$TEST_DIR/../.." && pwd)"
+ENV_FILE="${APP_ENV:-$ROOT_DIR/.env/development}"
+FIXTURE_DIR="$TEST_DIR"
+FULL_FIXTURE_SPEC="$FIXTURE_DIR/full-database-fixture.json"
+FULL_FIXTURE_LOADER="$FIXTURE_DIR/load_full_fixture.mongodb.js"
 BASE_URL="${BASE_URL:-http://localhost:8000}"
-TEST_ADMIN_USERNAME="${TEST_ADMIN_USERNAME:-sample-admin}"
-TEST_ADMIN_PASSWORD="${TEST_ADMIN_PASSWORD:-sample-password-change-me}"
+TEST_ADMIN_USERNAME="${TEST_ADMIN_USERNAME:-test-admin}"
+TEST_ADMIN_PASSWORD="${TEST_ADMIN_PASSWORD:-test-admin-password}"
 JOB_TIMEOUT_SECONDS="${JOB_TIMEOUT_SECONDS:-180}"
 POLL_INTERVAL_SECONDS="${POLL_INTERVAL_SECONDS:-2}"
 DATASET_ID="67017efbb2d2f30e9c5ecc54"
@@ -16,10 +20,10 @@ LEVEL="high_school"
 MODE="test"
 TOKEN=""
 
-if [[ -f "$ROOT_DIR/.env" ]]; then
+if [[ -f "$ENV_FILE" ]]; then
   set -a
   # shellcheck disable=SC1091
-  source "$ROOT_DIR/.env"
+  source "$ENV_FILE"
   set +a
 fi
 
@@ -44,6 +48,10 @@ require_command() {
   command -v "$1" >/dev/null 2>&1 || fail "Required command not found: $1"
 }
 
+compose() {
+  docker compose --env-file "$ENV_FILE" "$@"
+}
+
 api() {
   curl --silent --show-error --fail-with-body "$@"
 }
@@ -53,12 +61,20 @@ authenticated_api() {
 }
 
 mongo_eval() {
-  docker compose exec -T db mongosh \
+  compose exec -T db mongosh \
     --quiet \
     --username "$MONGO_USER" \
     --password "$MONGO_PASS" \
     --authenticationDatabase admin \
     --eval "$1"
+}
+
+mongo_script() {
+  compose exec -T db mongosh \
+    --quiet \
+    --username "$MONGO_USER" \
+    --password "$MONGO_PASS" \
+    --authenticationDatabase admin
 }
 
 wait_for_backend() {
@@ -95,21 +111,79 @@ reset_fixture_data() {
   [[ "${CONFIRM_TEST_RESET:-}" == "1" ]] || fail \
     "Reset refused. Re-run with: make test-app-reset CONFIRM_TEST_RESET=1"
 
-  local javascript
+  local fixture_json
+  fixture_json="$(jq -c . "$FULL_FIXTURE_SPEC")"
+
+  info "Replacing all local sports collections with the full fixture dataset"
+  {
+    printf 'const fixtureSpec = %s;\n' "$fixture_json"
+    cat "$FULL_FIXTURE_LOADER"
+  } | mongo_script
+
+  replace_test_admin
+}
+
+verify_full_fixture_data() {
+  local javascript state response flagged label
   javascript='const app = db.getSiblingDB("sports_data");
-app.temp2.replaceOne(
-  {_id: ObjectId("'"$DATASET_ID"'")},
-  {_id: ObjectId("'"$DATASET_ID"'"), sport_type: "'"$SPORT"'", gender: "'"$GENDER"'", level: "'"$LEVEL"'", teams: []},
-  {upsert: true}
-);
-app.csv_files.deleteMany({sport_type: "'"$SPORT"'", gender: "'"$GENDER"'", level: "'"$LEVEL"'"});
-app.flagged_games.replaceOne(
-  {sport_type: "'"$SPORT"'", gender: "'"$GENDER"'", level: "'"$LEVEL"'"},
-  {sport_type: "'"$SPORT"'", gender: "'"$GENDER"'", level: "'"$LEVEL"'", flagged_games: []},
-  {upsert: true}
-);'
-  info "Resetting only the $SPORT/$GENDER/$LEVEL fixture dataset"
-  mongo_eval "$javascript" >/dev/null
+const adminDb = db.getSiblingDB("admin_details");
+const summarize = (document) => ({
+  sport_type: document.sport_type,
+  gender: document.gender,
+  level: document.level,
+  teams: (document.teams || []).length,
+  game_refs: (document.teams || []).reduce(
+    (total, team) => total + (team.season_opp || []).length,
+    0
+  )
+});
+const current = app.temp2.find({}).toArray().map(summarize);
+const previous = app.previous_season.find({}).toArray().map(summarize);
+const csv = app.csv_files.find({}).toArray();
+const flagged = app.flagged_games.find({}).toArray();
+const account = adminDb.admin.findOne({}, {_id: 0, username: 1});
+print(JSON.stringify({
+  current,
+  previous,
+  csv_documents: csv.length,
+  csv_files: csv.reduce((total, document) => total + (document.csv_files || []).length, 0),
+  flagged_documents: flagged.length,
+  flagged_games: flagged.reduce(
+    (total, document) => total + (document.flagged_games || []).length,
+    0
+  ),
+  admin_documents: adminDb.admin.countDocuments({}),
+  admin: account
+}));'
+  state="$(mongo_eval "$javascript")"
+
+  jq -e --arg username "$TEST_ADMIN_USERNAME" '
+    (.current | length == 6) and
+    (.current | all(.teams == 10 and .game_refs == 20)) and
+    (.previous | length == 6) and
+    (.previous | all(.teams == 10 and .game_refs == 20)) and
+    .csv_documents == 6 and
+    .csv_files == 6 and
+    .flagged_documents == 6 and
+    .flagged_games == 6 and
+    .admin_documents == 1 and
+    .admin.username == $username
+  ' <<<"$state" >/dev/null || fail "Full fixture database verification failed: $state"
+
+  while IFS=$'\t' read -r sport gender level; do
+    label="$level $gender $sport"
+    response="$(api "$BASE_URL/teams?sport_type=$sport&gender=$gender&level=$level")"
+    jq -e '.status == 200 and (.data.teams | length == 10)' \
+      <<<"$response" >/dev/null || fail "Public API did not return ten teams for $label"
+
+    flagged="$(authenticated_api \
+      "$BASE_URL/retrieve-flagged?sport_type=$sport&gender=$gender&level=$level")"
+    jq -e '.flagged_games | length == 1' \
+      <<<"$flagged" >/dev/null || fail "Protected API did not return one flagged game for $label"
+  done < <(jq -r '.datasets[] | [.sport_type, .gender, .level] | @tsv' "$FULL_FIXTURE_SPEC")
+
+  info "Verified 6 datasets, 60 teams, 60 games, 6 CSV files, 6 flags, and previous-season data"
+  info "PASS: full fixture reset and application verification"
 }
 
 assert_fixture_dataset_is_empty() {
@@ -129,7 +203,7 @@ print(JSON.stringify({teams: dataset && dataset.teams ? dataset.teams.length : 0
 
 login() {
   local setup_payload login_response existing_admin
-  [[ -n "${SETUP_TOKEN:-}" ]] || fail "SETUP_TOKEN is missing. Add it to .env or export it before running the test."
+  [[ -n "${SETUP_TOKEN:-}" ]] || fail "SETUP_TOKEN is missing. Add it to $ENV_FILE or export it before running the test."
 
   setup_payload="$(jq -nc \
     --arg username "$TEST_ADMIN_USERNAME" \
@@ -158,13 +232,10 @@ login() {
   info "Authenticated as $TEST_ADMIN_USERNAME"
 }
 
-reset_test_admin() {
-  [[ "${CONFIRM_ADMIN_RESET:-}" == "1" ]] || fail \
-    "Admin reset refused. Re-run with: make test-admin-reset CONFIRM_ADMIN_RESET=1"
-
+replace_test_admin() {
   local password_hash username_json password_json javascript
   password_hash="$(printf '%s' "$TEST_ADMIN_PASSWORD" | \
-    docker compose exec -T backend python -c \
+    compose exec -T backend python -c \
       'import sys, bcrypt; value = sys.stdin.read().encode("utf-8"); print(bcrypt.hashpw(value, bcrypt.gensalt()).decode("utf-8"))')"
   [[ -n "$password_hash" ]] || fail "Could not generate the test admin password hash"
 
@@ -176,6 +247,13 @@ app.admin.insertOne({username: '"$username_json"', password: '"$password_json"'}
 
   mongo_eval "$javascript" >/dev/null
   info "Replaced the local admin account with '$TEST_ADMIN_USERNAME'"
+}
+
+reset_test_admin() {
+  [[ "${CONFIRM_ADMIN_RESET:-}" == "1" ]] || fail \
+    "Admin reset refused. Re-run with: make test-admin-reset CONFIRM_ADMIN_RESET=1"
+
+  replace_test_admin
   info "Run 'make test-app' to start the smoke test"
 }
 
@@ -260,7 +338,7 @@ team_id() {
 
 verify_public_workflows() {
   local response actual expected detail prediction ids northstar_id cedar_id game_id payload flagged
-  response="$(api "$BASE_URL/teams/?$(dataset_query)")"
+  response="$(api "$BASE_URL/teams?$(dataset_query)")"
   actual="$(jq -c '[.data.teams[] | {team_name, wins, losses}] | sort_by(.team_name)' <<<"$response")"
   expected="$(jq -c 'sort_by(.team_name)' "$FIXTURE_DIR/expected-records.json")"
   if [[ "$actual" != "$expected" ]]; then
@@ -270,7 +348,7 @@ verify_public_workflows() {
   jq -e '[.data.teams[].power_ranking[0] | keys[0] | select(. != "initial")] | length == 7' \
     <<<"$response" >/dev/null || fail "Not every team received an updated power ranking"
 
-  detail="$(api "$BASE_URL/teams/Northstar%20Academy/?$(dataset_query)")"
+  detail="$(api "$BASE_URL/teams/Northstar%20Academy?$(dataset_query)")"
   jq -e '.data.teams.season_opp | length == 5' <<<"$detail" >/dev/null || fail \
     "Northstar Academy should have five game records"
 
@@ -333,14 +411,14 @@ run_maintenance_checks() {
     --data-urlencode "sport_type=$SPORT" \
     --data-urlencode "gender=$GENDER" \
     --data-urlencode "level=$LEVEL" >/dev/null
-  detail="$(api "$BASE_URL/teams/Northstar%20Academy/?$(dataset_query)")"
+  detail="$(api "$BASE_URL/teams/Northstar%20Academy?$(dataset_query)")"
   jq -e '.data.teams.season_opp | any(.game_date == "2026-01-09" and .home_score == 73 and .away_score == 61)' \
     <<<"$detail" >/dev/null || fail "Updated score was not reflected in Northstar's game history"
 
   info "Renaming and restoring the QA team"
   authenticated_api -X PUT \
     "$BASE_URL/update-name/$qa_id/QA%20Reserve%20Renamed?$(dataset_query)" >/dev/null
-  response="$(api "$BASE_URL/teams/?$(dataset_query)")"
+  response="$(api "$BASE_URL/teams?$(dataset_query)")"
   jq -e '.data.teams | any(.team_name == "QA Reserve Renamed")' <<<"$response" >/dev/null || fail \
     "Renamed QA team was not returned by the public team list"
   authenticated_api -X PUT \
@@ -349,7 +427,7 @@ run_maintenance_checks() {
   info "Deleting the Northstar/Cedar game"
   authenticated_api -X DELETE \
     "$BASE_URL/delete-game/$northstar_id/$cedar_id/${northstar_id}_${cedar_id}_2026-01-09/2026-01-09?$(dataset_query)" >/dev/null
-  detail="$(api "$BASE_URL/teams/Northstar%20Academy/?$(dataset_query)")"
+  detail="$(api "$BASE_URL/teams/Northstar%20Academy?$(dataset_query)")"
   jq -e --arg game_id "${northstar_id}_${cedar_id}_2026-01-09" \
     '.data.teams.season_opp | all(.game_id != $game_id)' <<<"$detail" >/dev/null || fail \
     "Deleted game is still present in Northstar's game history"
@@ -357,7 +435,7 @@ run_maintenance_checks() {
   info "Deleting QA Reserve"
   authenticated_api -X DELETE \
     "$BASE_URL/delete-team/QA%20Reserve/$qa_id/?$(dataset_query)" >/dev/null
-  response="$(api "$BASE_URL/teams/?$(dataset_query)")"
+  response="$(api "$BASE_URL/teams?$(dataset_query)")"
   jq -e '.data.teams | all(.team_name != "QA Reserve")' <<<"$response" >/dev/null || fail \
     "Deleted QA team is still present in the public team list"
 
@@ -365,7 +443,7 @@ run_maintenance_checks() {
   response="$(authenticated_api -X DELETE "$BASE_URL/clear-season/?$(dataset_query)")"
   jq -e '.archived == true and .teams_reset == true' <<<"$response" >/dev/null || fail \
     "Season clear did not report a successful archive/reset"
-  response="$(api "$BASE_URL/teams/?$(dataset_query)")"
+  response="$(api "$BASE_URL/teams?$(dataset_query)")"
   jq -e '.data.teams | all(.wins == 0 and .losses == 0 and (.season_opp | length == 0))' \
     <<<"$response" >/dev/null || fail "Season data was not fully cleared"
   info "PASS: destructive maintenance requests completed"
@@ -376,14 +454,17 @@ main() {
   require_command docker
   require_command curl
   require_command jq
+  [[ -f "$FULL_FIXTURE_SPEC" && -f "$FULL_FIXTURE_LOADER" ]] || fail \
+    "Full fixture specification or MongoDB loader is missing"
   [[ -n "${MONGO_USER:-}" && -n "${MONGO_PASS:-}" ]] || fail \
-    "MONGO_USER and MONGO_PASS must be available in .env or the environment"
+    "MONGO_USER and MONGO_PASS must be available in $ENV_FILE or the environment"
   wait_for_backend
 
   case "$MODE" in
     reset)
       reset_fixture_data
-      run_happy_path
+      login
+      verify_full_fixture_data
       ;;
     maintenance)
       run_maintenance_checks

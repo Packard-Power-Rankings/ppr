@@ -7,7 +7,8 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 
 # Install the exact dependency versions in package-lock.json
-RUN npm ci
+RUN npm ci && \
+    sha256sum package-lock.json | cut -d ' ' -f 1 > node_modules/.package-lock.sha256
 
 # Copy the rest of the application code
 COPY . .
@@ -15,5 +16,4 @@ COPY . .
 # Expose the port the React app will run on
 EXPOSE 3000
 
-# Start the React app
-CMD ["npm", "start"]
+CMD ["sh", "./docker-entrypoint.dev.sh"]

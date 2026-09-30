@@ -6,6 +6,7 @@ const initialState = {
   sidebarShow: true,
   theme: 'light',
   isAdmin: false,
+  authReady: false,
   sport: "football",
   gender: "mens",
   level: "high_school",
@@ -16,9 +17,9 @@ const changeState = (state = initialState, { type, payload }) => {
     case 'set':
       return { ...state, ...payload }
     case 'login':
-      return { ...state, isAdmin: true }
+      return { ...state, isAdmin: true, authReady: true }
     case 'logout':
-      return { ...state, isAdmin: false }
+      return { ...state, isAdmin: false, authReady: true }
     case 'updateAdminState':
       return { ...state, ...payload }
     default:
@@ -28,7 +29,8 @@ const changeState = (state = initialState, { type, payload }) => {
 
 const persistConfig = {
   key: 'root',
-  storage
+  storage,
+  blacklist: ['isAdmin', 'authReady'],
 }
 
 const persistedReducer = persistReducer(persistConfig, changeState)
