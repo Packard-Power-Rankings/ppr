@@ -94,19 +94,14 @@ def test_game_identity_is_case_and_home_away_independent():
 
 
 @pytest.mark.asyncio
-async def test_ingestion_creates_missing_teams_and_stores_validated_games(
+async def test_ingestion_resolves_known_teams_and_stores_validated_games(
     monkeypatch,
     tmp_path,
 ):
     monkeypatch.setenv("UPLOAD_DIR", str(tmp_path))
     service = AdminTeamsService(("basketball", "mens", "high_school"))
     service._ingest_lock = asyncio.Lock()
-    service.find_missing_teams = AsyncMock(
-        return_value=["Central High", "Lincoln High"]
-    )
-    service.add_teams_to_db = AsyncMock(return_value={
-        "added": ["Central High", "Lincoln High"]
-    })
+    service.find_missing_teams = AsyncMock(return_value=[])
     service.sports_collection = AsyncMock()
     service.sports_collection.find_one.return_value = {
         "teams": [
@@ -130,8 +125,6 @@ async def test_ingestion_creates_missing_teams_and_stores_validated_games(
     )
 
     assert result["games_added"] == 1
-    assert result["teams_added"] == ["Central High", "Lincoln High"]
-    service.add_teams_to_db.assert_awaited_once()
     assert service.games_collection.inserted[0]["identity"] == (
         "2026-01-15|1|2"
     )
@@ -162,7 +155,6 @@ async def test_ingestion_rejects_a_game_already_in_storage(
     service._ingest_lock = asyncio.Lock()
     identity = canonical_game_identity("2026-01-15", 1, 2)
     service.find_missing_teams = AsyncMock(return_value=[])
-    service.add_teams_to_db = AsyncMock(return_value={"added": []})
     service.sports_collection = AsyncMock()
     service.sports_collection.find_one.return_value = {
         "teams": [
@@ -188,5 +180,34 @@ async def test_ingestion_rejects_a_game_already_in_storage(
     assert exc_info.value.detail["duplicates"] == [
         "2026-01-15: Central High vs Lincoln High"
     ]
-    service.add_teams_to_db.assert_not_awaited()
+    service._add_upload_metadata.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_ingestion_rejects_unknown_teams_before_writing_anything(tmp_path):
+    service = AdminTeamsService(("basketball", "mens", "high_school"))
+    service._ingest_lock = asyncio.Lock()
+    service.find_missing_teams = AsyncMock(return_value=["Lincoln High"])
+    service.games_collection = FakeGamesCollection()
+    service._add_upload_metadata = AsyncMock()
+
+    with pytest.raises(HTTPException) as exc_info:
+        await service._ingest_games(
+            "basketball",
+            "mens",
+            "high_school",
+            "week.csv",
+            b"2026-01-15,Central High,Lincoln High,72,68,0\n",
+        )
+
+    assert exc_info.value.status_code == 422
+    assert exc_info.value.detail == {
+        "message": (
+            "Import team data before adding games. The game file contains "
+            "unknown teams."
+        ),
+        "unknown_teams": ["Lincoln High"],
+        "errors": ["Unknown team: Lincoln High"],
+    }
+    assert service.games_collection.inserted == []
     service._add_upload_metadata.assert_not_awaited()

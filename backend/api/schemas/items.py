@@ -253,11 +253,19 @@ class FlaggedGame(BaseModel):
 
 
 class NewTeamData(BaseModel):
-    team_name: str = Field(...)
-    division: Optional[str] = Field(default=None)
-    conference: Optional[str] = Field(default=None)
-    power_ranking: float = Field(...)
-    state: Optional[str] = Field(default=None)
+    team_id: int = Field(..., gt=0)
+    short_name: str = Field(..., min_length=1, max_length=150)
+    long_name: str = Field(default="", max_length=200)
+    state: str = Field(default="", max_length=50)
+    division: str = Field(default="", max_length=100)
+    conference: str = Field(default="", max_length=150)
+    ranked: bool = False
+    power_ranking: float = 0.0
+
+    @field_validator("short_name", "long_name", "state", "division", "conference")
+    @classmethod
+    def strip_new_team_text(cls, value: str) -> str:
+        return " ".join(value.split())
 
 
 class NewTeamList(BaseModel):

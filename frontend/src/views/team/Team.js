@@ -152,6 +152,7 @@ const Team = () => {
                     <CCardBody>
                         <CRow>
                             <CCol md="6">
+                                <h6>ID: {team.team_id ?? '-'}</h6>
                                 <h6>State: {team.state || '-'}</h6>
                                 <h6>Division: {team.division}</h6>
                                 <h6>Conference: {team.conference}</h6>

@@ -298,7 +298,7 @@ dataset_query() {
 
 add_teams() {
   local names missing response remaining
-  names="$(jq -c '[.[].team_name]' "$FIXTURE_DIR/teams.json")"
+  names="$(jq -c '[.[].short_name]' "$FIXTURE_DIR/teams.json")"
   missing="$(authenticated_api \
     -X POST "$BASE_URL/check-teams/?$(dataset_query)" \
     -H 'Content-Type: application/json' \

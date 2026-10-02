@@ -89,9 +89,25 @@ date,home_team,away_team,home_score,away_score,neutral_site
 
 `neutral_site=999` disables home-field advantage; normal home games use `0`. Dates may use `YYYY-MM-DD` or `MM/DD/YYYY`, and scores must be nonnegative integers. The ingestion service rejects headers, malformed rows, same-team games, duplicate games within a file, and games already present in uploaded or processed data.
 
-Both the CSV endpoint and individual-game endpoint use the same validator. Missing teams are created with neutral metadata, then each game is normalized into a document in `sports_data.games`. The validated source file is stored under `UPLOAD_DIR` for reference; `sports_data.csv_files` contains only upload metadata such as its filename, relative storage path, game count, and upload date. CSV bytes are never retained in MongoDB.
+Both the CSV endpoint and individual-game endpoint use the same validator. Team metadata must be imported first. A game containing an unknown team is rejected with `422` and an `unknown_teams` list; the endpoint never invents a team identifier. Valid games are normalized into documents in `sports_data.games`. The validated source file is stored under `UPLOAD_DIR` for reference; `sports_data.csv_files` contains only upload metadata such as its filename, relative storage path, game count, and upload date. CSV bytes are never retained in MongoDB.
 
-Team metadata CSV files require the headers `state`, `short_name`, `long_name`, `division`, `conference`, and `ranked`. Header order is flexible and extra columns are ignored. The importer maps `short_name` to the existing canonical `team_name` field, stores all six metadata values in the team's dataset document, and rejects files with missing headers or invalid rows. `ranked` accepts `yes`/`no` (also `true`/`false` or `1`/`0`). Duplicate teams are skipped when either short or long name matches an existing team alias, case-insensitively, whether that alias already exists in the database or appears earlier in the same uploaded file. The response reports only `teams_added_count` and `teams_failed`, a list of `{team_name, reason}` entries for every team that could not be added; successfully added team names are not listed.
+Team metadata CSV files require the headers `state`, `short_name`, `team_id`, `long_name`, `division`, `conference`, and `ranked`. Header order is flexible and extra columns are ignored. `team_id` is the canonical application identifier: every row must contain a positive whole number, IDs must be unique within the file and selected dataset, and the importer stores the supplied value directly without generating another ID. The importer maps `short_name` to the canonical `team_name` field and rejects files with missing headers, invalid rows, or duplicate IDs inside the file. IDs or names that already exist in the selected dataset are listed in `teams_failed`; successfully added team names are not listed. `ranked` accepts `yes`/`no` (also `true`/`false` or `1`/`0`).
+
+### Legacy Team ID Migration
+
+Deploy the new code, back up MongoDB, and preview any records created under the temporary `team_num` contract:
+
+```bash
+make team-id-migration-check
+```
+
+The dry run validates canonical-ID and game-identity uniqueness without writing. Apply the migration during a maintenance window only after reviewing the counts:
+
+```bash
+make team-id-migration-apply CONFIRM_TEAM_ID_MIGRATION=1
+```
+
+The migration rewrites current and previous-season teams, canonical games, opponent references, recent-opponent IDs, flagged games, and derived game IDs, then removes `team_num`. It is idempotent: datasets without `teams[].team_num` are ignored.
 
 ## Background Jobs
 

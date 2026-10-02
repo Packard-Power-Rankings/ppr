@@ -33,8 +33,10 @@ class UsersServices():
                     "team_name": "$teams.team_name",
                     "power_ranking": {"$slice": ["$teams.power_ranking", -1]},
                     "division_rank": "$teams.division_rank",
+                    "conference_rank": "$teams.conference_rank",
                     "last_rank": "$teams.last_rank",
                     "division": "$teams.division",
+                    "conference": "$teams.conference",
                     "wins": "$teams.wins",
                     "losses": "$teams.losses"
                 }

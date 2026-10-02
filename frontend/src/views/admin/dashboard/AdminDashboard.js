@@ -23,6 +23,7 @@ import { formatDisplayName } from 'src/utils/displayNames'
 const ADMIN_TOOLS = [
   { group: 'Game', label: 'Add Games', to: '/admin/add_games' },
   { group: 'Team', label: 'Add Teams', to: '/admin/add_teams' },
+  { group: 'Team', label: 'Export Teams', to: '/admin/export_teams' },
   { group: 'Other', label: 'Ranking', to: '/admin/ranking' },
   { group: 'Other', label: 'Z-Score', to: '/admin/z_scores' },
   { group: 'Game', label: 'Update Game', to: '/admin/update_game' },

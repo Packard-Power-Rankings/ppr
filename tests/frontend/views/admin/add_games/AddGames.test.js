@@ -9,7 +9,7 @@ import AddGames from 'src/views/admin/add_games/AddGames'
 
 jest.mock('src/api', () => ({
   __esModule: true,
-  default: { post: jest.fn() },
+  default: { get: jest.fn(), post: jest.fn() },
 }))
 
 jest.mock('papaparse', () => ({
@@ -33,6 +33,19 @@ const renderPage = () => render(
 )
 
 beforeEach(() => {
+  api.get.mockReset()
+  api.get.mockResolvedValue({
+    status: 200,
+    data: {
+      status: 200,
+      data: {
+        teams: [
+          { team_id: 1, team_name: 'Central High' },
+          { team_id: 2, team_name: 'Lincoln High' },
+        ],
+      },
+    },
+  })
   api.post.mockReset()
   Papa.parse.mockReset()
   Papa.unparse.mockClear()
@@ -47,7 +60,6 @@ test('confirms the selected dataset before parsing and uploads a valid file', as
   api.post.mockResolvedValue({
     data: {
       message: 'Added 1 game to mens high_school basketball',
-      teams_added: ['Central High', 'Lincoln High'],
     },
   })
   renderPage()
@@ -77,7 +89,7 @@ test('confirms the selected dataset before parsing and uploads a valid file', as
     '/games/upload/?sport_type=basketball&gender=mens&level=high_school',
     expect.any(FormData),
   ))
-  expect(await screen.findByText('Created missing teams: Central High, Lincoln High'))
+  expect(await screen.findByText('Added 1 game to mens high_school basketball'))
     .toBeInTheDocument()
 })
 
@@ -95,13 +107,17 @@ test('shows the required CSV columns and example from the help icon', async () =
 
 test('adds one game through the same selected dataset workflow', async () => {
   const user = userEvent.setup()
-  api.post.mockResolvedValue({ data: { message: 'Added 1 game', teams_added: [] } })
+  api.post.mockResolvedValue({ data: { message: 'Added 1 game' } })
   renderPage()
 
   await user.click(screen.getByRole('button', { name: 'Add One Game' }))
   await user.type(screen.getByLabelText('Game Date'), '2026-01-15')
-  await user.type(screen.getByLabelText('Home Team'), 'Central High')
-  await user.type(screen.getByLabelText('Away Team'), 'Lincoln High')
+  await user.click(screen.getByLabelText('Home Team'))
+  await user.type(screen.getByLabelText('Home Team'), 'Central')
+  await user.click(await screen.findByRole('option', { name: 'Central High' }))
+  await user.click(screen.getByLabelText('Away Team'))
+  await user.type(screen.getByLabelText('Away Team'), 'Lincoln')
+  await user.click(await screen.findByRole('option', { name: 'Lincoln High' }))
   await user.type(screen.getByLabelText('Home Score'), '72')
   await user.type(screen.getByLabelText('Away Score'), '68')
   await user.selectOptions(screen.getByLabelText('Location'), '999')
@@ -118,4 +134,32 @@ test('adds one game through the same selected dataset workflow', async () => {
       neutral_site: 999,
     },
   ))
+})
+
+test('shows unknown teams returned by the game endpoint', async () => {
+  const user = userEvent.setup()
+  api.post.mockRejectedValue({
+    response: {
+      data: {
+        detail: {
+          message: 'Import team data before adding games.',
+          unknown_teams: ['Lincoln High'],
+          errors: ['Unknown team: Lincoln High'],
+        },
+      },
+    },
+  })
+  renderPage()
+
+  await user.click(screen.getByRole('button', { name: 'Add One Game' }))
+  await user.type(screen.getByLabelText('Game Date'), '2026-01-15')
+  await user.click(screen.getByLabelText('Home Team'))
+  await user.click(await screen.findByRole('option', { name: 'Central High' }))
+  await user.click(screen.getByLabelText('Away Team'))
+  await user.click(await screen.findByRole('option', { name: 'Lincoln High' }))
+  await user.type(screen.getByLabelText('Home Score'), '72')
+  await user.type(screen.getByLabelText('Away Score'), '68')
+  await user.click(screen.getByRole('button', { name: 'Add Game' }))
+
+  expect(await screen.findByText('Unknown team: Lincoln High')).toBeInTheDocument()
 })

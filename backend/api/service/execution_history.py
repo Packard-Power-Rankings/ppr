@@ -50,16 +50,34 @@ def execution_error_detail(error: Any) -> dict[str, str]:
 async def _prune_process_history(collection: Any, process: str) -> None:
     cursor = collection.find(
         {"process": process},
-        {"_id": 1},
-    ).sort("queued_at", -1).skip(HISTORY_LIMIT)
+        {
+            "_id": 1,
+            "sport_type": 1,
+            "gender": 1,
+            "level": 1,
+            "queued_at": 1,
+        },
+    ).sort("queued_at", -1)
+    dataset_counts: dict[tuple[Any, Any, Any], int] = {}
 
     while True:
-        obsolete_records = await cursor.to_list(length=PRUNE_BATCH_SIZE)
-        if not obsolete_records:
+        records = await cursor.to_list(length=PRUNE_BATCH_SIZE)
+        if not records:
             break
-        await collection.delete_many({
-            "_id": {"$in": [record["_id"] for record in obsolete_records]}
-        })
+
+        obsolete_ids = []
+        for record in records:
+            dataset = (
+                record.get("level"),
+                record.get("gender"),
+                record.get("sport_type"),
+            )
+            dataset_counts[dataset] = dataset_counts.get(dataset, 0) + 1
+            if dataset_counts[dataset] > HISTORY_LIMIT:
+                obsolete_ids.append(record["_id"])
+
+        if obsolete_ids:
+            await collection.delete_many({"_id": {"$in": obsolete_ids}})
 
 
 async def prune_execution_history() -> None:
@@ -130,6 +148,6 @@ async def recent_execution_history() -> dict[str, list[dict]]:
         cursor = collection.find(
             {"process": process},
             {"_id": 0},
-        ).sort("queued_at", -1).limit(HISTORY_LIMIT)
-        history[process] = await cursor.to_list(length=HISTORY_LIMIT)
+        ).sort("queued_at", -1)
+        history[process] = await cursor.to_list(length=None)
     return history

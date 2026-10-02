@@ -77,7 +77,7 @@ class AdminTeamsService():
             HTTPException: 400 Bad Request for other errors
 
         Returns:
-            dict: Message for successful upload and an array of missing teams (if any).
+            dict: Message and storage details for a successful game upload.
         """
         file_name = csv_file.filename or "games.csv"
         if not file_name.lower().endswith(".csv"):
@@ -114,7 +114,7 @@ class AdminTeamsService():
             game = validate_game_values(values)
         except GameFileValidationError as exc:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail={"message": "Game validation failed",
                         "errors": exc.errors},
             ) from exc
@@ -136,7 +136,7 @@ class AdminTeamsService():
         file_name: str,
         file_content: bytes,
     ) -> Dict[str, Any]:
-        """Validate, deduplicate, create missing teams, and store game rows."""
+        """Validate, deduplicate, resolve known teams, and store game rows."""
         try:
             games = parse_game_csv(file_content)
         except GameFileValidationError as exc:
@@ -174,16 +174,21 @@ class AdminTeamsService():
         for game in games:
             team_names.extend((game.home_team, game.away_team))
         missing_teams = await self.find_missing_teams(team_names)
-        team_result = await self.add_teams_to_db([
-            {
-                "team_name": team_name,
-                "division": None,
-                "conference": None,
-                "power_ranking": 0.0,
-                "state": None,
-            }
-            for team_name in missing_teams
-        ]) if missing_teams else {"added": []}
+        if missing_teams:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail={
+                    "message": (
+                        "Import team data before adding games. The game file "
+                        "contains unknown teams."
+                    ),
+                    "unknown_teams": missing_teams,
+                    "errors": [
+                        f"Unknown team: {team_name}"
+                        for team_name in missing_teams
+                    ],
+                },
+            )
 
         dataset_query = {
             "sport_type": sport_type,
@@ -285,7 +290,6 @@ class AdminTeamsService():
             "status": status.HTTP_200_OK,
             "files_uploaded": files_uploaded,
             "games_added": len(games),
-            "teams_added": team_result.get("added", []),
         }
 
     async def _build_game_documents(
@@ -418,17 +422,20 @@ class AdminTeamsService():
             },
         )
         existing_teams = document.get("teams", []) if document else []
+        existing_team_ids = {
+            int(team["team_id"])
+            for team in existing_teams
+            if isinstance(team.get("team_id"), int)
+            and not isinstance(team.get("team_id"), bool)
+        }
         existing_names = set()
         for existing_team in existing_teams:
             for name_field in ("team_name", "short_name", "long_name"):
                 name = normalize_team_name(existing_team.get(name_field) or "")
                 if name:
                     existing_names.add(name.casefold())
-        team_id = max(
-            (team.get("team_id", 0) for team in existing_teams),
-            default=0,
-        )
         preexisting_names = set(existing_names)
+        preexisting_team_ids = set(existing_team_ids)
         added, skipped, new_teams = [], [], []
         for team in teams:
             short_name = normalize_team_name(
@@ -445,6 +452,26 @@ class AdminTeamsService():
                     "reason": "Team name is required",
                 })
                 continue
+            raw_team_id = team.get("team_id")
+            if (
+                not isinstance(raw_team_id, int)
+                or isinstance(raw_team_id, bool)
+                or raw_team_id <= 0
+            ):
+                skipped.append({
+                    "team_name": team_name,
+                    "reason": "A positive whole-number team_id is required",
+                })
+                continue
+            team_id = raw_team_id
+            if team_id in existing_team_ids:
+                reason = (
+                    f"Team ID {team_id} already exists in the database"
+                    if team_id in preexisting_team_ids
+                    else f"Duplicate team ID {team_id} within the request"
+                )
+                skipped.append({"team_name": team_name, "reason": reason})
+                continue
             matched_aliases = aliases.intersection(existing_names)
             if matched_aliases:
                 reason = (
@@ -455,7 +482,6 @@ class AdminTeamsService():
                 skipped.append({"team_name": team_name, "reason": reason})
                 existing_names.update(aliases)
                 continue
-            team_id += 1
             try:
                 initial_ranking = float(team.get("power_ranking", 0.0) or 0.0)
             except (TypeError, ValueError):
@@ -484,6 +510,7 @@ class AdminTeamsService():
             }
             new_teams.append(new_team_data)
             added.append(team_name)
+            existing_team_ids.add(team_id)
             existing_names.update(aliases)
         if new_teams:
             result = await self.sports_collection.update_one(
@@ -1447,6 +1474,14 @@ class AdminTeamsService():
                 detail="Internal Server Error"
             ) from exc
 
+    async def get_all_teams(self) -> List[Dict[str, Any]]:
+        """Return every stored field for teams in the selected dataset."""
+        document = await self.sports_collection.find_one(
+            {"_id": self.level_constant.get("_id")},
+            {"teams": 1, "_id": 0},
+        )
+        return document.get("teams", []) if document else []
+
     async def find_season_opp_dates(
         self,
         team_one: int,
@@ -1929,6 +1964,7 @@ class AdminTeamsService():
         migrated_entries = []
         files_migrated = 0
         games_migrated = 0
+        files_skipped = 0
         for index, entry in enumerate(entries):
             if "filedata" not in entry:
                 migrated_entries.append(entry)
@@ -1943,16 +1979,9 @@ class AdminTeamsService():
             ]
             missing_teams = await self.find_missing_teams(team_names)
             if missing_teams:
-                await self.add_teams_to_db([
-                    {
-                        "team_name": team_name,
-                        "division": None,
-                        "conference": None,
-                        "power_ranking": 0.0,
-                        "state": None,
-                    }
-                    for team_name in missing_teams
-                ])
+                migrated_entries.append(entry)
+                files_skipped += 1
+                continue
 
             upload_id = entry.get("upload_id") or (
                 f"legacy-{upload_document['_id']}-{index}"
@@ -2010,6 +2039,7 @@ class AdminTeamsService():
         return {
             "files_migrated": files_migrated,
             "games_migrated": games_migrated,
+            "files_skipped_unknown_teams": files_skipped,
         }
 
     async def _find_teams(self, query: dict, teams_search: list) -> list:
@@ -2030,19 +2060,3 @@ class AdminTeamsService():
             {"_id": 0}
         )
         return await results.to_list()
-
-    async def _generate_team_id(self) -> int:
-        """Gets teams and finds the max team id and then
-        sets the new teams id to the max + 1
-
-        Returns:
-            int: Returns the new team id
-        """
-        teams = await self.sports_collection.find_one(
-            {'_id': self.level_constant.get('_id')},
-            projection={"teams": 1, "_id": 0}
-        )
-        team_list = teams.get("teams", []) if teams else []
-        existing_ids = [team.get("team_id")
-                        for team in team_list if "team_id" in team]
-        return max(existing_ids) if existing_ids else 0

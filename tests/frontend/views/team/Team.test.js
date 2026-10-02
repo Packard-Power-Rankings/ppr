@@ -55,6 +55,7 @@ test('labels team rankings without the ranking year', async () => {
   const powerRank = screen.getByRole('heading', { name: 'Power: 51.25' })
   const divisionRank = screen.getByRole('heading', { name: 'Division Rank: 1' })
   const conferenceRank = screen.getByRole('heading', { name: 'Conference Rank: 3' })
+  expect(screen.getByRole('heading', { name: 'ID: 1' })).toBeInTheDocument()
   expect(screen.getByRole('heading', { name: 'Last Rank: 4' })).toBeInTheDocument()
   expect(screen.getByRole('heading', { name: 'State: North Dakota' })).toBeInTheDocument()
   expect(teamTitle.parentElement).not.toBe(overallRank.parentElement)

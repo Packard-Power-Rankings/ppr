@@ -1,17 +1,17 @@
-state,short_name,long_name,division,conference,ranked
-Alaska,AK Anchorage,,NCAA 2,Great Northwest,yes
-Alaska,AK Fairbanks,,NCAA 2,Great Northwest,no
-Alabama,AL Huntsville,,NCAA 2,Gulf South,yes
-Georgia,Abe Baldwin,,NAIA,,yes
-Texas,Abilene Chr,,NCAA 1,Western Athletic,yes
-California,Academy of Art,,NCAA 2,,yes
-Colorado,Adams St,,NCAA 2,RMAC,yes
-New York,Adelphi,,NCAA 2,Northeast-10,yes
-Michigan,Adrian,,NCAA 3,Michigan,yes
-Georgia,Agnes Scott,,NCAA 3,Conference of the South,yes
-Colorado,Air Force,,NCAA 1,Mountain West,no
-Ohio,Akron,,NCAA 1,MAC,yes
-Alabama,Alabama,,NCAA 1,SEC,yes
-Alabama,Alabama A&M,University of Alabama A&M,NCAA 1,SWAC,no
-Colorado, Colorado, University of Colorado Boulder, NCAA 1, Rocky, yes
-Colorado, CMU, Colorado Mesa University, NCAAA 2, Rocky, yes
+state,short_name,team_id,long_name,division,conference,ranked
+Alaska,AK Anchorage,713,,NCAA 2,Great Northwest,yes
+Alaska,AK Fairbanks,714,,NCAA 2,Great Northwest,no
+Alabama,AL Huntsville,640,,NCAA 2,Gulf South,yes
+Georgia,Abe Baldwin,1537,,NAIA,,yes
+Texas,Abilene Chr,157,,NCAA 1,Western Athletic,yes
+California,Academy of Art,504,,NCAA 2,,yes
+Colorado,Adams St,459,,NCAA 2,RMAC,yes
+New York,Adelphi,601,,NCAA 2,Northeast-10,yes
+Michigan,Adrian,814,,NCAA 3,Michigan,yes
+Georgia,Agnes Scott,1462,,NCAA 3,Conference of the South,yes
+Colorado,Air Force,87,,NCAA 1,Mountain West,no
+Ohio,Akron,219,,NCAA 1,MAC,yes
+Alabama,Alabama,36,,NCAA 1,SEC,yes
+Alabama,Alabama A&M,200,University of Alabama A&M,NCAA 1,SWAC,no
+Colorado,Colorado, 203,University of Colorado Boulder, NCAA 1, Rocky, yes
+Colorado,CMU,1000,Colorado Mesa University, NCAAA 2, Rocky, yes

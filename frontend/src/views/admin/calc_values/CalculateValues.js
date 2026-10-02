@@ -18,11 +18,12 @@ import {
     CPopover,
 } from "@coreui/react";
 import CIcon from '@coreui/icons-react';
-import { cilInfo } from '@coreui/icons';
+import { cilCheckCircle, cilInfo, cilXCircle } from '@coreui/icons';
 import api from "src/api";
 import { useSelector } from "react-redux";
 import { format } from "date-fns";
 import { CURRENT_RANKING_YEAR } from "src/utils/rankingYear";
+import { formatDatasetName } from "src/utils/displayNames";
 
 const statusMapping = {
     queued: "Queued",
@@ -41,6 +42,20 @@ const formatDate = (dateString) => {
     } catch (error) {
         return "Invalid Date";
     }
+};
+
+const formatElapsedTime = (startedAt, finishedAt) => {
+    const start = Date.parse(startedAt);
+    const finish = Date.parse(finishedAt);
+    if (!Number.isFinite(start) || !Number.isFinite(finish) || finish < start) {
+        return 'N/A';
+    }
+
+    const totalSeconds = Math.floor((finish - start) / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    return `${hours}H ${minutes}M ${seconds}S`;
 };
 
 
@@ -64,6 +79,16 @@ const FailureStatus = ({ task }) => {
         return () => document.removeEventListener('pointerdown', closeOnOutsidePointer, true);
     }, [isOpen]);
 
+    if (task.status === 'Complete') {
+        return (
+            <span className="d-inline-flex align-items-center gap-1 text-success">
+                <span role="img" aria-label="Successfully completed" title="Successfully completed">
+                    <CIcon icon={cilCheckCircle} />
+                </span>
+                Complete
+            </span>
+        );
+    }
     if (task.status !== 'Failed') return task.status;
     const error = task.error || {};
     const content = (
@@ -76,6 +101,9 @@ const FailureStatus = ({ task }) => {
 
     return (
         <span className="d-inline-flex align-items-center gap-1 text-danger">
+            <span role="img" aria-label="Failed" title="Failed">
+                <CIcon icon={cilXCircle} />
+            </span>
             Failed
             <CPopover
                 ref={popoverRef}
@@ -109,6 +137,7 @@ const CalculateValues = ({ view = 'ranking' }) => {
     const sport = useSelector((state) => state.sport);
     const gender = useSelector((state) => state.gender);
     const level = useSelector((state) => state.level);
+    const datasetName = formatDatasetName({ sport, gender, level });
     const [ runningTasks, setRunningTasks ] = useState([]);
     const [ zScoreTasks, setZScoreTasks ] = useState([]);
     const [ historyRefresh, setHistoryRefresh ] = useState(0);
@@ -129,27 +158,41 @@ const CalculateValues = ({ view = 'ranking' }) => {
                 const zScoreRecords = Array.isArray(response.data?.z_scores)
                     ? response.data.z_scores
                     : [];
-                setRunningTasks(records.map((record) => ({
+                const matchesSelectedDataset = (record) =>
+                    record.sport_type === sport &&
+                    record.gender === gender &&
+                    record.level === level;
+                const selectedAlgorithmRecords = records.filter(matchesSelectedDataset);
+                const selectedZScoreRecords = zScoreRecords.filter(matchesSelectedDataset);
+                setRunningTasks(selectedAlgorithmRecords.map((record) => ({
                     taskId: record.task_id,
                     enqueueTime: formatDate(record.queued_at),
-                    process: 'Main Algorithm Run',
+                    process: datasetName,
                     runs: record.iterations,
                     startTime: formatDate(record.started_at),
                     finishTime: formatDate(record.finished_at),
+                    elapsedTime: formatElapsedTime(record.started_at, record.finished_at),
                     status: statusMapping[record.status] || 'Unknown',
                     error: record.error,
                 })));
-                setZScoreTasks(zScoreRecords.map((record) => ({
+                setZScoreTasks(selectedZScoreRecords.map((record) => ({
                     taskId: record.task_id,
                     enqueueTime: formatDate(record.queued_at),
-                    process: 'Calculate z Scores',
+                    process: formatDatasetName({
+                        sport: record.sport_type,
+                        gender: record.gender,
+                        level: record.level,
+                    }),
                     startTime: formatDate(record.started_at),
                     finishTime: formatDate(record.finished_at),
+                    elapsedTime: formatElapsedTime(record.started_at, record.finished_at),
                     status: statusMapping[record.status] || 'Unknown',
                     error: record.error,
                 })));
                 setHistoryError('');
-                const activeRecords = isZScoreView ? zScoreRecords : records;
+                const activeRecords = isZScoreView
+                    ? selectedZScoreRecords
+                    : selectedAlgorithmRecords;
                 if (activeRecords.some((record) =>
                     ['queued', 'in_progress'].includes(record.status))) {
                     timeoutId = setTimeout(loadHistory, 3000);
@@ -164,7 +207,7 @@ const CalculateValues = ({ view = 'ranking' }) => {
             isMounted = false;
             clearTimeout(timeoutId);
         };
-    }, [historyRefresh, isZScoreView]);
+    }, [historyRefresh, isZScoreView, sport, gender, level, datasetName]);
 
     const startTask = async (endpoint) => {
         setStartingTask(true);
@@ -237,10 +280,11 @@ const CalculateValues = ({ view = 'ranking' }) => {
                     <CTableHead>
                         <CTableRow>
                             <CTableHeaderCell scope="col">Enqueue Time</CTableHeaderCell>
-                            <CTableHeaderCell scope="col">Process</CTableHeaderCell>
+                            <CTableHeaderCell scope="col">Name</CTableHeaderCell>
                             <CTableHeaderCell scope="col">Runs</CTableHeaderCell>
                             <CTableHeaderCell scope="col">Start Time</CTableHeaderCell>
                             <CTableHeaderCell scope="col">Finish Time</CTableHeaderCell>
+                            <CTableHeaderCell scope="col">Elapsed Time</CTableHeaderCell>
                             <CTableHeaderCell scope="col">Status</CTableHeaderCell>
                         </CTableRow>
                     </CTableHead>
@@ -252,6 +296,7 @@ const CalculateValues = ({ view = 'ranking' }) => {
                                 <CTableDataCell>{task.runs}</CTableDataCell>
                                 <CTableDataCell>{task.startTime}</CTableDataCell>
                                 <CTableDataCell>{task.finishTime}</CTableDataCell>
+                                <CTableDataCell>{task.elapsedTime}</CTableDataCell>
                                 <CTableDataCell><FailureStatus task={task} /></CTableDataCell>
                             </CTableRow>
                         ))}
@@ -272,9 +317,10 @@ const CalculateValues = ({ view = 'ranking' }) => {
                     <CTableHead>
                         <CTableRow>
                             <CTableHeaderCell scope="col">Enqueue Time</CTableHeaderCell>
-                            <CTableHeaderCell scope="col">Process</CTableHeaderCell>
+                            <CTableHeaderCell scope="col">Job</CTableHeaderCell>
                             <CTableHeaderCell scope="col">Start Time</CTableHeaderCell>
                             <CTableHeaderCell scope="col">Finish Time</CTableHeaderCell>
+                            <CTableHeaderCell scope="col">Elapsed Time</CTableHeaderCell>
                             <CTableHeaderCell scope="col">Status</CTableHeaderCell>
                         </CTableRow>
                     </CTableHead>
@@ -285,6 +331,7 @@ const CalculateValues = ({ view = 'ranking' }) => {
                                 <CTableDataCell>{task.process}</CTableDataCell>
                                 <CTableDataCell>{task.startTime}</CTableDataCell>
                                 <CTableDataCell>{task.finishTime}</CTableDataCell>
+                                <CTableDataCell>{task.elapsedTime}</CTableDataCell>
                                 <CTableDataCell><FailureStatus task={task} /></CTableDataCell>
                             </CTableRow>
                         ))}

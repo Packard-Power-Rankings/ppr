@@ -197,7 +197,7 @@ Select CSV
   -> POST /games/upload/
   -> backend repeats the full validation
   -> reject duplicate games within the file or existing dataset
-  -> create any missing teams with neutral defaults
+  -> reject unknown teams and require team metadata to be imported first
   -> store normalized games in MongoDB
   -> store the validated source CSV under uploads/ for reference
   -> store only upload metadata and its relative path in MongoDB
@@ -205,7 +205,7 @@ Select CSV
 Individual game form
   -> browser validates the six game fields
   -> POST /games/
-  -> use the same duplicate, team-creation, and storage workflow
+  -> use the same team lookup, duplicate, and storage workflow
 ```
 
 The expected game CSV has six columns and no header:

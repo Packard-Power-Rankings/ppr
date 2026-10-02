@@ -26,6 +26,7 @@ import {
 import CIcon from '@coreui/icons-react'
 import { cilInfo } from '@coreui/icons'
 import Papa from 'papaparse'
+import Select from 'react-select'
 import api from 'src/api'
 import { formatDisplayName } from 'src/utils/displayNames'
 import { apiErrorMessages, GAME_COLUMNS, validateGameRows } from './gameFileValidation'
@@ -55,12 +56,56 @@ const AddGames = () => {
   const [submitting, setSubmitting] = useState(false)
   const [fileInputKey, setFileInputKey] = useState(0)
   const [manualGame, setManualGame] = useState(emptyGame)
+  const [teamOptions, setTeamOptions] = useState([])
+  const [loadingTeams, setLoadingTeams] = useState(false)
+  const [teamLoadError, setTeamLoadError] = useState(false)
 
   const datasetKey = `${sport}:${gender}:${level}`
   const datasetName = useMemo(() => [gender, level, sport]
     .map(formatDisplayName)
     .join(' '), [gender, level, sport])
   const query = `sport_type=${sport}&gender=${gender}&level=${level}`
+
+  useEffect(() => {
+    if (mode !== 'manual') return undefined
+
+    let isCurrentRequest = true
+    const fetchTeams = async () => {
+      setLoadingTeams(true)
+      setTeamLoadError(false)
+      setTeamOptions([])
+      setManualGame(emptyGame)
+
+      try {
+        const response = await api.get('/teams-ids/', {
+          params: { sport_type: sport, gender, level },
+        })
+        if (!isCurrentRequest) return
+
+        const teams = response.status === 204 || response.data?.status === 204
+          ? []
+          : response.data?.data?.teams
+        if (!Array.isArray(teams)) {
+          throw new Error('Teams response did not contain a teams array')
+        }
+        setTeamOptions(teams.map((team) => ({
+          value: team.team_id,
+          label: team.team_name,
+        })))
+      } catch (error) {
+        if (!isCurrentRequest) return
+        console.error('Failed to load teams for manual game entry', error)
+        setTeamLoadError(true)
+      } finally {
+        if (isCurrentRequest) setLoadingTeams(false)
+      }
+    }
+
+    fetchTeams()
+    return () => {
+      isCurrentRequest = false
+    }
+  }, [gender, level, mode, sport])
 
   const clearUpload = () => {
     setPendingFile(null)
@@ -139,11 +184,7 @@ const AddGames = () => {
     setFeedback(null)
     try {
       const { data } = await api.post(`/games/upload/?${query}`, formData)
-      const messages = [data.message]
-      if (data.teams_added?.length) {
-        messages.push(`Created missing teams: ${data.teams_added.join(', ')}`)
-      }
-      setFeedback({ color: 'success', messages })
+      setFeedback({ color: 'success', messages: [data.message] })
       clearUpload()
     } catch (error) {
       setFeedback({
@@ -179,11 +220,7 @@ const AddGames = () => {
     setFeedback(null)
     try {
       const { data } = await api.post(`/games/?${query}`, payload)
-      const messages = [data.message]
-      if (data.teams_added?.length) {
-        messages.push(`Created missing teams: ${data.teams_added.join(', ')}`)
-      }
-      setFeedback({ color: 'success', messages })
+      setFeedback({ color: 'success', messages: [data.message] })
       setManualGame(emptyGame)
     } catch (error) {
       setFeedback({
@@ -286,78 +323,112 @@ const AddGames = () => {
           )}
         </>
       ) : (
-        <CForm className="p-4 border rounded" onSubmit={submitManualGame}>
-          <h2 className="h5 mb-3">Add One Game For {datasetName}</h2>
-          <CRow className="g-3">
-            <CCol md={4}>
-              <CFormInput
-                type="date"
-                id="game-date"
-                label="Game Date"
-                value={manualGame.date}
-                onChange={(event) => updateManualGame('date', event.target.value)}
-                required
-              />
-            </CCol>
-            <CCol md={4}>
-              <CFormInput
-                id="home-team"
-                label="Home Team"
-                value={manualGame.home_team}
-                onChange={(event) => updateManualGame('home_team', event.target.value)}
-                required
-              />
-            </CCol>
-            <CCol md={4}>
-              <CFormInput
-                id="away-team"
-                label="Away Team"
-                value={manualGame.away_team}
-                onChange={(event) => updateManualGame('away_team', event.target.value)}
-                required
-              />
-            </CCol>
-            <CCol md={4}>
-              <CFormInput
-                type="number"
-                min="0"
-                step="1"
-                id="home-score"
-                label="Home Score"
-                value={manualGame.home_score}
-                onChange={(event) => updateManualGame('home_score', event.target.value)}
-                required
-              />
-            </CCol>
-            <CCol md={4}>
-              <CFormInput
-                type="number"
-                min="0"
-                step="1"
-                id="away-score"
-                label="Away Score"
-                value={manualGame.away_score}
-                onChange={(event) => updateManualGame('away_score', event.target.value)}
-                required
-              />
-            </CCol>
-            <CCol md={4}>
-              <CFormLabel htmlFor="neutral-site">Location</CFormLabel>
-              <CFormSelect
-                id="neutral-site"
-                value={manualGame.neutral_site}
-                onChange={(event) => updateManualGame('neutral_site', event.target.value)}
-              >
-                <option value="0">Home field</option>
-                <option value="999">Neutral site</option>
-              </CFormSelect>
-            </CCol>
-          </CRow>
-          <CButton type="submit" color="primary" className="mt-3" disabled={submitting}>
-            {submitting && <CSpinner size="sm" className="me-2" />}
-            Add Game
-          </CButton>
-        </CForm>
+        <>
+          {teamLoadError && (
+            <CAlert color="danger">Failed to load teams for {datasetName}.</CAlert>
+          )}
+          {!loadingTeams && !teamLoadError && teamOptions.length === 0 && (
+            <CAlert color="info">No teams found for {datasetName}.</CAlert>
+          )}
+          <CForm className="p-4 border rounded" onSubmit={submitManualGame}>
+            <h2 className="h5 mb-3">Add One Game For {datasetName}</h2>
+            <CRow className="g-3">
+              <CCol md={4}>
+                <CFormInput
+                  type="date"
+                  id="game-date"
+                  label="Game Date"
+                  value={manualGame.date}
+                  onChange={(event) => updateManualGame('date', event.target.value)}
+                  required
+                />
+              </CCol>
+              <CCol md={4}>
+                <CFormLabel htmlFor="home-team">Home Team</CFormLabel>
+                <Select
+                  aria-label="Home Team"
+                  classNamePrefix="react-select"
+                  inputId="home-team"
+                  isDisabled={loadingTeams || teamLoadError || !teamOptions.length}
+                  isLoading={loadingTeams}
+                  isSearchable
+                  onChange={(option) => {
+                    const homeTeam = option?.label || ''
+                    setManualGame((current) => ({
+                      ...current,
+                      home_team: homeTeam,
+                      away_team: current.away_team === homeTeam ? '' : current.away_team,
+                    }))
+                  }}
+                  options={teamOptions.filter((team) => team.label !== manualGame.away_team)}
+                  placeholder="Search and select a team"
+                  required
+                  value={teamOptions.find((team) => team.label === manualGame.home_team) || null}
+                />
+              </CCol>
+              <CCol md={4}>
+                <CFormLabel htmlFor="away-team">Away Team</CFormLabel>
+                <Select
+                  aria-label="Away Team"
+                  classNamePrefix="react-select"
+                  inputId="away-team"
+                  isDisabled={loadingTeams || teamLoadError || !teamOptions.length}
+                  isLoading={loadingTeams}
+                  isSearchable
+                  onChange={(option) => updateManualGame('away_team', option?.label || '')}
+                  options={teamOptions.filter((team) => team.label !== manualGame.home_team)}
+                  placeholder="Search and select a team"
+                  required
+                  value={teamOptions.find((team) => team.label === manualGame.away_team) || null}
+                />
+              </CCol>
+              <CCol md={4}>
+                <CFormInput
+                  type="number"
+                  min="0"
+                  step="1"
+                  id="home-score"
+                  label="Home Score"
+                  value={manualGame.home_score}
+                  onChange={(event) => updateManualGame('home_score', event.target.value)}
+                  required
+                />
+              </CCol>
+              <CCol md={4}>
+                <CFormInput
+                  type="number"
+                  min="0"
+                  step="1"
+                  id="away-score"
+                  label="Away Score"
+                  value={manualGame.away_score}
+                  onChange={(event) => updateManualGame('away_score', event.target.value)}
+                  required
+                />
+              </CCol>
+              <CCol md={4}>
+                <CFormLabel htmlFor="neutral-site">Location</CFormLabel>
+                <CFormSelect
+                  id="neutral-site"
+                  value={manualGame.neutral_site}
+                  onChange={(event) => updateManualGame('neutral_site', event.target.value)}
+                >
+                  <option value="0">Home field</option>
+                  <option value="999">Neutral site</option>
+                </CFormSelect>
+              </CCol>
+            </CRow>
+            <CButton
+              type="submit"
+              color="primary"
+              className="mt-3"
+              disabled={submitting || loadingTeams || teamLoadError || !teamOptions.length}
+            >
+              {submitting && <CSpinner size="sm" className="me-2" />}
+              Add Game
+            </CButton>
+          </CForm>
+        </>
       )}
 
       <CModal

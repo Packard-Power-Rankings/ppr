@@ -19,6 +19,7 @@ from typing import Tuple, List, Dict
 # from celery import states
 from arq.connections import create_pool
 from arq.jobs import Job, JobStatus
+from bson import ObjectId
 from fastapi import (
     APIRouter,
     Depends,
@@ -30,11 +31,13 @@ from fastapi import (
     Response,
     Request
 )
+from fastapi.encoders import jsonable_encoder
 from fastapi.security import OAuth2PasswordRequestForm
 from api.service.tasks import run_main_algorithm, calc_z_score
 from api.schemas.items import (
     InputMethod,
     NewGameData,
+    NewTeamData,
     UpdateTeamsData,
     UpdateTeamInfo,
     LogoutResponse,
@@ -359,13 +362,13 @@ async def add_game(
 @router.post(
     "/add_teams/",
     dependencies=[require_admin()],
-    description="Adds Missing Teams To Database"
+    description="Add team metadata with canonical team IDs"
 )
 async def add_missing_teams(
-    new_team: List[Dict],
+    new_team: List[NewTeamData],
     sports_input: InputMethod = Depends()
 ):
-    """Endpoint for adding the missing teams to the database
+    """Add manually entered team metadata to the selected dataset.
 
     Args:
         new_team (Annotated[NewTeamList, Body, optional):
@@ -380,21 +383,39 @@ async def add_missing_teams(
         dict: Success message
     """
     try:
-        # teams = new_team.model_dump()
         level_key = (
             sports_input.sport_type,
             sports_input.gender,
             sports_input.level
         )
         team_services = admin_team_class(level_key)
-        results = await team_services.add_teams_to_db(new_team)
+        results = await team_services.add_teams_to_db([
+            team.model_dump() for team in new_team
+        ])
         return results
+    except HTTPException:
+        raise
     except Exception as exc:
         traceback.print_exc()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal Error"
         ) from exc
+
+
+@router.get(
+    "/export_teams/",
+    dependencies=[require_admin()],
+    description="Export all stored team fields for one dataset",
+)
+async def export_teams(sports_input: InputMethod = Depends()):
+    level_key = (
+        sports_input.sport_type.value,
+        sports_input.gender.value,
+        sports_input.level.value,
+    )
+    teams = await admin_team_class(level_key).get_all_teams()
+    return {"teams": jsonable_encoder(teams, custom_encoder={ObjectId: str})}
 
 
 @router.post(

@@ -7,6 +7,7 @@ from typing import Any
 TEAM_DATA_COLUMNS = (
     "state",
     "short_name",
+    "team_id",
     "long_name",
     "division",
     "conference",
@@ -60,6 +61,7 @@ def parse_team_csv(content: bytes) -> list[dict[str, Any]]:
     }
     teams = []
     errors = []
+    team_id_rows = {}
 
     for row_number, row in enumerate(reader, start=2):
         if not row or not any(value.strip() for value in row):
@@ -78,6 +80,28 @@ def parse_team_csv(content: bytes) -> list[dict[str, Any]]:
             errors.append(f"Row {row_number}: state is required.")
         if not team["short_name"]:
             errors.append(f"Row {row_number}: short_name is required.")
+
+        if not team["team_id"]:
+            errors.append(f"Row {row_number}: team_id is required.")
+        else:
+            try:
+                team["team_id"] = int(team["team_id"])
+            except ValueError:
+                errors.append(
+                    f"Row {row_number}: team_id must be a positive whole number."
+                )
+            else:
+                if team["team_id"] <= 0:
+                    errors.append(
+                        f"Row {row_number}: team_id must be a positive whole number."
+                    )
+                elif team["team_id"] in team_id_rows:
+                    errors.append(
+                        f"Row {row_number}: team_id {team['team_id']} duplicates "
+                        f"row {team_id_rows[team['team_id']]}."
+                    )
+                else:
+                    team_id_rows[team["team_id"]] = row_number
 
         ranked = team["ranked"].casefold()
         if ranked not in {"yes", "no", "true", "false", "1", "0"}:

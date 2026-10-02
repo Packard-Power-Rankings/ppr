@@ -98,7 +98,9 @@ Application CSV uploads are headerless and contain exactly six columns:
 date,home_team,away_team,home_score,away_score,neutral_site
 ```
 
-Use `0` for a normal home game and `999` for a neutral-site game. The upload creates missing team records automatically. It rejects malformed rows and duplicate games within the upload or selected dataset.
+Use `0` for a normal home game and `999` for a neutral-site game. Import team metadata first; game uploads reject unknown team names rather than generating IDs. The endpoint also rejects malformed rows and duplicate games within the upload or selected dataset.
+
+Team metadata uses the headers `state,short_name,team_id,long_name,division,conference,ranked`. The supplied positive `team_id` is canonical and must be unique within the file and selected dataset.
 
 ## Maintenance Checks
 

@@ -10,6 +10,7 @@ LIGHTSAIL_COMPOSE = docker compose --env-file $(LIGHTSAIL_ENV) -f docker-compose
 	test-backend-service test-backend-algorithm test-frontend test-frontend-app \
 	test-frontend-admin test-frontend-archive test-frontend-teams test-lint test-build test-app \
 	test-app-reset test-app-maintenance test-admin-reset \
+	team-id-migration-check team-id-migration-apply \
 	lightsail-init lightsail-check lightsail-up lightsail-down lightsail-restart \
 	lightsail-logs lightsail-status lightsail-health lightsail-backup
 
@@ -35,6 +36,8 @@ help:
 	@echo "  make test-app-reset          Replace all local app data with full fixtures"
 	@echo "  make test-app-maintenance    Run destructive maintenance endpoint checks"
 	@echo "  make test-admin-reset        Replace the local admin with test credentials"
+	@echo "  make team-id-migration-check Preview legacy team_num migration"
+	@echo "  make team-id-migration-apply Apply migration (confirmation required)"
 	@echo
 	@echo "Packard Power Rankings AWS Lightsail commands"
 	@echo
@@ -107,6 +110,14 @@ test-app-maintenance: app-up
 
 test-admin-reset: app-up
 	APP_ENV="$(APP_ENV)" CONFIRM_ADMIN_RESET="$(CONFIRM_ADMIN_RESET)" ./tests/application/application_smoke_test.sh --reset-admin
+
+team-id-migration-check: app-up
+	$(APP_COMPOSE) exec -T backend python -m api.migrate_team_ids
+
+team-id-migration-apply: app-up
+	@test "$(CONFIRM_TEAM_ID_MIGRATION)" = "1" || \
+		(echo "Migration refused. Re-run with CONFIRM_TEAM_ID_MIGRATION=1"; exit 1)
+	$(APP_COMPOSE) exec -T backend python -m api.migrate_team_ids --apply
 
 lightsail-init:
 	./scripts/init_lightsail_env.sh "$(LIGHTSAIL_ENV)" "$(DOMAIN)"

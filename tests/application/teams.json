@@ -1,50 +1,57 @@
 [
   {
-    "team_name": "Northstar Academy",
+    "team_id": 101,
+    "short_name": "Northstar Academy",
     "division": "6A",
-    "conference": null,
+    "conference": "",
     "power_ranking": 125.0,
     "state": "CO"
   },
   {
-    "team_name": "Cedar Valley",
+    "team_id": 102,
+    "short_name": "Cedar Valley",
     "division": "6A",
-    "conference": null,
+    "conference": "",
     "power_ranking": 115.0,
     "state": "CO"
   },
   {
-    "team_name": "Mesa Vista",
+    "team_id": 103,
+    "short_name": "Mesa Vista",
     "division": "5A",
-    "conference": null,
+    "conference": "",
     "power_ranking": 108.0,
     "state": "CO"
   },
   {
-    "team_name": "Riverbend Prep",
+    "team_id": 104,
+    "short_name": "Riverbend Prep",
     "division": "5A",
-    "conference": null,
+    "conference": "",
     "power_ranking": 102.0,
     "state": "CO"
   },
   {
-    "team_name": "Frontier Tech",
+    "team_id": 105,
+    "short_name": "Frontier Tech",
     "division": "4A",
-    "conference": null,
+    "conference": "",
     "power_ranking": 96.0,
     "state": "CO"
   },
   {
-    "team_name": "Aspen Heights",
+    "team_id": 106,
+    "short_name": "Aspen Heights",
     "division": "4A",
-    "conference": null,
+    "conference": "",
     "power_ranking": 90.0,
     "state": "CO"
   },
   {
-    "team_name": "QA Reserve",
+    "team_id": 107,
+    "short_name": "QA Reserve",
     "division": "3A",
-    "conference": null,
+    "conference": "",
     "power_ranking": 80.0,
     "state": "CO"
   }

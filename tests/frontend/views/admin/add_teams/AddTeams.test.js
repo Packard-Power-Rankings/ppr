@@ -6,7 +6,7 @@ import AddTeams from 'src/views/admin/add_teams/AddTeams'
 
 jest.mock('src/api', () => ({
   __esModule: true,
-  default: { post: jest.fn() },
+  default: { get: jest.fn(), post: jest.fn() },
 }))
 
 jest.mock('react-redux', () => ({
@@ -18,6 +18,7 @@ jest.mock('react-redux', () => ({
 }))
 
 beforeEach(() => {
+  api.get.mockReset()
   api.post.mockReset()
 })
 
@@ -36,8 +37,8 @@ test('uploads a team metadata CSV and reports only the teams that failed with a 
   render(<AddTeams />)
 
   const file = new File([
-    'state,short_name,long_name,division,conference,ranked\n'
-    + 'Alaska,North Alaska,University of North Alaska,NCAA 2,GNAC,yes\n',
+    'state,short_name,team_id,long_name,division,conference,ranked\n'
+    + 'Alaska,North Alaska,1003,University of North Alaska,NCAA 2,GNAC,yes\n',
   ], 'teams.csv', { type: 'text/csv' })
   await user.upload(screen.getByLabelText('Choose Team Data CSV'), file)
   await user.click(screen.getByRole('button', { name: 'Upload Team Data' }))
@@ -77,11 +78,22 @@ test('shows server header errors when the team file format is incorrect', async 
 
 test('adds one team with all CSV fields through the manual form', async () => {
   const user = userEvent.setup()
+  api.get.mockResolvedValue({
+    status: 200,
+    data: {
+      status: 200,
+      data: { teams: [{ team_id: 713 }, { team_id: 1002 }] },
+    },
+  })
   api.post.mockResolvedValue({ data: { added: ['North Alaska'], skipped: [] } })
   render(<AddTeams />)
 
   await user.click(screen.getByRole('button', { name: 'Add One Team' }))
-  expect(screen.getByLabelText('Ranked')).toHaveValue('yes')
+  expect(screen.getByLabelText('Included in Ranking?')).toHaveValue('yes')
+  await waitFor(() => expect(screen.getByLabelText('Team ID')).toHaveValue(1003))
+  expect(api.get).toHaveBeenCalledWith('/teams-ids/', {
+    params: { sport_type: 'basketball', gender: 'womens', level: 'college' },
+  })
   await user.selectOptions(screen.getByLabelText('State'), 'Alaska')
   await user.type(screen.getByLabelText('Short Name'), 'North Alaska')
   await user.type(screen.getByLabelText('Long Name'), 'University of North Alaska')
@@ -92,6 +104,7 @@ test('adds one team with all CSV fields through the manual form', async () => {
   await waitFor(() => expect(api.post).toHaveBeenCalledWith(
     '/add_teams/?sport_type=basketball&gender=womens&level=college',
     [{
+      team_id: 1003,
       state: 'Alaska',
       short_name: 'North Alaska',
       long_name: 'University of North Alaska',
@@ -102,10 +115,12 @@ test('adds one team with all CSV fields through the manual form', async () => {
   ))
   expect(await screen.findByText('Team added successfully')).toBeInTheDocument()
   expect(screen.getByLabelText('State')).toHaveValue('')
+  expect(screen.getByLabelText('Team ID')).toHaveValue(1004)
 })
 
 test('shows the duplicate reason when the manually added team already exists', async () => {
   const user = userEvent.setup()
+  api.get.mockResolvedValue({ status: 204, data: null })
   api.post.mockResolvedValue({
     data: {
       added: [],
@@ -118,6 +133,7 @@ test('shows the duplicate reason when the manually added team already exists', a
   render(<AddTeams />)
 
   await user.click(screen.getByRole('button', { name: 'Add One Team' }))
+  await waitFor(() => expect(screen.getByLabelText('Team ID')).toHaveValue(1))
   await user.selectOptions(screen.getByLabelText('State'), 'Alaska')
   await user.type(screen.getByLabelText('Short Name'), 'AK Anchorage')
   await user.click(screen.getByRole('button', { name: 'Add Team' }))

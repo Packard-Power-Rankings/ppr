@@ -245,10 +245,10 @@ def process_team_data(
         # print(temp_loop_change)
 
 
-def update_recent_opp_list(opp_list: List, team_num):
+def update_recent_opp_list(opp_list: List, opponent_id):
     opp_list.pop()
     opp_list.pop(0)
-    opp_list.insert(0, team_num)
+    opp_list.insert(0, opponent_id)
     return opp_list
 
 

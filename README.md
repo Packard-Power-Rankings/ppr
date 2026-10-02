@@ -198,6 +198,30 @@ make test-app-maintenance CONFIRM_DESTRUCTIVE=1
 
 The confirmation variables are deliberate safeguards. The reset and maintenance targets modify or remove fixture data.
 
+### Canonical Team IDs
+
+Team metadata must be loaded before games. Its CSV contract is:
+
+```text
+state,short_name,team_id,long_name,division,conference,ranked
+```
+
+The supplied positive `team_id` is the identifier used by teams, games, opponent history, flagged games, and previous-season records. Game uploads reject unknown teams instead of generating IDs.
+
+The manual Add Team form suggests one greater than the highest `team_id` in the selected dataset, or `1` when the dataset is empty. The suggestion remains editable, and the backend rechecks uniqueness when the form is submitted.
+
+If data was uploaded during the temporary `team_num` implementation, back up MongoDB and preview the controlled migration:
+
+```bash
+make team-id-migration-check
+```
+
+After reviewing the counts, apply it during a maintenance window:
+
+```bash
+make team-id-migration-apply CONFIRM_TEAM_ID_MIGRATION=1
+```
+
 For request-by-request debugging, use [`api-smoke-test.http`](tests/application/api-smoke-test.http). See the [fixture guide](tests/application/README.md) for expected records, negative inputs, optional environment variables, and known application behavior exposed by the tests.
 
 ## Environment

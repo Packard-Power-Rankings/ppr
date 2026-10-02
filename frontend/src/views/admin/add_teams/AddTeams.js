@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import {
   CAlert,
@@ -19,6 +19,7 @@ import { US_STATES } from 'src/utils/usStates'
 const TEAM_DATA_HEADERS = [
   'state',
   'short_name',
+  'team_id',
   'long_name',
   'division',
   'conference',
@@ -26,6 +27,7 @@ const TEAM_DATA_HEADERS = [
 ]
 
 const emptyTeam = {
+  team_id: '',
   state: '',
   short_name: '',
   long_name: '',
@@ -44,8 +46,57 @@ const AddTeams = () => {
   const [feedback, setFeedback] = useState(null)
   const [fileInputKey, setFileInputKey] = useState(0)
   const [manualTeam, setManualTeam] = useState(emptyTeam)
+  const [loadingTeamId, setLoadingTeamId] = useState(false)
   const datasetName = [level, gender, sport].map(formatDisplayName).join(' ')
   const query = `sport_type=${sport}&gender=${gender}&level=${level}`
+
+  useEffect(() => {
+    if (mode !== 'manual') return undefined
+
+    let isCurrentRequest = true
+    const suggestNextTeamId = async () => {
+      setLoadingTeamId(true)
+      setFeedback(null)
+
+      try {
+        const response = await api.get('/teams-ids/', {
+          params: { sport_type: sport, gender, level },
+        })
+        if (!isCurrentRequest) return
+
+        const teams = response.status === 204 || response.data?.status === 204
+          ? []
+          : response.data?.data?.teams
+        if (!Array.isArray(teams)) {
+          throw new Error('Teams response did not contain a teams array')
+        }
+
+        const highestTeamId = teams.reduce((highest, team) => {
+          const teamId = Number(team.team_id)
+          return Number.isInteger(teamId) && teamId > highest ? teamId : highest
+        }, 0)
+        setManualTeam((current) => ({
+          ...current,
+          team_id: String(highestTeamId + 1),
+        }))
+      } catch (error) {
+        if (!isCurrentRequest) return
+        console.error('Failed to suggest the next team ID', error)
+        setManualTeam((current) => ({ ...current, team_id: '' }))
+        setFeedback({
+          color: 'warning',
+          messages: ['Could not suggest a team ID. Enter a unique ID manually.'],
+        })
+      } finally {
+        if (isCurrentRequest) setLoadingTeamId(false)
+      }
+    }
+
+    suggestNextTeamId()
+    return () => {
+      isCurrentRequest = false
+    }
+  }, [mode, sport, gender, level])
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -88,6 +139,7 @@ const AddTeams = () => {
     setFeedback(null)
 
     const payload = {
+      team_id: Number(manualTeam.team_id),
       state: manualTeam.state.trim(),
       short_name: manualTeam.short_name.trim(),
       long_name: manualTeam.long_name.trim(),
@@ -100,7 +152,10 @@ const AddTeams = () => {
       const { data } = await api.post(`/add_teams/?${query}`, [payload])
       if (data.added?.length) {
         setFeedback({ color: 'success', messages: ['Team added successfully'] })
-        setManualTeam(emptyTeam)
+        setManualTeam({
+          ...emptyTeam,
+          team_id: String(payload.team_id + 1),
+        })
       } else {
         const failure = data.skipped?.[0]
         setFeedback({
@@ -173,6 +228,19 @@ const AddTeams = () => {
           <h2 className="h5 mb-3">Add One Team For {datasetName}</h2>
           <CRow className="g-3">
             <CCol md={4}>
+              <CFormInput
+                id="team-id"
+                type="number"
+                min={1}
+                step={1}
+                label="Team ID"
+                value={manualTeam.team_id}
+                onChange={(event) => updateManualTeam('team_id', event.target.value)}
+                disabled={loadingTeamId || submitting}
+                required
+              />
+            </CCol>
+            <CCol md={4}>
               <CFormLabel htmlFor="team-state">State</CFormLabel>
               <CFormSelect
                 id="team-state"
@@ -220,7 +288,7 @@ const AddTeams = () => {
               />
             </CCol>
             <CCol md={4}>
-              <CFormLabel htmlFor="team-ranked">Ranked</CFormLabel>
+              <CFormLabel htmlFor="team-ranked">Included in Ranking?</CFormLabel>
               <CFormSelect
                 id="team-ranked"
                 value={manualTeam.ranked}

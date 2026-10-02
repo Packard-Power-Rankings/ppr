@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { store } from 'src/store';
 
 const TOKEN_KEY = 'access_token';
 
@@ -30,5 +31,18 @@ api.interceptors.request.use((config) => {
     }
     return config;
 });
+
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        const isLoginRequest = /\/token\/?$/.test(error.config?.url || '');
+        if (error.response?.status === 401 &&
+            localStorage.getItem(TOKEN_KEY) && !isLoginRequest) {
+            setAuthHeader(null);
+            store.dispatch({ type: 'logout' });
+        }
+        return Promise.reject(error);
+    },
+);
 
 export default api

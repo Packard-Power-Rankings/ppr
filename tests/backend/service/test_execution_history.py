@@ -176,6 +176,51 @@ async def test_prune_removes_excess_existing_records_per_process(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_history_keeps_five_recent_records_per_dataset_and_process(monkeypatch):
+    database = FakeDatabase()
+    monkeypatch.setattr(execution_history, "admin_database", database)
+    start_time = datetime(2026, 10, 1, tzinfo=timezone.utc)
+
+    for process in (
+        execution_history.ALGORITHM_PROCESS,
+        execution_history.Z_SCORE_PROCESS,
+    ):
+        for sport_type, gender, level in (
+            ("football", "mens", "high_school"),
+            ("basketball", "womens", "college"),
+        ):
+            for index in range(7):
+                task_id = f"{process}-{sport_type}-{index}"
+                database.collection.documents.append({
+                    "_id": task_id,
+                    "task_id": task_id,
+                    "process": process,
+                    "sport_type": sport_type,
+                    "gender": gender,
+                    "level": level,
+                    "queued_at": (
+                        start_time + timedelta(seconds=index)
+                    ).isoformat().replace("+00:00", "Z"),
+                })
+
+    history = await execution_history.recent_execution_history()
+
+    for process in (
+        execution_history.ALGORITHM_PROCESS,
+        execution_history.Z_SCORE_PROCESS,
+    ):
+        assert len(history[process]) == 10
+        for sport_type in ("football", "basketball"):
+            retained_ids = {
+                record["task_id"] for record in history[process]
+                if record["sport_type"] == sport_type
+            }
+            assert retained_ids == {
+                f"{process}-{sport_type}-{index}" for index in range(2, 7)
+            }
+
+
+@pytest.mark.asyncio
 async def test_worker_records_successful_algorithm_and_z_score_runs(monkeypatch):
     status_updates = []
 
@@ -386,7 +431,8 @@ async def test_history_repairs_completed_and_orphaned_worker_jobs(monkeypatch):
         return object()
 
     monkeypatch.setattr(admin_routes, "Job", FakeJob)
-    monkeypatch.setattr(admin_routes, "recent_execution_history", recent_history)
+    monkeypatch.setattr(
+        admin_routes, "recent_execution_history", recent_history)
     monkeypatch.setattr(admin_routes, "update_execution_status", update_status)
     monkeypatch.setattr(admin_routes, "create_pool", fake_create_pool)
 

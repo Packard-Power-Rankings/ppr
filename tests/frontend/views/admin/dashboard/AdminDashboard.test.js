@@ -66,6 +66,7 @@ test('renders the dashboard links and season group', () => {
   const expectedLinks = [
     ['Add Games', '/admin/add_games'],
     ['Add Teams', '/admin/add_teams'],
+    ['Export Teams', '/admin/export_teams'],
     ['Ranking', '/admin/ranking'],
     ['Z-Score', '/admin/z_scores'],
     ['Update Game', '/admin/update_game'],
