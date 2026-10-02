@@ -47,14 +47,14 @@ Routes have no source-code prefix. With the default development Compose configur
 
 ## Public Routes
 
-| Method and path | Purpose |
-| --- | --- |
-| `GET /teams/` | List teams and current rankings for a dataset |
-| `GET /teams/{team_name}/` | Return one team's ranking and game history |
-| `GET /predictions/` | Return team names for the prediction form |
-| `GET /predictions/{team_one}/{team_two}/{home_field_adv}/` | Calculate predicted scores |
-| `POST /flagged-game/` | Report a game for admin review |
-| `GET /check-flagged/{game_id}` | Check whether a game was already reported |
+| Method and path                                            | Purpose                                       |
+| ---------------------------------------------------------- | --------------------------------------------- |
+| `GET /teams/`                                              | List teams and current rankings for a dataset |
+| `GET /teams/{team_name}/`                                  | Return one team's ranking and game history    |
+| `GET /predictions/`                                        | Return team names for the prediction form     |
+| `GET /predictions/{team_one}/{team_two}/{home_field_adv}/` | Calculate predicted scores                    |
+| `POST /flagged-game/`                                      | Report a game for admin review                |
+| `GET /check-flagged/{game_id}`                             | Check whether a game was already reported     |
 
 Public queries are implemented in `service/users_teams.py` and read from `sports_data.temp2`.
 
@@ -65,14 +65,17 @@ Authentication routes are `/setup/admin/`, `/token/`, `/validate-token/`, and `/
 Admin operations include:
 
 - Retrieving valid sport metadata
-- Checking and adding missing teams
-- Uploading game CSVs
+- Validating and uploading game CSVs through `POST /games/upload/`
+- Validating and importing team metadata CSVs through `POST /teams/upload/`
+- Adding individual games through `POST /games/`
+- Automatically creating teams referenced by new games
 - Queueing ranking and z-score calculations
 - Polling job status
+- Retrieving the five most recent executions for each calculation type
 - Updating team names and game scores
 - Deleting games or teams
 - Reviewing and clearing flagged games
-- Archiving and clearing a season
+- Archiving seasons and resetting selected or all datasets without modifying existing archives
 
 The current model permits one admin account. `/setup/admin/` requires the `X-Setup-Token` header and refuses to create another account when one already exists.
 
@@ -84,25 +87,38 @@ Game files are headerless and contain six columns:
 date,home_team,away_team,home_score,away_score,neutral_site
 ```
 
-`neutral_site=999` disables home-field advantage; normal home games use `0`. Uploaded bytes are stored in `sports_data.csv_files` and processed later by the worker.
+`neutral_site=999` disables home-field advantage; normal home games use `0`. Dates may use `YYYY-MM-DD` or `MM/DD/YYYY`, and scores must be nonnegative integers. The ingestion service rejects headers, malformed rows, same-team games, duplicate games within a file, and games already present in uploaded or processed data.
+
+Both the CSV endpoint and individual-game endpoint use the same validator. Missing teams are created with neutral metadata, then each game is normalized into a document in `sports_data.games`. The validated source file is stored under `UPLOAD_DIR` for reference; `sports_data.csv_files` contains only upload metadata such as its filename, relative storage path, game count, and upload date. CSV bytes are never retained in MongoDB.
+
+Team metadata CSV files require the headers `state`, `short_name`, `long_name`, `division`, `conference`, and `ranked`. Header order is flexible and extra columns are ignored. The importer maps `short_name` to the existing canonical `team_name` field, stores all six metadata values in the team's dataset document, and rejects files with missing headers or invalid rows. `ranked` accepts `yes`/`no` (also `true`/`false` or `1`/`0`). Duplicate teams are skipped when either short or long name matches an existing team alias, case-insensitively, whether that alias already exists in the database or appears earlier in the same uploaded file. The response reports only `teams_added_count` and `teams_failed`, a list of `{team_name, reason}` entries for every team that could not be added; successfully added team names are not listed.
 
 ## Background Jobs
 
-`POST /run_algorithm/{iterations}` and `POST /calc_z_scores/` enqueue ARQ jobs in Redis and immediately return a `task_id`. The worker starts from `api.service.tasks.WorkerSettings` and invokes `AdminTeamsService`, which connects the job to the production algorithm under `utils/algorithm/`.
+`POST /run_algorithm/{iterations}` and `POST /calc_z_scores/` enqueue ARQ jobs in Redis and immediately return a `task_id`. The ranking action accepts 1 through 100 iterations. The worker starts from `api.service.tasks.WorkerSettings` and invokes `AdminTeamsService`, which connects the job to the production algorithm under `utils/algorithm/`.
+
+The ranking job reads only `sports_data.games`, fully rebuilds derived team season data from initial rankings, and calculates z-scores before completing. The separate z-score job remains available for refreshing z-scores without rerunning rankings.
 
 The frontend and smoke-test script poll `GET /task-status/{task_id}` until the job completes or fails.
+`GET /execution-history/` returns the five most recent ranking and z-score executions, including their dataset, queue time, iteration count when applicable, and persisted status. MongoDB retains at most five records per calculation type in `admin_details.execution_history`; new records prune older entries, and backend startup trims any excess records left by earlier versions.
 
 ## Data Storage
 
-| Database | Collection | Responsibility |
-| --- | --- | --- |
-| `sports_data` | `temp2` | Dataset documents containing nested teams and games |
-| `sports_data` | `csv_files` | Uploaded weekly game files |
-| `sports_data` | `flagged_games` | Games reported for review |
-| `sports_data` | `previous_season` | Archived season data |
-| `admin_details` | `admin` | Admin username and bcrypt password hash |
+| Database        | Collection          | Responsibility                                               |
+| --------------- | ------------------- | ------------------------------------------------------------ |
+| `sports_data`   | `temp2`             | Teams plus derived rankings and reciprocal season-game views |
+| `sports_data`   | `games`             | Canonical normalized current-season games                    |
+| `sports_data`   | `csv_files`         | Source-upload metadata and filesystem paths; no file bytes   |
+| `sports_data`   | `flagged_games`     | Games reported for review                                    |
+| `sports_data`   | `previous_season`   | Archived season data                                         |
+| `admin_details` | `admin`             | Admin username and bcrypt password hash                      |
+| `admin_details` | `execution_history` | Persisted ranking and z-score job history                    |
 
 The MongoDB connection comes from `MONGO_URI`, while the Python services currently select the `sports_data` and `admin_details` database names directly. ARQ reads `REDIS_HOST`, `REDIS_PORT`, `REDIS_DATABASE`, `REDIS_PASSWORD`, and `REDIS_SSL`; local development uses their defaults, while production enables Redis authentication.
+
+The backend shares one Motor connection pool across its services and creates indexes during FastAPI startup. Dataset collections have a unique compound `(sport_type, gender, level)` index. Canonical games have a unique `(sport_type, gender, level, identity)` index and a dataset/date query index. `admin_details.admin` has a unique `username` index. Set `MONGO_MAX_POOL_SIZE` to override the default pool maximum of 50 connections per backend process.
+
+Local Docker stores references in the root `uploads/` directory. Lightsail stores them in the persistent `upload_data` volume mounted at `/var/lib/ppr-uploads`. Backend startup performs a one-time migration of legacy `csv_files.filedata` blobs into this directory and removes the blob fields after canonical games are created.
 
 ## Local Workflow
 

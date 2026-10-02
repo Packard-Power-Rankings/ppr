@@ -6,61 +6,30 @@ import {
   cilInfo,
   cilFunctions,
   cilCog,
-  cilHistory
+  cilHistory,
+  cilSchool,
+  cilBuilding,
+  cilUser,
+  cilUserFemale,
+  cilCalendar,
+  cilDescription,
+  cilLockLocked,
+  cilSettings
 } from '@coreui/icons'
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react'
 
 const Navigation = (isAdmin) => {
   const _nav = [
-    {
-      component: CNavTitle,
-      name: 'Site Info'
-    },
-    {
-      component: CNavGroup,
-      name: 'Info',
-      to: '/info',
-      icon: <CIcon icon={cilInfo} customClassName="nav-icon" />,
-      items: [
-        {
-          component: CNavItem,
-          name: 'About',
-          to: '/info/about'
-        },
-        {
-          component: CNavItem,
-          name: 'Terms Of Service',
-          to: '/info/tos'
-        },
-        {
-          component: CNavItem,
-          name: 'Privacy Policy',
-          to: '/info/privacy'
-        },
-        {
-          component: CNavItem,
-          name: 'Cookies Policy',
-          to: '/info/cookies'
-        }
-      ]
-    },
     ...(isAdmin ? [
       {
         component: CNavTitle,
-        name: "Admin"
+        name: "Admin",
       },
       {
-        component: CNavGroup,
-        name: 'Admin',
+        component: CNavItem,
+        name: 'Dashboard',
         to: '/admin',
         icon: <CIcon icon={cilCog} customClassName='nav-icon' />,
-        items: [
-          {
-            component: CNavItem,
-            name: 'Dashboard',
-            to: '/admin',
-          },
-        ]
       },
     ]: []),
     {
@@ -76,12 +45,14 @@ const Navigation = (isAdmin) => {
         {
           component: CNavItem,
           name: 'High School',
-          to: '/teams/football/mens/high_school',
+          to: '/football/mens/high_school',
+          icon: <CIcon icon={cilSchool} customClassName="nav-icon" />,
         },
         {
           component: CNavItem,
           name: 'College',
-          to: '/teams/football/mens/college'
+          to: '/football/mens/college',
+          icon: <CIcon icon={cilBuilding} customClassName="nav-icon" />,
         }
       ]
     },
@@ -95,16 +66,19 @@ const Navigation = (isAdmin) => {
           component: CNavGroup,
           name: 'Mens',
           to: '#',
+          icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
           items: [
             {
               component: CNavItem,
               name: 'High School',
-              to: '/teams/basketball/mens/high_school',
+              to: '/basketball/mens/high_school',
+              icon: <CIcon icon={cilSchool} customClassName="nav-icon" />,
             },
             {
               component: CNavItem,
               name: 'College',
-              to: '/teams/basketball/mens/college',
+              to: '/basketball/mens/college',
+              icon: <CIcon icon={cilBuilding} customClassName="nav-icon" />,
             }
           ]
         },
@@ -112,16 +86,19 @@ const Navigation = (isAdmin) => {
           component: CNavGroup,
           name: 'Womens',
           to: '#',
+          icon: <CIcon icon={cilUserFemale} customClassName="nav-icon" />,
           items: [
             {
               component: CNavItem,
               name: 'High School',
-              to: '/teams/basketball/womens/high_school',
+              to: '/basketball/womens/high_school',
+              icon: <CIcon icon={cilSchool} customClassName="nav-icon" />,
             },
             {
               component: CNavItem,
               name: 'College',
-              to: '/teams/basketball/womens/college'
+              to: '/basketball/womens/college',
+              icon: <CIcon icon={cilBuilding} customClassName="nav-icon" />,
             }
           ]
         }
@@ -137,18 +114,46 @@ const Navigation = (isAdmin) => {
           component: CNavItem,
           name: 'All Seasons',
           to: '/archives',
+          icon: <CIcon icon={cilCalendar} customClassName="nav-icon" />,
         },
       ],
     },
     {
-      component: CNavTitle,
-      name: 'Predictions'
+      component: CNavItem,
+      name: 'Prediction',
+      to: '/prediction',
+      icon: <CIcon icon={cilFunctions} customClassName="nav-icon" />
     },
     {
-      component: CNavItem,
-      name: 'Win Predictions',
-      to: '/predictions',
-      icon: <CIcon icon={cilFunctions} customClassName="nav-icon" />
+      component: CNavGroup,
+      name: 'SITE INFO',
+      icon: <CIcon icon={cilInfo} customClassName="nav-icon" />,
+      items: [
+        {
+          component: CNavItem,
+          name: 'About',
+          to: '/about',
+          icon: <CIcon icon={cilInfo} customClassName="nav-icon" />,
+        },
+        {
+          component: CNavItem,
+          name: 'Terms Of Service',
+          to: '/tos',
+          icon: <CIcon icon={cilDescription} customClassName="nav-icon" />,
+        },
+        {
+          component: CNavItem,
+          name: 'Privacy Policy',
+          to: '/privacy',
+          icon: <CIcon icon={cilLockLocked} customClassName="nav-icon" />,
+        },
+        {
+          component: CNavItem,
+          name: 'Cookies Policy',
+          to: '/cookies',
+          icon: <CIcon icon={cilSettings} customClassName="nav-icon" />,
+        }
+      ]
     },
   ]
 

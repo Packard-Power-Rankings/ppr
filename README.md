@@ -45,6 +45,7 @@ Packard Power Rankings is a full-stack sports rankings application. The backend 
 |-- deploy/
 |   `-- lightsail/                   # AWS host bootstrap, Caddy, and runbook
 |-- scripts/                         # AWS setup, health, and backup helpers
+|-- uploads/                         # Validated source game files (runtime, ignored)
 |-- example_files/                   # Sample CSV/text inputs
 |-- databases/                       # SQLite database snapshots/reference files
 |-- old_db/                          # Older database snapshots
@@ -60,7 +61,7 @@ Packard Power Rankings is a full-stack sports rankings application. The backend 
 `-- README.md
 ```
 
-Generated local runtime data may also appear under `data/db/` when MongoDB is run through Docker Compose.
+Generated local runtime data may also appear under `data/db/` for MongoDB and `uploads/` for validated source game files. Upload contents are ignored by Git; only `uploads/.gitkeep` is tracked.
 
 For a detailed explanation of how requests, data, background jobs, and ranking calculations move through the system, see the [project mental model](docs/README.md).
 
@@ -82,12 +83,18 @@ After the containers start:
 - Admin login: <http://localhost:3000/admin/login>
 - Protected admin area: <http://localhost:3000/admin>
 - FastAPI docs: <http://localhost:8000/docs>
-- MongoDB: `localhost:27017`
-- Redis: `localhost:6379`
+- MongoDB: <http://localhost:27017>
+- Redis: <http://localhost:6379>
 
-The frontend uses normal browser paths rather than hash URLs. Public pages live under `/`, `/teams`, and `/predictions`; all administration pages live under `/admin`. Opening an admin URL while signed out redirects to `/admin/login`, then returns to the originally requested page after a successful login. The legacy `/login` path redirects to `/admin/login`.
+The frontend uses normal browser paths rather than hash URLs. Current rankings use sport-first paths such as `/football/mens/college` and `/basketball/womens/high_school`. The complete team directory remains at `/teams`, predictions are at `/predictions`, and all administration pages live under `/admin`. Opening an admin URL while signed out redirects to `/admin/login`, then returns to the originally requested page after a successful login. Legacy `/teams/<sport>/<gender>/<level>` links redirect to the shorter sport-first paths, and `/login` redirects to `/admin/login`.
 
-Published season rankings are available through `/archives`. An administrator can use **Archive Season** from any admin page to snapshot every sport/gender/level dataset for the current year. The action requires confirmation and requires a second explicit overwrite confirmation when that year already exists. It creates self-contained public pages under `/archive/<year>/` without changing current teams or games.
+Live ranking headings and rank, power, and division-rank labels automatically display the current calendar year. Archived ranking views use the year stored in their season snapshot instead.
+
+Published season rankings are available through `/archives`. The `/admin` dashboard offers **Archive Selected Sport** for one chosen sport/gender/level dataset and **Archive All Sports** for a complete current-year snapshot. Archiving a selected sport merges it into that year's archive without removing other archived datasets; replacing the same selected dataset requires explicit overwrite confirmation. Archiving all sports replaces the complete year only after confirmation. Both actions create self-contained public pages under `/archive/<year>/` without changing current teams or games.
+
+Generated archives are runtime data stored in Docker's named `archive_data` volume, not files copied into the Git working tree. Therefore, `frontend/public/archive/` normally shows only its documentation in the IDE even when an archive such as `2026/` exists. Inside the running containers, the backend writes the volume at `/var/lib/ppr-archives`, and the development frontend reads it at `/app/public/archive`. View a year through the React page at `http://localhost:3000/archives/<year>` or its standalone snapshot at `http://localhost:3000/archive/<year>/index.html`. See the [archive mental model](frontend/public/archive/README.md) for the runtime layout and persistence rules.
+
+The `/admin` dashboard also provides guarded season reset actions. **Reset Selected Sport** opens a dataset picker and verifies that exact dataset is archived before resetting it. **Reset All Sports** has a separate confirmation and checks for a complete all-sports archive. A reset sets wins, losses, and win ratio to zero; removes canonical current-season games and source uploads; and preserves overall rank, division rank, power history, ranking date, recent opponents, and each team's five most recent game records. If the required archive is missing, the administrator must explicitly confirm that they want to proceed without archiving. Resetting does not copy data to `previous_season` or modify an existing public archive.
 
 Follow backend and worker logs while debugging:
 
@@ -153,7 +160,7 @@ The test refuses to run over an already populated fixture dataset. To replace th
 make test-app-reset CONFIRM_TEST_RESET=1
 ```
 
-This guarded reset replaces all documents in `sports_data.temp2`, `sports_data.csv_files`, `sports_data.flagged_games`, `sports_data.previous_season`, and `admin_details.admin`. It loads all six supported datasets with 10 teams and 10 games each, then verifies the database and API responses. Do not point it at shared or production data.
+This guarded reset replaces all documents in `sports_data.temp2`, `sports_data.games`, `sports_data.csv_files`, `sports_data.flagged_games`, `sports_data.previous_season`, and `admin_details.admin`. It also replaces local fixture references under `uploads/`. It loads all six supported datasets with 10 teams and 10 games each, then verifies the database and API responses. Do not point it at shared or production data.
 
 ### Test Admin
 
@@ -237,7 +244,7 @@ The backend lives in `backend/api` and starts from `api.main:app`.
 
 - `routers/admin_routes.py` handles protected admin operations such as login, setup, CSV upload, adding/updating/deleting teams and games, and queueing algorithm work.
 - `routers/user_routes.py` exposes public team lists, team detail, prediction team names, and game predictions.
-- `service/admin_service.py`, `service/admin_teams.py`, and `service/users_teams.py` contain the main application logic.
+- `service/admin_service.py`, `service/admin_teams.py`, and `service/users_teams.py` contain the main application logic. `service/upload_storage.py` owns source-file persistence.
 - `service/tasks.py` defines ARQ worker jobs for running the algorithm and calculating z-scores.
 - `utils/algorithm/` contains the backend version of the ranking pipeline.
 
@@ -265,19 +272,21 @@ Run the centralized frontend suite from the repository root with `make test-fron
 
 ## Algorithm Workspaces
 
-There are two copies of the algorithm pipeline:
+There are two algorithm workspaces:
 
 - `backend/api/utils/algorithm/` is the version wired into the backend service layer.
 - `tests/isolation/algorithm/` is a standalone CSV-based workspace for experimenting with inputs and comparing outputs.
 
-Both follow the same general flow:
+The production flow is:
 
-1. `upload.py` loads and validates CSV input.
-2. `data_cleaning.py` normalizes incoming game data.
-3. `data_enrichment.py` adds ranking inputs and derived fields.
-4. `main.py` performs the ranking and prediction calculations.
-5. `output.py` formats the results.
-6. `run.py` ties the pipeline together.
+1. Add Games validates CSV input once and writes normalized records to `sports_data.games`.
+2. The validated source file is retained under `uploads/`; Mongo stores only its metadata and path.
+3. `run.py` reads canonical games from Mongo and starts from each team's initial ranking.
+4. `data_cleaning.py`, `data_enrichment.py`, and `main.py` calculate rankings.
+5. `output.py` replaces derived team records, ranking order, and z-scores.
+6. Repeating a run with the same games and iteration count produces the same result.
+
+The standalone `tests/isolation/algorithm/` workspace continues to use local CSV files for experiments. It is not the production application's data path.
 
 ## About the Ranking Algorithm
 

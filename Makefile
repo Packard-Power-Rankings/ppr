@@ -44,7 +44,7 @@ help:
 	@echo "  make lightsail-status       Show production container status"
 	@echo "  make lightsail-logs         Follow production logs"
 	@echo "  make lightsail-health       Check the public HTTPS health endpoint"
-	@echo "  make lightsail-backup       Create a private MongoDB archive"
+	@echo "  make lightsail-backup       Back up MongoDB, archives, and uploads"
 	@echo "  make lightsail-restart      Restart production containers"
 	@echo "  make lightsail-down         Stop production without deleting data"
 	@echo

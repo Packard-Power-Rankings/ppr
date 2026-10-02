@@ -20,11 +20,9 @@ import {
     CModalHeader,
     CModalFooter
 } from "@coreui/react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useState } from "react";
 import api from "src/api";
-import { legacy_createStore } from "redux";
-import { check } from "prettier";
 
 const Team = () => {
     const { team_name, sport, gender, level } = useParams();
@@ -54,7 +52,9 @@ const Team = () => {
             const teamInfo = await api.get(`teams/${team_name}/?sport_type=${sport}&gender=${gender}&level=${level}`);
             // console.log(teamInfo.data.data.teams.season_opp);
             setTeam(teamInfo.data.data.teams);
-            setOpp(teamInfo.data.data.teams.season_opp);
+            setOpp([...teamInfo.data.data.teams.season_opp].sort((firstGame, secondGame) =>
+                (secondGame.game_date || '').localeCompare(firstGame.game_date || '')
+            ));
         } catch (error) {
             setError(`Error in Retrieving ${team_name} Information`)
         } finally {
@@ -121,23 +121,43 @@ const Team = () => {
         return <div className="text-danger p-3">{error}</div>;
     }
 
+    const shortName = team.short_name || team.team_name || team_name;
+    const displayName = team.long_name && team.long_name !== shortName
+        ? `${shortName} - ${team.long_name}`
+        : shortName;
+
     return (
         <div>
             <CContainer fluid className="p-4">
                 <CCard>
                     <CCardHeader>
-                        <h3>{team_name}</h3>
-                        <h6>Rank: {team.overall_rank}</h6>
+                        <h3>{displayName}</h3>
+                        <CRow className="g-2">
+                            <CCol xs="6">
+                                <h6 className="mb-0">Rank: {team.overall_rank ?? '-'}</h6>
+                            </CCol>
+                            <CCol xs="6">
+                                <h6 className="mb-0">Power: {getLatestPowerRanking(team.power_ranking)}</h6>
+                            </CCol>
+                        </CRow>
+                        <CRow className="g-2 mt-1">
+                            <CCol xs="6">
+                                <h6 className="mb-0">Division Rank: {team.division_rank ?? '-'}</h6>
+                            </CCol>
+                            <CCol xs="6">
+                                <h6 className="mb-0">Conference Rank: {team.conference_rank ?? '-'}</h6>
+                            </CCol>
+                        </CRow>
                     </CCardHeader>
                     <CCardBody>
                         <CRow>
                             <CCol md="6">
+                                <h6>State: {team.state || '-'}</h6>
                                 <h6>Division: {team.division}</h6>
                                 <h6>Conference: {team.conference}</h6>
-                                <h6>Division Rank: {team.division_rank}</h6>
                             </CCol>
                             <CCol md="6">
-                                <h6>Power Rank: {getLatestPowerRanking(team.power_ranking)}</h6>
+                                <h6>Last Rank: {team.last_rank ?? '-'}</h6>
                                 <h6>Wins: {team.wins}</h6>
                                 <h6>Losses: {team.losses}</h6>
                             </CCol>
@@ -160,10 +180,28 @@ const Team = () => {
                     </CTableRow>
                 </CTableHead>
                 <CTableBody>
-                    {seasonOpp.map((game, index) => (
-                        <CTableRow key={index}>
+                    {seasonOpp.map((game, index) => {
+                        const teamScore = game.home_team ? game.home_score : game.away_score
+                        const opponentScore = game.home_team ? game.away_score : game.home_score
+                        const result = teamScore > opponentScore
+                            ? 'Win'
+                            : teamScore < opponentScore
+                                ? 'Loss'
+                                : 'Draw'
+                        const resultClass = result === 'Win'
+                            ? 'table-success'
+                            : result === 'Loss'
+                                ? 'table-danger'
+                                : ''
+
+                        return (
+                        <CTableRow key={index} className={resultClass}>
                             <CTableDataCell className="py-3">{game.game_date}</CTableDataCell>
-                            <CTableDataCell>{game.opponent_name}</CTableDataCell>
+                            <CTableDataCell>
+                                <Link to={`/team/${encodeURIComponent(game.opponent_name)}/${sport}/${gender}/${level}`}>
+                                    {game.opponent_name}
+                                </Link>
+                            </CTableDataCell>
                             <CTableDataCell className="text-center">
                                 {game.home_team ? 'Yes' : 'No'}
                             </CTableDataCell>
@@ -172,17 +210,14 @@ const Team = () => {
                             <CTableDataCell className="text-center">{game.away_score}</CTableDataCell>
                             <CTableDataCell className="text-center">{game.away_z_score.toFixed(2)}</CTableDataCell>
                             <CTableDataCell className="text-center">
-                                {game.home_score > game.away_score
-                                    ? 'Win'
-                                    : game.home_score < game.away_score
-                                    ? 'Loss'
-                                    : 'Draw'}
+                                {result}
                             </CTableDataCell>
                             <CTableDataCell className="text-center py-3">
                                 <CFormCheck id="checkboxNoLabel" disabled={gameFlagged} value="" aria-label="..." onClick={() => flagGame(index)}/>
                             </CTableDataCell>
                         </CTableRow>
-                    ))}
+                        )
+                    })}
                 </CTableBody>
             </CTable>
             <CModal visible={gameFlagged} onClose={() => setGameFlagged(false)}>

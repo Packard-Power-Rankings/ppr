@@ -1,24 +1,22 @@
 import React, { useCallback } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { CButtonGroup, CCol, CFormCheck, CRow } from '@coreui/react'
+import { CCol, CFormLabel, CFormSelect, CRow } from '@coreui/react'
 
-const RadioButtonGroup = ({ name, options, selectedValue, onChange }) => (
-  <CButtonGroup vertical role="group" aria-label={`${name} button group`} className="mb-2">
-    {options.map(({ id, label, value, disabled }) => (
-      <CFormCheck
-        key={id}
-        type="radio"
-        name={name}
-        id={id}
-        autoComplete="off"
-        label={label}
-        onChange={() => onChange(value)}
-        checked={selectedValue === value}
-        disabled={disabled}
-        className="me-3"
-      />
-    ))}
-  </CButtonGroup>
+const DatasetSelect = ({ id, label, options, value, onChange }) => (
+  <>
+    <CFormLabel htmlFor={id}>{label}</CFormLabel>
+    <CFormSelect
+      id={id}
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+    >
+      {options.map((option) => (
+        <option key={option.value} value={option.value} disabled={option.disabled}>
+          {option.label}
+        </option>
+      ))}
+    </CFormSelect>
+  </>
 )
 
 const AdminHeader = () => {
@@ -45,37 +43,40 @@ const AdminHeader = () => {
   }
 
   return (
-    <CRow className="px-3 pb-2" aria-label="Admin dataset selection">
-      <CCol>
-        <RadioButtonGroup
-          name="sport"
-          selectedValue={sport}
+    <CRow className="px-3 pb-3 g-3" aria-label="Admin dataset selection">
+      <CCol xs={12} md={4}>
+        <DatasetSelect
+          id="admin-sport"
+          label="Sport"
+          value={sport}
           onChange={updateSport}
           options={[
-            { id: 'football', label: 'Football', value: 'football' },
-            { id: 'basketball', label: 'Basketball', value: 'basketball' },
+            { label: 'Football', value: 'football' },
+            { label: 'Basketball', value: 'basketball' },
           ]}
         />
       </CCol>
-      <CCol>
-        <RadioButtonGroup
-          name="gender"
-          selectedValue={gender}
+      <CCol xs={12} md={4}>
+        <DatasetSelect
+          id="admin-gender"
+          label="Gender"
+          value={gender}
           onChange={(value) => updateAdminState('gender', value)}
           options={[
-            { id: 'mens', label: 'Mens', value: 'mens' },
-            { id: 'womens', label: 'Womens', value: 'womens', disabled: sport === 'football' },
+            { label: 'Mens', value: 'mens' },
+            { label: 'Womens', value: 'womens', disabled: sport === 'football' },
           ]}
         />
       </CCol>
-      <CCol>
-        <RadioButtonGroup
-          name="level"
-          selectedValue={level}
+      <CCol xs={12} md={4}>
+        <DatasetSelect
+          id="admin-level"
+          label="Level"
+          value={level}
           onChange={(value) => updateAdminState('level', value)}
           options={[
-            { id: 'high_school', label: 'High School', value: 'high_school' },
-            { id: 'college', label: 'College', value: 'college' },
+            { label: 'High School', value: 'high_school' },
+            { label: 'College', value: 'college' },
           ]}
         />
       </CCol>

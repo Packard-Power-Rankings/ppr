@@ -148,7 +148,7 @@ make lightsail-up
 make lightsail-health
 ```
 
-Do not run `docker compose down --volumes`. The `mongo_data`, `redis_data`, `archive_data`, `caddy_data`, and `caddy_config` volumes contain persistent state.
+Do not run `docker compose down --volumes`. The `mongo_data`, `redis_data`, `archive_data`, `upload_data`, `caddy_data`, and `caddy_config` volumes contain persistent state.
 
 ## Backups
 
@@ -158,7 +158,7 @@ Create a compressed logical MongoDB backup before deployments and data maintenan
 make lightsail-backup
 ```
 
-MongoDB and generated season archive backups are written with owner-only permissions under the ignored `backups/` directory. Copy both files to storage outside the instance. A disk snapshot alone is not a substitute for a tested restore.
+MongoDB, generated season archives, and source game uploads are written as separate owner-only backup files under the ignored `backups/` directory. Copy all three files to storage outside the instance. A disk snapshot alone is not a substitute for a tested restore.
 
 To restore a backup, stop application writes first and deliberately run `mongorestore --drop`:
 
@@ -173,6 +173,16 @@ make lightsail-up
 ```
 
 The restore command replaces collections present in the archive. Take another backup before using it.
+
+Restore source uploads into their persistent volume separately:
+
+```bash
+cat backups/ppr-source-uploads-YYYYMMDDTHHMMSSZ.tar.gz |
+  docker compose --env-file .env/production -f docker-compose.lightsail.yml \
+  exec -T backend tar -C /var/lib/ppr-uploads -xzf -
+```
+
+Mongo upload metadata and the `upload_data` backup belong to the same snapshot. Restore both from the same timestamp so every `storage_path` points to the expected reference file.
 
 ## Security Notes
 

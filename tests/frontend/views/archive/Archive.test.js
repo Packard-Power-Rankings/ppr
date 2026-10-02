@@ -118,6 +118,13 @@ test('displays and searches a selected archived ranking', async () => {
   expect(
     await screen.findByRole('heading', { name: '2026 Season Archive' }),
   ).toBeInTheDocument()
+  expect(screen.getByRole('heading', {
+    name: '2026 High School Mens Basketball Rankings',
+  })).toBeInTheDocument()
+  expect(screen.getByRole('columnheader', { name: 'Rank' })).toBeInTheDocument()
+  expect(screen.getByRole('columnheader', { name: 'Power' })).toBeInTheDocument()
+  expect(screen.getByRole('columnheader', { name: 'Div. Rank' })).toBeInTheDocument()
+  expect(screen.getByLabelText('2026 Ranking')).toBeInTheDocument()
   expect(screen.getByRole('cell', { name: 'Northstar Academy' })).toBeInTheDocument()
   expect(screen.getByRole('cell', { name: 'Cedar Valley' })).toBeInTheDocument()
   expect(screen.getByRole('link', { name: 'Open this static page' })).toHaveAttribute(

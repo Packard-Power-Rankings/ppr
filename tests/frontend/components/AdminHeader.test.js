@@ -18,17 +18,21 @@ const reducer = (state = initialState, action) => {
   return state
 }
 
-test('only displays dataset selectors on admin pages', () => {
+test('displays dropdown dataset selectors on admin pages', () => {
   render(
     <Provider store={createStore(reducer)}>
       <AdminHeader />
     </Provider>,
   )
 
-  expect(screen.getByRole('radio', { name: 'Basketball' })).toBeChecked()
-  expect(screen.getByRole('radio', { name: 'Womens' })).toBeChecked()
-  expect(screen.queryByRole('button', { name: 'Archive Season' })).not.toBeInTheDocument()
-  expect(screen.queryByRole('button', { name: 'Clear Season' })).not.toBeInTheDocument()
+  expect(screen.getByRole('combobox', { name: 'Sport' })).toHaveValue('basketball')
+  expect(screen.getByRole('combobox', { name: 'Gender' })).toHaveValue('womens')
+  expect(screen.getByRole('combobox', { name: 'Level' })).toHaveValue('high_school')
+  expect(screen.queryByRole('radio')).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Archive Selected Sport' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Archive All Sports' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Reset Selected Sport' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Reset All Sports' })).not.toBeInTheDocument()
 })
 
 test('switching to football also selects the supported mens gender', async () => {
@@ -40,7 +44,7 @@ test('switching to football also selects the supported mens gender', async () =>
     </Provider>,
   )
 
-  await user.click(screen.getByRole('radio', { name: 'Football' }))
+  await user.selectOptions(screen.getByRole('combobox', { name: 'Sport' }), 'football')
 
   expect(store.getState()).toMatchObject({ sport: 'football', gender: 'mens' })
 })

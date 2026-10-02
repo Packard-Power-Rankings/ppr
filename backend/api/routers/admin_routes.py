@@ -13,11 +13,12 @@
 from __future__ import annotations
 import os
 import traceback
+from uuid import uuid4
 from typing import Tuple, List, Dict
 # from celery.result import AsyncResult
 # from celery import states
 from arq.connections import create_pool
-from arq.jobs import Job
+from arq.jobs import Job, JobStatus
 from fastapi import (
     APIRouter,
     Depends,
@@ -33,7 +34,9 @@ from fastapi.security import OAuth2PasswordRequestForm
 from api.service.tasks import run_main_algorithm, calc_z_score
 from api.schemas.items import (
     InputMethod,
+    NewGameData,
     UpdateTeamsData,
+    UpdateTeamInfo,
     LogoutResponse,
     FlaggedGame,
     SetupAdminRequest,
@@ -42,6 +45,15 @@ from api.schemas.items import (
 from api.service.admin_teams import AdminTeamsService
 from api.service.archive_service import ArchiveService
 from api.service.admin_service import AdminServices
+from api.service.execution_history import (
+    ALGORITHM_PROCESS,
+    Z_SCORE_PROCESS,
+    execution_error_detail,
+    recent_execution_history,
+    record_execution,
+    update_execution_status,
+)
+from api.service.team_ingestion import TeamFileValidationError
 # from api.service.celery import celery
 from api.config.constants import (
     DIVISION_FOOTBALL,
@@ -147,7 +159,7 @@ def require_admin():
 @router.get(
     "/archive-season/status",
     dependencies=[require_admin()],
-    description="Check whether the current season archive already exists",
+    description="Check whether a complete current-season archive exists",
 )
 async def archive_season_status(
     year: int | None = Query(default=None, ge=2000, le=9999),
@@ -155,20 +167,74 @@ async def archive_season_status(
     return archive_service.archive_status(year)
 
 
-@router.post(
-    "/archive-season/",
+def _archive_dataset_key(sports_input: InputMethod) -> tuple[str, str, str]:
+    return (
+        sports_input.sport_type.value,
+        sports_input.gender.value,
+        sports_input.level.value,
+    )
+
+
+@router.get(
+    "/archive-season/status/selected",
     dependencies=[require_admin()],
-    description="Create public static pages for the current season rankings",
+    description="Check whether one sport dataset is archived for the season",
 )
-async def archive_season(
+async def selected_archive_season_status(
+    year: int | None = Query(default=None, ge=2000, le=9999),
+    sports_input: InputMethod = Depends(),
+):
+    return archive_service.archive_status(
+        year,
+        _archive_dataset_key(sports_input),
+    )
+
+
+@router.post(
+    "/archive-season/all/",
+    dependencies=[require_admin()],
+    description="Archive every current sport dataset as public static pages",
+)
+async def archive_all_sports(
     year: int | None = Query(default=None, ge=2000, le=9999),
     overwrite: bool = Query(default=False),
 ):
     return await archive_service.archive_current_season(year, overwrite)
 
 
+@router.post(
+    "/archive-season/selected/",
+    dependencies=[require_admin()],
+    description="Archive one sport dataset while retaining other archived datasets",
+)
+async def archive_selected_sport(
+    year: int | None = Query(default=None, ge=2000, le=9999),
+    overwrite: bool = Query(default=False),
+    sports_input: InputMethod = Depends(),
+):
+    return await archive_service.archive_current_season(
+        year,
+        overwrite,
+        _archive_dataset_key(sports_input),
+    )
+
+
+@router.post(
+    "/archive-season/",
+    dependencies=[require_admin()],
+    include_in_schema=False,
+)
+async def archive_season_legacy(
+    year: int | None = Query(default=None, ge=2000, le=9999),
+    overwrite: bool = Query(default=False),
+):
+    """Compatibility route for clients that archive all sports."""
+    return await archive_service.archive_current_season(year, overwrite)
+
+
 def dict_to_list(data_dict):
     return [{"id": k, "name": v} for k, v in data_dict.items() if v is not None]
+
 
 @router.get(
     '/sports/',
@@ -194,56 +260,100 @@ def get_sports_info(
     return return_message
 
 
-@router.post(
-    "/upload_csv/",
-    dependencies=[require_admin()],
-    description="Adds CSV File and Finds Missing Teams"
-)
-async def upload_csv(
+async def _store_uploaded_games(
     csv_file: UploadFile = File(),
     sports_input: InputMethod = Depends(),
 ):
-    """Endpoint for uploading a csv file and checking if teams are missing
+    level_key = (
+        sports_input.sport_type,
+        sports_input.gender,
+        sports_input.level,
+    )
 
-    Args:
-        sports_input (InputMethod, optional): Input for specific sports info.
-        Defaults to Depends(input_method_dependency).
-        csv_file (UploadFile, optional): CSV File to upload.
-        Defaults to File().
 
-    Raises:
-        HTTPException: BAD_REQUEST
-        HTTPException: INTERNAL_SERVER_ERROR
-
-    Returns:
-        dict: Successful CSV file upload and list
-        of missing teams from the database
-    """
+@router.post(
+    "/teams/upload/",
+    dependencies=[require_admin()],
+    description="Validate and import team metadata from a CSV file",
+)
+async def upload_teams(
+    csv_file: UploadFile = File(),
+    sports_input: InputMethod = Depends(),
+):
+    level_key = (
+        sports_input.sport_type,
+        sports_input.gender,
+        sports_input.level,
+    )
+    team_services = admin_team_class(level_key)
     try:
-        if not csv_file.filename.endswith(".csv"):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="File must be a csv"
-            )
-        level_key = (
-            sports_input.sport_type,
-            sports_input.gender,
-            sports_input.level
+        return await team_services.import_team_csv(
+            csv_file.filename or "teams.csv",
+            await csv_file.read(),
         )
-        team_services = admin_team_class(level_key)
-        results = await team_services.store_csv(
-            sports_input.sport_type,
-            sports_input.gender,
-            sports_input.level,
-            csv_file
-        )
-        return results
-    except Exception as exc:
-        traceback.print_exc()
+    except TeamFileValidationError as exc:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal Error"
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={
+                "message": "Team data file format is not correct",
+                "errors": exc.errors,
+            },
         ) from exc
+    team_services = admin_team_class(level_key)
+    return await team_services.store_csv(
+        sports_input.sport_type,
+        sports_input.gender,
+        sports_input.level,
+        csv_file,
+    )
+
+
+@router.post(
+    "/games/upload/",
+    dependencies=[require_admin()],
+    description="Validate and upload a game CSV",
+)
+async def upload_games(
+    csv_file: UploadFile = File(),
+    sports_input: InputMethod = Depends(),
+):
+    return await _store_uploaded_games(csv_file, sports_input)
+
+
+@router.post(
+    "/upload_csv/",
+    dependencies=[require_admin()],
+    include_in_schema=False,
+)
+async def upload_csv_legacy(
+    csv_file: UploadFile = File(),
+    sports_input: InputMethod = Depends(),
+):
+    """Compatibility route for older clients."""
+    return await _store_uploaded_games(csv_file, sports_input)
+
+
+@router.post(
+    "/games/",
+    dependencies=[require_admin()],
+    description="Validate and add one game",
+)
+async def add_game(
+    game: NewGameData,
+    sports_input: InputMethod = Depends(),
+):
+    level_key = (
+        sports_input.sport_type,
+        sports_input.gender,
+        sports_input.level,
+    )
+    team_services = admin_team_class(level_key)
+    return await team_services.store_game(
+        sports_input.sport_type,
+        sports_input.gender,
+        sports_input.level,
+        game.model_dump(),
+    )
 
 
 @router.post(
@@ -272,9 +382,9 @@ async def add_missing_teams(
     try:
         # teams = new_team.model_dump()
         level_key = (
-                sports_input.sport_type,
-                sports_input.gender,
-                sports_input.level
+            sports_input.sport_type,
+            sports_input.gender,
+            sports_input.level
         )
         team_services = admin_team_class(level_key)
         results = await team_services.add_teams_to_db(new_team)
@@ -297,10 +407,10 @@ async def check_for_missing_teams(
     sports_input: InputMethod = Depends()
 ):
     level_key = (
-                sports_input.sport_type,
-                sports_input.gender,
-                sports_input.level
-        )
+        sports_input.sport_type,
+        sports_input.gender,
+        sports_input.level
+    )
     team_services = admin_team_class(level_key)
     results = await team_services.find_missing_teams(teams)
     return {"missing_teams": results}
@@ -315,16 +425,42 @@ async def main_algorithm_exc(
     iterations: int,
     sport_input: InputMethod = Depends()
 ):
+    if iterations < 1 or iterations > 100:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="Iterations must be between 1 and 100",
+        )
+    task_id = uuid4().hex
+    level_key = (
+        sport_input.sport_type.value,
+        sport_input.gender.value,
+        sport_input.level.value,
+    )
+    await record_execution(
+        task_id,
+        ALGORITHM_PROCESS,
+        *level_key,
+        iterations=iterations,
+    )
     try:
         redis = await create_pool(get_redis_settings())
         job = await redis.enqueue_job(
             "run_main_algorithm",
-            (sport_input.sport_type, sport_input.gender, sport_input.level),
-            iterations
+            level_key,
+            iterations,
+            _job_id=task_id,
         )
-        return {"task_id": job.job_id, "message": "Task has been started."}
+        if job is None:
+            raise RuntimeError("The algorithm job could not be queued")
+        return {"task_id": task_id, "message": "Task has been started."}
     except Exception as exc:
-        raise HTTPException(status_code=500, detail="Internal Server Error") from exc
+        await update_execution_status(
+            task_id,
+            "failed",
+            error=execution_error_detail(exc),
+        )
+        raise HTTPException(
+            status_code=500, detail="Internal Server Error") from exc
 
 
 @router.post(
@@ -335,15 +471,120 @@ async def main_algorithm_exc(
 async def calc_z_scores(
     sport_input: InputMethod = Depends()
 ):
+    task_id = uuid4().hex
+    level_key = (
+        sport_input.sport_type.value,
+        sport_input.gender.value,
+        sport_input.level.value,
+    )
+    await record_execution(
+        task_id,
+        Z_SCORE_PROCESS,
+        *level_key,
+    )
     try:
         redis = await create_pool(get_redis_settings())
         job = await redis.enqueue_job(
             "calc_z_score",
-            (sport_input.sport_type, sport_input.gender, sport_input.level)
+            level_key,
+            _job_id=task_id,
         )
-        return {"task_id": job.job_id, "message": "Task has been started."}
+        if job is None:
+            raise RuntimeError("The z-score job could not be queued")
+        return {"task_id": task_id, "message": "Task has been started."}
     except Exception as exc:
-        raise HTTPException(status_code=500, detail="Internal Server Error") from exc
+        await update_execution_status(
+            task_id,
+            "failed",
+            error=execution_error_detail(exc),
+        )
+        raise HTTPException(
+            status_code=500, detail="Internal Server Error") from exc
+
+
+@router.get(
+    "/execution-history/",
+    dependencies=[require_admin()],
+    description="Returns the five most recent algorithm and z-score executions",
+)
+async def get_execution_history():
+    try:
+        history = await recent_execution_history()
+        redis = await create_pool(get_redis_settings())
+        history_changed = False
+        for records in history.values():
+            for record in records:
+                status_needs_refresh = record.get("status") in {
+                    "queued",
+                    "in_progress",
+                }
+                error_needs_backfill = (
+                    record.get("status") == "failed"
+                    and not record.get("error")
+                )
+                if not status_needs_refresh and not error_needs_backfill:
+                    continue
+                job = Job(job_id=record["task_id"], redis=redis)
+                job_status = await job.status()
+                if job_status == JobStatus.in_progress:
+                    if record.get("status") != "in_progress":
+                        await update_execution_status(
+                            record["task_id"],
+                            "in_progress",
+                        )
+                        history_changed = True
+                elif job_status == JobStatus.complete:
+                    try:
+                        result = await job.result_info()
+                    except Exception as result_error:
+                        await update_execution_status(
+                            record["task_id"],
+                            "failed",
+                            error={
+                                "type": "WorkerResultUnreadable",
+                                "message": (
+                                    "The stored worker exception could not be "
+                                    "read. Run the job again to capture its "
+                                    "full failure details. Original read error: "
+                                    f"{type(result_error).__name__}."
+                                ),
+                                "location": "ARQ result store",
+                            },
+                        )
+                        history_changed = True
+                        continue
+                    succeeded = bool(result and result.success)
+                    await update_execution_status(
+                        record["task_id"],
+                        "complete" if succeeded else "failed",
+                        started_at=result.start_time if result else None,
+                        finished_at=result.finish_time if result else None,
+                        error=(
+                            execution_error_detail(result.result)
+                            if result and not succeeded
+                            else None
+                        ),
+                    )
+                    history_changed = True
+                elif job_status == JobStatus.not_found:
+                    await update_execution_status(
+                        record["task_id"],
+                        "failed",
+                        error={
+                            "type": "WorkerResultUnavailable",
+                            "message": (
+                                "The worker result expired or the job ended "
+                                "before failure details were recorded."
+                            ),
+                            "location": "ARQ result store",
+                        },
+                    )
+                    history_changed = True
+
+        return await recent_execution_history() if history_changed else history
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500, detail="Internal Server Error") from exc
 
 
 @router.get(
@@ -360,7 +601,8 @@ async def task_checker(task_id: str):
             "status": await job_info.status()
         }
     except Exception as exc:
-        raise HTTPException(status_code=500, detail="Internal Server Error") from exc
+        raise HTTPException(
+            status_code=500, detail="Internal Server Error") from exc
 
 
 @router.put(
@@ -445,17 +687,35 @@ async def update_team_name(
     return await team_service.update_team_name(team_id, new_name)
 
 
+@router.put(
+    "/update-team/{team_id}",
+    dependencies=[require_admin()],
+    description="Update Team Information"
+)
+async def update_team_info(
+    team_id: int,
+    team_info: UpdateTeamInfo,
+    sport_input: InputMethod = Depends()
+):
+    team_service = admin_team_class(
+        (
+            sport_input.sport_type,
+            sport_input.gender,
+            sport_input.level
+        )
+    )
+    return await team_service.update_team_info(team_id, team_info.model_dump())
+
+
 @router.delete(
     "/clear-season/",
     dependencies=[require_admin()],
-    description="Clears Season"
+    description="Reset Selected Sport Season"
 )
 async def clear_season(
     sport_input: InputMethod = Depends()
 ):
-    """
-    Moves current season to previous season
-    """
+    """Reset the selected sport season without modifying public archives."""
     team_service = admin_team_class(
         (
             sport_input.sport_type,
@@ -464,6 +724,17 @@ async def clear_season(
         )
     )
     return await team_service.clear_season()
+
+
+@router.delete(
+    "/reset-all-sports/",
+    dependencies=[require_admin()],
+    description="Reset All Sports"
+)
+async def reset_all_sports():
+    """Reset every current sport dataset without modifying public archives."""
+    team_service = admin_team_class(("football", "mens", "high_school"))
+    return await team_service.reset_all_sports()
 
 
 @router.delete(

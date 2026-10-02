@@ -9,6 +9,7 @@ BACKUP_DIR="${BACKUP_DIR:-$ROOT_DIR/backups}"
 TIMESTAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 BACKUP_FILE="$BACKUP_DIR/ppr-mongodb-$TIMESTAMP.archive.gz"
 ARCHIVE_BACKUP_FILE="$BACKUP_DIR/ppr-static-archives-$TIMESTAMP.tar.gz"
+UPLOAD_BACKUP_FILE="$BACKUP_DIR/ppr-source-uploads-$TIMESTAMP.tar.gz"
 
 "$ROOT_DIR/scripts/validate_lightsail_env.sh" "$ENV_FILE" >/dev/null
 mkdir -p "$BACKUP_DIR"
@@ -39,3 +40,16 @@ docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" exec -T frontend \
 
 printf '[lightsail] Static archive backup complete (%s)\n' \
   "$(du -h "$ARCHIVE_BACKUP_FILE" | cut -f1)"
+
+printf '[lightsail] Writing source upload backup to %s\n' "$UPLOAD_BACKUP_FILE"
+docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" exec -T backend \
+  tar -C /var/lib/ppr-uploads -czf - . >"$UPLOAD_BACKUP_FILE"
+
+[[ -s "$UPLOAD_BACKUP_FILE" ]] || {
+  rm -f "$UPLOAD_BACKUP_FILE"
+  printf '[lightsail] ERROR: Source upload backup is empty\n' >&2
+  exit 1
+}
+
+printf '[lightsail] Source upload backup complete (%s)\n' \
+  "$(du -h "$UPLOAD_BACKUP_FILE" | cut -f1)"

@@ -5,6 +5,7 @@ import {
     CForm,
     CCol,
     CFormCheck,
+    CFormSelect,
     CTable,
     CTableHead,
     CTableRow,
@@ -78,39 +79,39 @@ const Predictions = () => {
             <CCardBody>
                 <CForm onSubmit={handleSubmit}>
                     <CRow className="mb-3">
-                        <CCol sm={3}><strong>Sport:</strong></CCol>
+                        <CCol sm={3}><label htmlFor="sportType"><strong>Sport:</strong></label></CCol>
                         <CCol sm={6}>
-                            <CFormCheck inline type="radio" name="sportType" id="football" label="Football"
-                                checked={sport === "football"} onChange={() => setSport("football")} />
-                            <CFormCheck inline type="radio" name="sportType" id="basketball" label="Basketball"
-                                checked={sport === "basketball"} onChange={() => setSport("basketball")} />
+                            <CFormSelect id="sportType" value={sport} onChange={(event) => setSport(event.target.value)}>
+                                <option value="football">Football</option>
+                                <option value="basketball">Basketball</option>
+                            </CFormSelect>
                         </CCol>
                     </CRow>
 
                     <CRow className="mb-3">
-                        <CCol sm={3}><strong>Gender:</strong></CCol>
+                        <CCol sm={3}><label htmlFor="genderType"><strong>Gender:</strong></label></CCol>
                         <CCol sm={6}>
-                            <CFormCheck inline type="radio" name="genderType" id="mens" label="Mens"
-                                checked={gender === "mens"} onChange={() => setGender("mens")} />
-                            <CFormCheck inline type="radio" name="genderType" id="womens" label="Womens"
-                                checked={gender === "womens"} onChange={() => setGender("womens")} />
+                            <CFormSelect id="genderType" value={gender} onChange={(event) => setGender(event.target.value)}>
+                                <option value="mens">Mens</option>
+                                <option value="womens">Womens</option>
+                            </CFormSelect>
                         </CCol>
                     </CRow>
 
                     <CRow className="mb-3">
-                        <CCol sm={3}><strong>Level:</strong></CCol>
+                        <CCol sm={3}><label htmlFor="levelType"><strong>Level:</strong></label></CCol>
                         <CCol sm={6}>
-                            <CFormCheck inline type="radio" name="levelType" id="high_school" label="High School"
-                                checked={level === "high_school"} onChange={() => setLevel("high_school")} />
-                            <CFormCheck inline type="radio" name="levelType" id="college" label="College"
-                                checked={level === "college"} onChange={() => setLevel("college")} />
+                            <CFormSelect id="levelType" value={level} onChange={(event) => setLevel(event.target.value)}>
+                                <option value="high_school">High School</option>
+                                <option value="college">College</option>
+                            </CFormSelect>
                         </CCol>
                     </CRow>
 
                     <CRow className="mb-3">
-                        <CCol sm={3}><strong>Home Field Advantage:</strong></CCol>
+                        <CCol sm={3}><strong>Home field:</strong></CCol>
                         <CCol sm={6}>
-                            <CFormCheck type="checkbox" name="hfa" id="hfaSelection" label="Apply Home Field Advantage"
+                            <CFormCheck type="checkbox" name="hfa" id="hfaSelection" label="Apply home-field advantage to Team 1 (home team)"
                                 checked={homeFieldAdv} onChange={() => setFieldAdv(prev => !prev)} />
                         </CCol>
                     </CRow>

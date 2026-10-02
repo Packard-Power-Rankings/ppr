@@ -21,6 +21,7 @@ services:
       - ./backend:/app
       - ./tests/backend:/app/tests:ro
       - archive_data:/var/lib/ppr-archives
+      - ./uploads:/var/lib/ppr-uploads
     ports:
       - "8000:8000"
     networks:
@@ -28,9 +29,11 @@ services:
     environment:
       - PYTHONPATH=/app
       - MONGO_URI=mongodb://${MONGO_USER}:${MONGO_PASS}@db:${MONGO_PORT}/${MONGO_DB_NAME}?authSource=admin
+      - MONGO_MAX_POOL_SIZE=${MONGO_MAX_POOL_SIZE:-50}
       - SETUP_TOKEN=${SETUP_TOKEN}
       - SECRET_KEY=${SECRET_KEY}
       - ARCHIVE_DIR=/var/lib/ppr-archives
+      - UPLOAD_DIR=/var/lib/ppr-uploads
     depends_on:
       redis:
         condition: service_healthy
@@ -41,7 +44,7 @@ services:
 
   arq_worker:
     build: ./backend
-    command: ["arq", "api.service.tasks.WorkerSettings"]
+    command: ["arq", "--watch", "/app/api", "api.service.tasks.WorkerSettings"]
     volumes:
       - ./backend:/app
     working_dir: /app
@@ -50,6 +53,7 @@ services:
     environment:
       - PYTHONPATH=/app
       - MONGO_URI=mongodb://${MONGO_USER}:${MONGO_PASS}@db:${MONGO_PORT}/${MONGO_DB_NAME}?authSource=admin
+      - MONGO_MAX_POOL_SIZE=${MONGO_MAX_POOL_SIZE:-50}
     depends_on:
       redis:
         condition: service_healthy

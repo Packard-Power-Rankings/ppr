@@ -4,6 +4,7 @@ import { CBreadcrumb, CBreadcrumbItem } from '@coreui/react';
 import { formatDisplayName } from 'src/utils/displayNames';
 
 const SPORTS_WITH_GENDER_BREADCRUMBS = new Set(['basketball']);
+const SUPPORTED_SPORTS = new Set(['basketball', 'football']);
 
 const AppBreadcrumb = () => {
   const currentLocation = useLocation().pathname;
@@ -19,16 +20,12 @@ const AppBreadcrumb = () => {
   const getBreadcrumbs = (location) => {
     const pathSegments = location.split('/').filter(segment => segment);
 
-    if (pathSegments[0] === 'teams') {
-      if (pathSegments.length === 1) {
-        return [{ pathname: '/teams', name: 'Teams', active: true }];
-      }
-
-      const [, sport, gender, level] = pathSegments;
+    if (SUPPORTED_SPORTS.has(pathSegments[0])) {
+      const [sport, gender, level] = pathSegments;
       const showGender = SPORTS_WITH_GENDER_BREADCRUMBS.has(sport);
       const breadcrumbs = [
         {
-          pathname: `/teams/${sport}`,
+          pathname: `/${sport}`,
           name: formatDisplayName(sport),
           active: !level && (!showGender || !gender),
         },
@@ -36,7 +33,7 @@ const AppBreadcrumb = () => {
 
       if (showGender && gender) {
         breadcrumbs.push({
-          pathname: `/teams/${sport}/${gender}`,
+          pathname: `/${sport}/${gender}`,
           name: formatDisplayName(gender),
           active: !level,
         });
@@ -58,7 +55,7 @@ const AppBreadcrumb = () => {
       const showGender = SPORTS_WITH_GENDER_BREADCRUMBS.has(sport);
       const breadcrumbs = [
         {
-          pathname: `/teams/${sport}`,
+          pathname: `/${sport}`,
           name: formatDisplayName(sport),
           active: false,
         },
@@ -66,7 +63,7 @@ const AppBreadcrumb = () => {
 
       if (showGender) {
         breadcrumbs.push({
-          pathname: `/teams/${sport}/${gender}`,
+          pathname: `/${sport}/${gender}`,
           name: formatDisplayName(gender),
           active: false,
         });
@@ -74,7 +71,7 @@ const AppBreadcrumb = () => {
 
       breadcrumbs.push(
         {
-          pathname: `/teams/${sport}/${gender}/${level}`,
+          pathname: `/${sport}/${gender}/${level}`,
           name: formatDisplayName(level),
           active: false,
         },

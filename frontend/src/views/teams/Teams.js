@@ -13,14 +13,18 @@ import {
     CFormInput
 } from '@coreui/react';
 
-const Teams = () => {
-    const { sport, gender, level } = useParams();
+const Teams = ({ fixedSport }) => {
+    const { sport: routeSport, gender, level } = useParams();
+    const sport = fixedSport ?? routeSport;
     const [teams, setTeams] = useState([]);
     const [requestStatus, setRequestStatus] = useState('loading');
     const [searchTerm, setSearchTerm] = useState("");
     const [sortColumn, setSortColumn] = useState(null);
     const [sortDirection, setSortDirection] = useState("asc");
     const selectionName = formatDatasetName({ sport, gender, level });
+    const pageHeading = (
+        <h1 className="h2 mb-3">{selectionName} Ranking</h1>
+    );
 
     const getLatestPowerRanking = (powerRanking) => {
         if (!powerRanking || powerRanking.length === 0) return '-';
@@ -110,30 +114,40 @@ const Teams = () => {
 
     if (requestStatus === 'loading') {
         return (
-            <div className="d-flex justify-content-center p-4">
-                <CSpinner />
+            <div>
+                {pageHeading}
+                <div className="d-flex justify-content-center p-4">
+                    <CSpinner />
+                </div>
             </div>
         );
     }
 
     if (requestStatus === 'empty') {
         return (
-            <div className="text-primary p-3" role="status">
-                No Data Found in Database for {selectionName}
+            <div>
+                {pageHeading}
+                <div className="text-primary p-3" role="status">
+                    No Data Found in Database for {selectionName}
+                </div>
             </div>
         );
     }
 
     if (requestStatus === 'error') {
         return (
-            <div className="text-danger p-3" role="alert">
-                Failed to Load {selectionName} Data
+            <div>
+                {pageHeading}
+                <div className="text-danger p-3" role="alert">
+                    Failed to Load {selectionName} Data
+                </div>
             </div>
         );
     }
 
     return (
         <div>
+            {pageHeading}
             <CFormInput
                 type="text"
                 placeholder="Search teams..."
@@ -141,7 +155,7 @@ const Teams = () => {
                 onChange={handleSearch}
                 className="mb-3"
             />
-            <CTable>
+            <CTable striped className="team-list-table">
                 <CTableHead color="light" style={{ position: 'sticky', top: 114, zIndex: 1 }}>
                     <CTableRow>
                         <CTableHeaderCell scope="col" className="py-3">Id</CTableHeaderCell>

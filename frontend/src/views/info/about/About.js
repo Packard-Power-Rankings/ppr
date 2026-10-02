@@ -7,11 +7,6 @@ import {
 } from "@coreui/react";
 
 import ErikPackard from '../../../assets/images/ErikPackard.png';
-import RamBasnet from '../../../assets/images/RamBasnet.png';
-import DerricLoya from '../../../assets/images/DerricLoya.png';
-import DrakeCullen from '../../../assets/images/DrakeCullen.png';
-import NateBriner from '../../../assets/images/NateBriner.png';
-
 const About = () => {
     return (
         <CContainer className="mt-4">
@@ -34,7 +29,7 @@ const About = () => {
                 <p>The z-score displayed on team pages measures the team’s performance in a game when considering the average performance across all games in a season and relies on the teams current power rankings. The score itself conveys how many standard deviations above or below the average game performance the team did in that game. A positive z-scores means that the game improved that team’s ranking and a negative one decreased it. The higher the z-score the more it helps a team. At least 75% of the time the z-score will be between -2 and 2, so if a z-score is greater than 2 or less than -2, that game was greatly impactful. After more games are played, these z-scores will change as the program will have more information and curve the z-scores up or down given the new information. With the z-scores, you can tell which games were the best and worst for a given team as viewed by the program. By looking at z-scores, we can decide which game was the best in the season.</p>
             </section>
             <section className="mb-5">
-                <h2>Creator</h2>
+                <h2>Algorithm Inventor</h2>
                 <CRow className="align-items-center">
                     <CCol md={3} className="text-center">
                         <CImage rounded thumbnail src={ErikPackard} width={200} height={200}/>
@@ -46,37 +41,21 @@ const About = () => {
                 </CRow>
             </section>
             <section className="mb-5">
-                <h2>Current Maintainer</h2>
+                <h2>Current and Past Team Members</h2>
                 <CRow className="align-items-center">
-                    <CCol md={3} className="text-center">
-                        <CImage rounded thumbnail src={RamBasnet} width={200} height={200}/>
-                    </CCol>
                     <CCol md={9}>
                         <h5>Ram Basnet</h5>
-                        <p>Ram Basnet loves many sports most importantly soccer and basketball. Ram grew up playing basketball, soccer and volleyball for his high school teams. He continues to play soccer in Grand Valley soccer league.</p>
-                        <p>Ram received his M.S., and Ph.D. in Computer Science from New Mexico Tech. He is currently employed as an associate professor of Computer Science at Colorado Mesa University.</p>
+                        <h5>Daniel Fishbein</h5>
+                        <h5>Peter Campbell</h5>
+                        <h5>Clayton Hoges</h5>
+                        <h5>Maximilian Adamson</h5>
+                        <h5>Mykela Moore</h5>
+                        <h5>Mckenzie Swindler</h5>
+                        <h5>Derric Loya</h5>
+                        <h5>Drake Cullen</h5>
+                        <h5>Nate Briner</h5>
                     </CCol>
                 </CRow>
-            </section>
-            <section className="mb-5">
-                <h2>Previous Team Members</h2>
-                {
-                    [
-                        { img: DerricLoya, name: 'Derric Loya', desc: "Derric Loya graduated from Colorado Mesa University with a Bachelor of Science in Computer Science, with a Web Application Development Professional Certificate. During which, Derric held the position of Vice President and was a founding member of the Society of Hispanic Professional Engineers at CMU. Additionally, being honored as a member of Upsilon Pi Epsilon (the International Honor Society for Computing and Informatics) and Kappa Mu Epsilon (the National Mathematics Honor Society)." },
-                        { img: DrakeCullen, name: 'Drake Cullen', desc: "Drake Cullen is currently pursuing a Bachelor’s degree in Computer Science with minors in Cybersecurity and Mathematics at Colorado Mesa University. He is the former President of the Cybersecurity Club, the President of Upsilon Pi Epsilon (the International Honor Society for Computing and Informatics) and the Treasurer of Kappa Mu Epsilon (the National Mathematics Honor Society) at CMU." },
-                        { img: NateBriner, name: 'Nate Briner', desc: "Nathan Briner is currently pursuing a Bachelor’s degree in Computer Science and a minor in Mathematics at Colorado Mesa University. He is also a Vice President of CMU's Computer Science Club and Vice President of Upsilon Pi Epsilon (the International Honor Society for Computing and Informatics) at CMU." }
-                    ].map((member, index) => (
-                        <CRow className="align-items-center mb-4" key={index}>
-                            <CCol md={3} className="text-center">
-                                <CImage rounded thumbnail src={member.img} width={200} height={200}/>
-                            </CCol>
-                            <CCol md={9}>
-                                <h5>{member.name}</h5>
-                                <p>{member.desc}</p>
-                            </CCol>
-                        </CRow>
-                    ))
-                }
             </section>
         </CContainer>
     )

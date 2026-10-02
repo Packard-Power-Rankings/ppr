@@ -21,6 +21,7 @@ import { loginUser } from 'src/services/authService'
 const Login = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [error, setError] = useState(false);
 
@@ -103,13 +104,25 @@ const Login = () => {
                                             <CIcon icon={cilLockLocked} />
                                         </CInputGroupText>
                                         <CFormInput
-                                            type="password"
+                                            type={showPassword ? 'text' : 'password'}
                                             placeholder="Password"
                                             autoComplete="current-password"
                                             onChange={(e) => setPassword(e.target.value)}
                                             invalid={error}
                                         />
                                     </CInputGroup>
+                                    <div className="form-check mb-4">
+                                        <input
+                                            className="form-check-input"
+                                            id="show-password"
+                                            type="checkbox"
+                                            checked={showPassword}
+                                            onChange={(e) => setShowPassword(e.target.checked)}
+                                        />
+                                        <label className="form-check-label" htmlFor="show-password">
+                                            Show password
+                                        </label>
+                                    </div>
                                     <CRow className="g-2">
                                         <CCol xs={12}>
                                             <CButton type="submit" color="primary" className="w-100">

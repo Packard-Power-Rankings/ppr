@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import {
   CAlert,
   CFormInput,
+  CFormSelect,
   CSpinner,
   CTable,
   CTableBody,
@@ -23,12 +24,26 @@ const TEAM_DATASETS = [
   { sport: 'basketball', gender: 'womens', level: 'college' },
 ]
 
-const AllTeams = () => {
-  const { sport: selectedSport, gender: selectedGender } = useParams()
+const getLatestPowerRanking = (powerRanking) => {
+  if (!powerRanking || powerRanking.length === 0) return '-'
+  const ranking = powerRanking[0]
+  const latestDate = Object.keys(ranking)[0]
+  const value = Number(ranking[latestDate])
+  return Number.isFinite(value) ? value.toFixed(2) : '-'
+}
+
+const AllTeams = ({ fixedSport }) => {
+  const { sport: routeSport, gender: selectedGender } = useParams()
+  const selectedSport = fixedSport ?? routeSport
+  const showSportColumn = !selectedSport
+  const showGenderColumn = !selectedGender
   const [teams, setTeams] = useState([])
   const [failedDatasetCount, setFailedDatasetCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [sportFilter, setSportFilter] = useState('all')
+  const [genderFilter, setGenderFilter] = useState('all')
+  const [levelFilter, setLevelFilter] = useState('all')
   const selectedDatasets = useMemo(
     () =>
       TEAM_DATASETS.filter(
@@ -38,6 +53,15 @@ const AllTeams = () => {
       ),
     [selectedGender, selectedSport],
   )
+  const sportOptions = [...new Set(selectedDatasets.map(({ sport }) => sport))]
+  const genderOptions = [...new Set(selectedDatasets.map(({ gender }) => gender))]
+  const levelOptions = [...new Set(selectedDatasets.map(({ level }) => level))]
+
+  useEffect(() => {
+    setSportFilter('all')
+    setGenderFilter('all')
+    setLevelFilter('all')
+  }, [selectedGender, selectedSport])
 
   const pageTitle = selectedGender
     ? `${formatDisplayName(selectedGender)} ${formatDisplayName(selectedSport)} Teams`
@@ -98,14 +122,15 @@ const AllTeams = () => {
 
   const filteredTeams = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase()
-    if (!normalizedSearch) return teams
-
     return teams.filter((team) =>
-      [team.team_name, team.sport, team.gender, team.level]
+      (sportFilter === 'all' || team.sport === sportFilter) &&
+      (genderFilter === 'all' || team.gender === genderFilter) &&
+      (levelFilter === 'all' || team.level === levelFilter) &&
+      (!normalizedSearch || [team.team_name, team.sport, team.gender, team.level]
         .map(formatDisplayName)
-        .some((value) => value.toLowerCase().includes(normalizedSearch)),
+        .some((value) => value.toLowerCase().includes(normalizedSearch))),
     )
-  }, [searchTerm, teams])
+  }, [genderFilter, levelFilter, searchTerm, sportFilter, teams])
 
   const hasLoadFailures = failedDatasetCount > 0
   const directoryUnavailable = hasLoadFailures && teams.length === 0
@@ -115,14 +140,61 @@ const AllTeams = () => {
       <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-3">
         <h2 className="mb-0">{pageTitle}</h2>
         {!loading && teams.length > 0 && (
-          <CFormInput
-            aria-label="Search all teams"
-            className="w-auto"
-            onChange={(event) => setSearchTerm(event.target.value)}
-            placeholder="Search teams..."
-            type="search"
-            value={searchTerm}
-          />
+          <div className="d-flex flex-wrap gap-2">
+            {sportOptions.length > 1 && (
+              <CFormSelect
+                aria-label="Filter by Sport"
+                className="w-auto"
+                onChange={(event) => setSportFilter(event.target.value)}
+                value={sportFilter}
+              >
+                <option value="all">All Sports</option>
+                {sportOptions.map((sportOption) => (
+                  <option key={sportOption} value={sportOption}>
+                    {formatDisplayName(sportOption)}
+                  </option>
+                ))}
+              </CFormSelect>
+            )}
+            {genderOptions.length > 1 && (
+              <CFormSelect
+                aria-label="Filter by Gender"
+                className="w-auto"
+                onChange={(event) => setGenderFilter(event.target.value)}
+                value={genderFilter}
+              >
+                <option value="all">All Genders</option>
+                {genderOptions.map((genderOption) => (
+                  <option key={genderOption} value={genderOption}>
+                    {formatDisplayName(genderOption)}
+                  </option>
+                ))}
+              </CFormSelect>
+            )}
+            {levelOptions.length > 1 && (
+              <CFormSelect
+                aria-label="Filter by Level"
+                className="w-auto"
+                onChange={(event) => setLevelFilter(event.target.value)}
+                value={levelFilter}
+              >
+                <option value="all">All Levels</option>
+                {levelOptions.map((levelOption) => (
+                  <option key={levelOption} value={levelOption}>
+                    {formatDisplayName(levelOption)}
+                  </option>
+                ))}
+              </CFormSelect>
+            )}
+            <CFormInput
+              aria-label="Search all teams"
+              className="w-auto"
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="Search teams..."
+              type="search"
+              value={searchTerm}
+            />
+          </div>
         )}
       </div>
 
@@ -149,14 +221,17 @@ const AllTeams = () => {
           {hasLoadFailures && (
             <CAlert color="danger">Some Teams Data Failed to Load</CAlert>
           )}
-          <CTable align="middle" hover responsive>
+          <CTable align="middle" hover striped responsive className="team-list-table">
             <CTableHead color="light">
               <CTableRow>
                 <CTableHeaderCell>Team</CTableHeaderCell>
-                <CTableHeaderCell>Sport</CTableHeaderCell>
-                <CTableHeaderCell>Gender</CTableHeaderCell>
+                {showSportColumn && <CTableHeaderCell>Sport</CTableHeaderCell>}
+                {showGenderColumn && <CTableHeaderCell>Gender</CTableHeaderCell>}
                 <CTableHeaderCell>Level</CTableHeaderCell>
                 <CTableHeaderCell>Rank</CTableHeaderCell>
+                <CTableHeaderCell>Power</CTableHeaderCell>
+                <CTableHeaderCell>Div Rank</CTableHeaderCell>
+                <CTableHeaderCell>Last Rank</CTableHeaderCell>
               </CTableRow>
             </CTableHead>
             <CTableBody>
@@ -171,10 +246,13 @@ const AllTeams = () => {
                       {team.team_name}
                     </Link>
                   </CTableDataCell>
-                  <CTableDataCell>{formatDisplayName(team.sport)}</CTableDataCell>
-                  <CTableDataCell>{formatDisplayName(team.gender)}</CTableDataCell>
+                  {showSportColumn && <CTableDataCell>{formatDisplayName(team.sport)}</CTableDataCell>}
+                  {showGenderColumn && <CTableDataCell>{formatDisplayName(team.gender)}</CTableDataCell>}
                   <CTableDataCell>{formatDisplayName(team.level)}</CTableDataCell>
                   <CTableDataCell>{team.overall_rank ?? '-'}</CTableDataCell>
+                  <CTableDataCell>{getLatestPowerRanking(team.power_ranking)}</CTableDataCell>
+                  <CTableDataCell>{team.division_rank ?? '-'}</CTableDataCell>
+                  <CTableDataCell>{team.last_rank ?? '-'}</CTableDataCell>
                 </CTableRow>
               ))}
             </CTableBody>

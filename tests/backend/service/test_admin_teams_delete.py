@@ -1,9 +1,3 @@
-import base64
-import csv
-from io import StringIO
-
-from bson.binary import Binary
-
 from api.service.admin_teams import AdminTeamsService
 
 
@@ -117,24 +111,3 @@ def test_remove_team_cleans_orphaned_game_references():
     assert remaining_teams[0]["losses"] == 0
     assert remaining_teams[0]["season_opp"] == []
     assert remaining_teams[0]["recent_opp"] == [0, 0, 0, 0, 0]
-
-
-def test_remove_team_rows_from_csv_handles_home_away_and_base64_data():
-    csv_content = (
-        "2026-01-01,Delete Me,Opponent One,80,70,0\n"
-        "2026-01-02,Opponent Two,Delete Me,90,80,0\n"
-        "2026-01-03,Opponent One,Opponent Two,60,50,0\n"
-    ).encode("utf-8")
-
-    for filedata in (Binary(csv_content), base64.b64encode(csv_content).decode("utf-8")):
-        updated_filedata, rows_removed = \
-            AdminTeamsService._remove_team_rows_from_csv(
-                filedata,
-                "Delete Me"
-            )
-        rows = list(csv.reader(StringIO(bytes(updated_filedata).decode("utf-8"))))
-
-        assert rows_removed == 2
-        assert rows == [
-            ["2026-01-03", "Opponent One", "Opponent Two", "60", "50", "0"]
-        ]

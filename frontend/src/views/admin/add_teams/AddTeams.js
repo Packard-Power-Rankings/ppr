@@ -1,191 +1,244 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from 'react'
+import { useSelector } from 'react-redux'
 import {
-    CFormInput,
-    CTable,
-    CTableHead,
-    CTableHeaderCell,
-    CTableBody,
-    CTableDataCell,
-    CTableRow,
-    CButton,
-    CFooter,
-    CModal,
-    CModalHeader,
-    CModalTitle,
-    CModalBody,
-    CModalFooter
-} from "@coreui/react";
-import api, { setAuthHeader } from "src/api";
-import Papa from "papaparse";
-import { useSelector } from "react-redux";
-import AddMissingTeams from "./AddMissingTeams";
+  CAlert,
+  CButton,
+  CButtonGroup,
+  CCol,
+  CForm,
+  CFormInput,
+  CFormLabel,
+  CFormSelect,
+  CRow,
+  CSpinner,
+} from '@coreui/react'
+import api from 'src/api'
+import { formatDisplayName } from 'src/utils/displayNames'
+import { US_STATES } from 'src/utils/usStates'
 
+const TEAM_DATA_HEADERS = [
+  'state',
+  'short_name',
+  'long_name',
+  'division',
+  'conference',
+  'ranked',
+]
+
+const emptyTeam = {
+  state: '',
+  short_name: '',
+  long_name: '',
+  division: '',
+  conference: '',
+  ranked: 'yes',
+}
 
 const AddTeams = () => {
-    const sport = useSelector((state) => state.sport);
-    const gender = useSelector((state) => state.gender);
-    const level = useSelector((state) => state.level);
-    const [ gameFile, setGameFile ] = useState([]);
-    const [ teamNames, setTeamNames ] = useState([]);
-    const [ missingTeams, setMissingTeams ] = useState([]);
-    const [ showModal, setShowModal ] = useState(false);
-    const [ fileMessage, setFileMessage ] = useState('');
-    const [ filePopUp, setFilePopUp ] = useState(false);
-    const [ fileName, setFileName ] = useState('');
-    const [ gameSubmit, setGameSubmit ] = useState(true);
+  const sport = useSelector((state) => state.sport)
+  const gender = useSelector((state) => state.gender)
+  const level = useSelector((state) => state.level)
+  const [mode, setMode] = useState('upload')
+  const [file, setFile] = useState(null)
+  const [submitting, setSubmitting] = useState(false)
+  const [feedback, setFeedback] = useState(null)
+  const [fileInputKey, setFileInputKey] = useState(0)
+  const [manualTeam, setManualTeam] = useState(emptyTeam)
+  const datasetName = [level, gender, sport].map(formatDisplayName).join(' ')
+  const query = `sport_type=${sport}&gender=${gender}&level=${level}`
 
-    const handleFileUpload = (e) => {  // Reads the file and parses the csv file
-        const file = e.target.files[0]
-        if (!file) return;
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+    if (!file) return
 
-        setGameSubmit(false);
-        setFileName(file.name);
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const csvData = event.target.result;
-            Papa.parse(csvData, {
-                complete: (result) => {
-                    setGameFile(result.data);
-                    extractTeams(result.data);
-                },
-                skipEmptyLines: true,
-            })
-        };
-        reader.readAsText(file);
-    };
+    const formData = new FormData()
+    formData.append('csv_file', file)
+    setSubmitting(true)
+    setFeedback(null)
 
-    const handleSubmit = async () => {
-        const csvString = Papa.unparse(gameFile);
-        const blob = new Blob([csvString], { type: "text/csv" });
-        const updateFile = new File([blob], `${fileName}`, { type: "text/csv" });
+    try {
+      const { data } = await api.post(`/teams/upload/?${query}`, formData)
+      const messages = [data.message]
+      if (data.teams_failed?.length) {
+        messages.push(...data.teams_failed.map(
+          (team) => `${team.team_name}: ${team.reason}`,
+        ))
+      }
+      setFeedback({ color: data.teams_failed?.length ? 'warning' : 'success', messages })
+      setFile(null)
+      setFileInputKey((key) => key + 1)
+    } catch (error) {
+      const detail = error.response?.data?.detail
+      const messages = Array.isArray(detail?.errors)
+        ? detail.errors
+        : [detail?.message || detail || 'Failed to upload team data.']
+      setFeedback({ color: 'danger', messages })
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
-        const formData = new FormData();
-        formData.append('csv_file', updateFile);
-        try {
-            const response = await api.post(
-                `/upload_csv/?sport_type=${sport}&gender=${gender}&level=${level}`,
-                formData,
-                {
-                    headers: {"Content-Type": 'multipart/form-data'}
-                }
-            );
-            setFileMessage(response.data.message);
-            setFilePopUp(true);
-        } catch (error) {
-            console.error("Failed to upload file", error);
-        }
+  const updateManualTeam = (field, value) => {
+    setManualTeam((current) => ({ ...current, [field]: value }))
+  }
+
+  const submitManualTeam = async (event) => {
+    event.preventDefault()
+    setSubmitting(true)
+    setFeedback(null)
+
+    const payload = {
+      state: manualTeam.state.trim(),
+      short_name: manualTeam.short_name.trim(),
+      long_name: manualTeam.long_name.trim(),
+      division: manualTeam.division.trim(),
+      conference: manualTeam.conference.trim(),
+      ranked: manualTeam.ranked === 'yes',
     }
 
-    const extractTeams = (data) => {
-        const teams = [];
-        data.forEach((row) => {
-            if (row[1]) teams.push(row[1]);
-            if (row[2]) teams.push(row[2]);
-        });
-        setTeamNames([...teams]);
+    try {
+      const { data } = await api.post(`/add_teams/?${query}`, [payload])
+      if (data.added?.length) {
+        setFeedback({ color: 'success', messages: ['Team added successfully'] })
+        setManualTeam(emptyTeam)
+      } else {
+        const failure = data.skipped?.[0]
+        setFeedback({
+          color: 'warning',
+          messages: [failure ? `${failure.team_name}: ${failure.reason}` : 'Team was not added.'],
+        })
+      }
+    } catch (error) {
+      const detail = error.response?.data?.detail
+      setFeedback({
+        color: 'danger',
+        messages: [typeof detail === 'string' ? detail : 'Failed to add the team.'],
+      })
+    } finally {
+      setSubmitting(false)
     }
+  }
 
-    const checkMissingTeams = async () => {
-        try {
-            const response = await api.post(
-                `/check-teams/?sport_type=${sport}&gender=${gender}&level=${level}`, teamNames,
-                {
-                    headers: {'Content-Type': "application/json"}
-                }
-            )
-            if (response.data.missing_teams?.length > 0) {
-                setMissingTeams(response.data.missing_teams);
-                setShowModal(true);
-            } else {
-                console.warn("No teams need to be added");
-            }
-        } catch (error) {
-            console.error("Error Occured Fetching Teams", error)
-        }
-    }
+  return (
+    <div className="mb-4">
+      <h1 className="h3 mb-3">Add Teams</h1>
+      <CButtonGroup role="group" aria-label="Add teams method" className="mb-4">
+        <CButton
+          color="primary"
+          variant={mode === 'upload' ? undefined : 'outline'}
+          onClick={() => setMode('upload')}
+        >
+          Upload Team File
+        </CButton>
+        <CButton
+          color="primary"
+          variant={mode === 'manual' ? undefined : 'outline'}
+          onClick={() => setMode('manual')}
+        >
+          Add One Team
+        </CButton>
+      </CButtonGroup>
 
-    useEffect(() => {
-        const token = localStorage.getItem("access_token");
-        if (token) {
-            setAuthHeader(token);
-        }
-    }, []);
+      {feedback && (
+        <CAlert color={feedback.color} dismissible onClose={() => setFeedback(null)}>
+          {feedback.messages.map((message) => <div key={message}>{message}</div>)}
+        </CAlert>
+      )}
 
-    useEffect(() => {
-        if (teamNames.length > 0) {
-            checkMissingTeams();
-        }
-    }, [teamNames])
-
-    return (
-        <div className="mb-3">
-            <div className="p-4 border rounded mb-4">
-                <h5 className="mb-3">Upload CSV File</h5>
-                <CFormInput
-                    type="file"
-                    accept=".csv"
-                    size="sm"
-                    id="formFile"
-                    onChange={handleFileUpload}
-                />
-            </div>
-            {gameFile.length > 0 && (
-                <CTable>
-                    <CTableHead>
-                        <CTableRow>
-                            <CTableHeaderCell scope="col" className="py-3">Date</CTableHeaderCell>
-                            <CTableHeaderCell scope="col" className="py-3">Home Team</CTableHeaderCell>
-                            <CTableHeaderCell scope="col" className="py-3">Away Team</CTableHeaderCell>
-                            <CTableHeaderCell scope="col" className="py-3">Home Score</CTableHeaderCell>
-                            <CTableHeaderCell scope="col" className="py-3">Away Score</CTableHeaderCell>
-                            <CTableHeaderCell scope="col" className="py-3">Home Field Flag</CTableHeaderCell>
-                        </CTableRow>
-                    </CTableHead>
-                    <CTableBody>
-                        {gameFile.map((row, rowIndex) => (
-                            <CTableRow key={rowIndex}>
-                                {row.map((cell, colIndex) => (
-                                    <CTableDataCell key={colIndex} className="py-3">
-                                        <CFormInput
-                                            type="text"
-                                            value={cell}
-                                            onChange={(e) => {
-                                                const updateFile = [...gameFile];
-                                                updateFile[rowIndex][colIndex] = e.target.value;
-                                                setGameFile(updateFile);
-                                            }}
-                                        />
-                                    </CTableDataCell>
-                                ))}
-                            </CTableRow>
-                        ))}
-                    </CTableBody>
-                </CTable>
-            )}
-            <CModal visible={filePopUp} onClose={() => setFilePopUp(false)}>
-                <CModalHeader>
-                    <CModalTitle>Notification</CModalTitle>
-                </CModalHeader>
-                <CModalBody>
-                    {fileMessage}
-                </CModalBody>
-                <CModalFooter>
-                    <button className="btn btn-primary" onClick={() => setFilePopUp(false)}>
-                        OK
-                    </button>
-                </CModalFooter>
-            </CModal>
-            <CFooter position="sticky" className="py-4">
-                <CButton onClick={handleSubmit} disabled={gameSubmit} as="input" type="submit" color="primary" value="Submit" />
-            </CFooter>
-            {showModal && (
-                <AddMissingTeams
-                    missingTeamNames={missingTeams}
-                    onClose={() => setShowModal(false)}
-                />
-            )}
-        </div>
-    )
+      {mode === 'upload' ? (
+        <CForm className="p-4 border rounded" onSubmit={handleSubmit}>
+          <h2 className="h5 mb-3">Upload Team Data For {datasetName}</h2>
+          <CFormInput
+            key={fileInputKey}
+            type="file"
+            accept=".csv,text/csv"
+            id="team-data-file"
+            label="Choose Team Data CSV"
+            onChange={(event) => {
+              setFile(event.target.files?.[0] || null)
+              setFeedback(null)
+            }}
+            disabled={submitting}
+          />
+          <p className="small text-body-secondary mt-2 mb-0">
+            Required headers: {TEAM_DATA_HEADERS.join(', ')}
+          </p>
+          <CButton type="submit" color="primary" className="mt-3" disabled={!file || submitting}>
+            {submitting && <CSpinner size="sm" className="me-2" />}
+            Upload Team Data
+          </CButton>
+        </CForm>
+      ) : (
+        <CForm className="p-4 border rounded" onSubmit={submitManualTeam}>
+          <h2 className="h5 mb-3">Add One Team For {datasetName}</h2>
+          <CRow className="g-3">
+            <CCol md={4}>
+              <CFormLabel htmlFor="team-state">State</CFormLabel>
+              <CFormSelect
+                id="team-state"
+                value={manualTeam.state}
+                onChange={(event) => updateManualTeam('state', event.target.value)}
+                required
+              >
+                <option value="" disabled>Select a state</option>
+                {US_STATES.map((state) => (
+                  <option key={state} value={state}>{state}</option>
+                ))}
+              </CFormSelect>
+            </CCol>
+            <CCol md={4}>
+              <CFormInput
+                id="team-short-name"
+                label="Short Name"
+                value={manualTeam.short_name}
+                onChange={(event) => updateManualTeam('short_name', event.target.value)}
+                required
+              />
+            </CCol>
+            <CCol md={4}>
+              <CFormInput
+                id="team-long-name"
+                label="Long Name"
+                value={manualTeam.long_name}
+                onChange={(event) => updateManualTeam('long_name', event.target.value)}
+              />
+            </CCol>
+            <CCol md={4}>
+              <CFormInput
+                id="team-division"
+                label="Division"
+                value={manualTeam.division}
+                onChange={(event) => updateManualTeam('division', event.target.value)}
+              />
+            </CCol>
+            <CCol md={4}>
+              <CFormInput
+                id="team-conference"
+                label="Conference"
+                value={manualTeam.conference}
+                onChange={(event) => updateManualTeam('conference', event.target.value)}
+              />
+            </CCol>
+            <CCol md={4}>
+              <CFormLabel htmlFor="team-ranked">Ranked</CFormLabel>
+              <CFormSelect
+                id="team-ranked"
+                value={manualTeam.ranked}
+                onChange={(event) => updateManualTeam('ranked', event.target.value)}
+              >
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+              </CFormSelect>
+            </CCol>
+          </CRow>
+          <CButton type="submit" color="primary" className="mt-3" disabled={submitting}>
+            {submitting && <CSpinner size="sm" className="me-2" />}
+            Add Team
+          </CButton>
+        </CForm>
+      )}
+    </div>
+  )
 }
 
 export default AddTeams

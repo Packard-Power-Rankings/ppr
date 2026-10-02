@@ -1,6 +1,7 @@
 import pytest
 import pandas as pd
 from io import StringIO
+from api.service.game_ingestion import GameFileValidationError
 from api.utils.algorithm.upload import upload_csv
 
 
@@ -26,7 +27,7 @@ def test_upload_csv_missing_column():
         "2023-11-19,Team A,100,90,0\n"
         "2023-11-20,Team C,95,85,999\n"
     )
-    with pytest.raises(ValueError, match="CSV does not contain the correct number of columns."):
+    with pytest.raises(GameFileValidationError, match="expected 6 columns"):
         upload_csv(csv_data)
 
 
@@ -39,7 +40,5 @@ def test_upload_csv_invalid_file():
 def test_upload_csv_empty_file():
     # Mock an empty CSV file
     csv_data = StringIO("")
-    df = upload_csv(csv_data)
-    assert df.empty
-    assert list(df.columns) == [
-        "date", "home_team", "away_team", "home_score", "away_score", "neutral_site"]
+    with pytest.raises(GameFileValidationError, match="does not contain any games"):
+        upload_csv(csv_data)

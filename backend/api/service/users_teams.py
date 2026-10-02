@@ -1,18 +1,9 @@
-import os
 from typing import Tuple, Dict, List
 from math import e
-import motor.motor_asyncio
 from fastapi import status, HTTPException
 from api.config.constants import LEVEL_CONSTANTS
+from api.database import sports_database as database
 from api.utils.json_helper import query_params_builder
-
-
-MONGO_DETAILS = os.getenv("MONGO_URI") or \
-    f"mongodb+srv://{os.getenv('MONGO_USER')}:{os.getenv('MONGO_PASS')}@" \
-    "sports-cluster.mx1mo.mongodb.net/" \
-    "?retryWrites=true&w=majority&appName=Sports-Cluster"
-client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_DETAILS)
-database = client["sports_data"]
 
 
 class UsersServices():
@@ -42,6 +33,7 @@ class UsersServices():
                     "team_name": "$teams.team_name",
                     "power_ranking": {"$slice": ["$teams.power_ranking", -1]},
                     "division_rank": "$teams.division_rank",
+                    "last_rank": "$teams.last_rank",
                     "division": "$teams.division",
                     "wins": "$teams.wins",
                     "losses": "$teams.losses"
@@ -76,10 +68,16 @@ class UsersServices():
             {"$project": {
                 "_id": 0,
                 "teams.team_id": 1,
+                "teams.team_name": 1,
+                "teams.short_name": 1,
+                "teams.long_name": 1,
+                "teams.state": 1,
                 "teams.division": 1,
                 "teams.conference": 1,
                 "teams.division_rank": 1,
+                "teams.conference_rank": 1,
                 "teams.overall_rank": 1,
+                "teams.last_rank": 1,
                 "teams.power_ranking": 1,
                 "teams.wins": 1,
                 "teams.losses": 1,

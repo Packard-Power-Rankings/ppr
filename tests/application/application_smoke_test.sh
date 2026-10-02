@@ -120,6 +120,34 @@ reset_fixture_data() {
     cat "$FULL_FIXTURE_LOADER"
   } | mongo_script
 
+  compose exec -T backend sh -c \
+    'find "$UPLOAD_DIR" -type f ! -name .gitkeep -delete'
+  while IFS=$'\t' read -r storage_path encoded_content; do
+    printf '%s' "$encoded_content" | compose exec -T backend sh -c \
+      'target="$UPLOAD_DIR/$1"; mkdir -p "$(dirname "$target")"; base64 -d >"$target"' \
+      sh "$storage_path"
+  done < <(jq -r '
+    .datasets[] as $dataset
+    | $dataset.team_names as $teams
+    | ($dataset.sport_type + "-" + $dataset.gender + "-" + $dataset.level) as $slug
+    | ($dataset.games
+      | map(. as $game | [
+          $game[0],
+          $teams[$game[1] - 1],
+          $teams[$game[2] - 1],
+          $game[3],
+          $game[4],
+          $game[5]
+        ] | @csv)
+      | join("\n") + "\n") as $content
+    | [
+        ($dataset.sport_type + "/" + $dataset.gender + "/" + $dataset.level
+          + "/fixture-" + $slug + "-" + $slug + "-fixture.csv"),
+        ($content | @base64)
+      ]
+    | @tsv
+  ' "$FULL_FIXTURE_SPEC")
+
   replace_test_admin
 }
 
@@ -140,6 +168,7 @@ const summarize = (document) => ({
 const current = app.temp2.find({}).toArray().map(summarize);
 const previous = app.previous_season.find({}).toArray().map(summarize);
 const csv = app.csv_files.find({}).toArray();
+const games = app.games.find({}).toArray();
 const flagged = app.flagged_games.find({}).toArray();
 const account = adminDb.admin.findOne({}, {_id: 0, username: 1});
 print(JSON.stringify({
@@ -147,6 +176,8 @@ print(JSON.stringify({
   previous,
   csv_documents: csv.length,
   csv_files: csv.reduce((total, document) => total + (document.csv_files || []).length, 0),
+  canonical_games: games.length,
+  csv_blobs: app.csv_files.countDocuments({"csv_files.filedata": {$exists: true}}),
   flagged_documents: flagged.length,
   flagged_games: flagged.reduce(
     (total, document) => total + (document.flagged_games || []).length,
@@ -164,6 +195,8 @@ print(JSON.stringify({
     (.previous | all(.teams == 10 and .game_refs == 20)) and
     .csv_documents == 6 and
     .csv_files == 6 and
+    .canonical_games == 60 and
+    .csv_blobs == 0 and
     .flagged_documents == 6 and
     .flagged_games == 6 and
     .admin_documents == 1 and
@@ -187,17 +220,19 @@ print(JSON.stringify({
 }
 
 assert_fixture_dataset_is_empty() {
-  local javascript state team_count csv_count
+  local javascript state team_count csv_count game_count
   javascript='const app = db.getSiblingDB("sports_data");
 const dataset = app.temp2.findOne({_id: ObjectId("'"$DATASET_ID"'")});
 const csv = app.csv_files.findOne({sport_type: "'"$SPORT"'", gender: "'"$GENDER"'", level: "'"$LEVEL"'"});
-print(JSON.stringify({teams: dataset && dataset.teams ? dataset.teams.length : 0, csvFiles: csv && csv.csv_files ? csv.csv_files.length : 0}));'
+const games = app.games.countDocuments({sport_type: "'"$SPORT"'", gender: "'"$GENDER"'", level: "'"$LEVEL"'"});
+print(JSON.stringify({teams: dataset && dataset.teams ? dataset.teams.length : 0, csvFiles: csv && csv.csv_files ? csv.csv_files.length : 0, games}));'
   state="$(mongo_eval "$javascript")"
   team_count="$(jq -r '.teams' <<<"$state")"
   csv_count="$(jq -r '.csvFiles' <<<"$state")"
+  game_count="$(jq -r '.games' <<<"$state")"
 
-  if [[ "$team_count" != "0" || "$csv_count" != "0" ]]; then
-    fail "Fixture dataset is not empty ($team_count teams, $csv_count CSV files). Use: make test-app-reset CONFIRM_TEST_RESET=1"
+  if [[ "$team_count" != "0" || "$csv_count" != "0" || "$game_count" != "0" ]]; then
+    fail "Fixture dataset is not empty ($team_count teams, $game_count games, $csv_count upload records). Use: make test-app-reset CONFIRM_TEST_RESET=1"
   fi
 }
 
@@ -289,10 +324,31 @@ upload_game_files() {
   local file
   for file in "$FIXTURE_DIR"/week-0{1,2,3,4}.csv; do
     authenticated_api \
-      -X POST "$BASE_URL/upload_csv/?$(dataset_query)" \
+      -X POST "$BASE_URL/games/upload/?$(dataset_query)" \
       -F "csv_file=@$file;type=text/csv" >/dev/null
     info "Uploaded $(basename "$file")"
   done
+}
+
+verify_ingestion_storage() {
+  local javascript state
+  javascript='const app = db.getSiblingDB("sports_data");
+const query = {sport_type: "'"$SPORT"'", gender: "'"$GENDER"'", level: "'"$LEVEL"'"};
+const uploads = app.csv_files.findOne(query);
+print(JSON.stringify({
+  games: app.games.countDocuments(query),
+  uploads: uploads ? uploads.csv_files.length : 0,
+  uploads_with_paths: uploads ? uploads.csv_files.filter((item) => item.storage_path).length : 0,
+  blobs: app.csv_files.countDocuments({...query, "csv_files.filedata": {$exists: true}})
+}));'
+  state="$(mongo_eval "$javascript")"
+  jq -e '
+    .games == 13 and
+    .uploads == 4 and
+    .uploads_with_paths == 4 and
+    .blobs == 0
+  ' <<<"$state" >/dev/null || fail "Normalized ingestion storage verification failed: $state"
+  info "Verified 13 canonical games, 4 filesystem references, and no MongoDB blobs"
 }
 
 poll_job() {
@@ -384,6 +440,7 @@ run_happy_path() {
   login
   add_teams
   upload_game_files
+  verify_ingestion_storage
   run_background_jobs
   verify_public_workflows
   info "PASS: application happy-path smoke test"
@@ -393,7 +450,7 @@ run_maintenance_checks() {
   [[ "${CONFIRM_DESTRUCTIVE:-}" == "1" ]] || fail \
     "Maintenance checks refused. Re-run with: make test-app-maintenance CONFIRM_DESTRUCTIVE=1"
 
-  local ids northstar_id cedar_id qa_id response detail
+  local ids northstar_id cedar_id qa_id response detail archive_year
   login
   ids="$(api "$BASE_URL/teams-ids/?$(dataset_query)")"
   northstar_id="$(team_id "$ids" "Northstar Academy")"
@@ -439,10 +496,14 @@ run_maintenance_checks() {
   jq -e '.data.teams | all(.team_name != "QA Reserve")' <<<"$response" >/dev/null || fail \
     "Deleted QA team is still present in the public team list"
 
-  info "Archiving and clearing the sample season"
+  info "Archiving the current season before resetting the sample dataset"
+  response="$(authenticated_api "$BASE_URL/archive-season/status")"
+  archive_year="$(jq -r '.year' <<<"$response")"
+  authenticated_api -X POST \
+    "$BASE_URL/archive-season/?year=$archive_year&overwrite=true" >/dev/null
   response="$(authenticated_api -X DELETE "$BASE_URL/clear-season/?$(dataset_query)")"
-  jq -e '.archived == true and .teams_reset == true' <<<"$response" >/dev/null || fail \
-    "Season clear did not report a successful archive/reset"
+  jq -e '.archive_unchanged == true and .teams_reset == true' <<<"$response" >/dev/null || fail \
+    "Season reset did not preserve the existing archive"
   response="$(api "$BASE_URL/teams?$(dataset_query)")"
   jq -e '.data.teams | all(.wins == 0 and .losses == 0 and (.season_opp | length == 0))' \
     <<<"$response" >/dev/null || fail "Season data was not fully cleared"

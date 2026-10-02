@@ -132,6 +132,34 @@ function buildCsv(dataset) {
     .join("\n") + "\n";
 }
 
+function buildGames(dataset) {
+  const slug = `${dataset.sport_type}-${dataset.gender}-${dataset.level}`;
+  const uploadId = `fixture-${slug}`;
+  return dataset.games.map(
+    ([date, homeId, awayId, homeScore, awayScore, neutralSite]) => ({
+      sport_type: dataset.sport_type,
+      gender: dataset.gender,
+      level: dataset.level,
+      identity: `${date}|${Math.min(homeId, awayId)}|${Math.max(homeId, awayId)}`,
+      game_id: `${homeId}_${awayId}_${date}`,
+      game_date: date,
+      home_team_id: homeId,
+      home_team: dataset.team_names[homeId - 1],
+      away_team_id: awayId,
+      away_team: dataset.team_names[awayId - 1],
+      home_score: homeScore,
+      away_score: awayScore,
+      neutral_site: neutralSite,
+      home_z_score: Number(((homeScore - awayScore) / 10).toFixed(2)),
+      away_z_score: Number(((awayScore - homeScore) / 10).toFixed(2)),
+      source_upload_id: uploadId,
+      source_filename: `${slug}-fixture.csv`,
+      created_at: new Date(`${fixtureSpec.season_year}-01-01T00:00:00Z`),
+      updated_at: new Date(`${fixtureSpec.season_year}-01-01T00:00:00Z`)
+    })
+  );
+}
+
 const datasetDocuments = fixtureSpec.datasets.map((dataset) => ({
   _id: ObjectId(dataset._id),
   sport_type: dataset.sport_type,
@@ -142,19 +170,23 @@ const datasetDocuments = fixtureSpec.datasets.map((dataset) => ({
 
 const csvDocuments = fixtureSpec.datasets.map((dataset) => {
   const slug = `${dataset.sport_type}-${dataset.gender}-${dataset.level}`;
-  const csvData = buildCsv(dataset);
+  const uploadId = `fixture-${slug}`;
   return {
     sport_type: dataset.sport_type,
     gender: dataset.gender,
     level: dataset.level,
     csv_files: [{
+      upload_id: uploadId,
       filename: `${slug}-fixture.csv`,
-      filedata: BinData(0, Buffer.from(csvData, "utf8").toString("base64")),
-      upload_date: `${fixtureSpec.season_year}-01-01 00:00:00`,
-      sports_week: dataset.games.at(-1)[0]
+      storage_path: `${dataset.sport_type}/${dataset.gender}/${dataset.level}/${uploadId}-${slug}-fixture.csv`,
+      upload_date: new Date(`${fixtureSpec.season_year}-01-01T00:00:00Z`),
+      sports_week: dataset.games.at(-1)[0],
+      game_count: dataset.games.length
     }]
   };
 });
+
+const gameDocuments = fixtureSpec.datasets.flatMap(buildGames);
 
 const flaggedDocuments = fixtureSpec.datasets.map((dataset) => {
   const [date, homeId, awayId] = dataset.games[0];
@@ -183,17 +215,19 @@ const previousSeasonDocuments = fixtureSpec.datasets.map((dataset) => ({
 const app = db.getSiblingDB("sports_data");
 app.temp2.deleteMany({});
 app.csv_files.deleteMany({});
+app.games.deleteMany({});
 app.flagged_games.deleteMany({});
 app.previous_season.deleteMany({});
 app.temp2.insertMany(datasetDocuments);
 app.csv_files.insertMany(csvDocuments);
+app.games.insertMany(gameDocuments);
 app.flagged_games.insertMany(flaggedDocuments);
 app.previous_season.insertMany(previousSeasonDocuments);
 
 print(JSON.stringify({
   datasets: datasetDocuments.length,
   teams: datasetDocuments.reduce((total, dataset) => total + dataset.teams.length, 0),
-  games: fixtureSpec.datasets.reduce((total, dataset) => total + dataset.games.length, 0),
+  games: gameDocuments.length,
   csv_files: csvDocuments.reduce((total, dataset) => total + dataset.csv_files.length, 0),
   flagged_games: flaggedDocuments.reduce(
     (total, dataset) => total + dataset.flagged_games.length,

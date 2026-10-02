@@ -5,6 +5,7 @@
 @sport = basketball
 @gender = mens
 @level = high_school
+@archiveYear = 2026
 
 # IDs are deterministic only when teams.json is added to an empty seeded dataset.
 @northstarId = 1
@@ -63,7 +64,7 @@ Content-Type: application/json
 < ./teams.json
 
 ### Upload week 1.
-POST {{baseUrl}}/upload_csv/?sport_type={{sport}}&gender={{gender}}&level={{level}}
+POST {{baseUrl}}/games/upload/?sport_type={{sport}}&gender={{gender}}&level={{level}}
 Authorization: Bearer {{login.response.body.$.access_token}}
 Content-Type: multipart/form-data; boundary=fixture-boundary
 
@@ -75,7 +76,7 @@ Content-Type: text/csv
 --fixture-boundary--
 
 ### Upload week 2.
-POST {{baseUrl}}/upload_csv/?sport_type={{sport}}&gender={{gender}}&level={{level}}
+POST {{baseUrl}}/games/upload/?sport_type={{sport}}&gender={{gender}}&level={{level}}
 Authorization: Bearer {{login.response.body.$.access_token}}
 Content-Type: multipart/form-data; boundary=fixture-boundary
 
@@ -87,7 +88,7 @@ Content-Type: text/csv
 --fixture-boundary--
 
 ### Upload week 3.
-POST {{baseUrl}}/upload_csv/?sport_type={{sport}}&gender={{gender}}&level={{level}}
+POST {{baseUrl}}/games/upload/?sport_type={{sport}}&gender={{gender}}&level={{level}}
 Authorization: Bearer {{login.response.body.$.access_token}}
 Content-Type: multipart/form-data; boundary=fixture-boundary
 
@@ -99,7 +100,7 @@ Content-Type: text/csv
 --fixture-boundary--
 
 ### Upload week 4.
-POST {{baseUrl}}/upload_csv/?sport_type={{sport}}&gender={{gender}}&level={{level}}
+POST {{baseUrl}}/games/upload/?sport_type={{sport}}&gender={{gender}}&level={{level}}
 Authorization: Bearer {{login.response.body.$.access_token}}
 Content-Type: multipart/form-data; boundary=fixture-boundary
 
@@ -196,7 +197,15 @@ Authorization: Bearer {{login.response.body.$.access_token}}
 DELETE {{baseUrl}}/delete-team/QA%20Reserve/{{qaReserveId}}/?sport_type={{sport}}&gender={{gender}}&level={{level}}
 Authorization: Bearer {{login.response.body.$.access_token}}
 
-### Highly destructive: archive and clear the sample season. Run last.
+### Check the current-year archive before this destructive reset.
+GET {{baseUrl}}/archive-season/status
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+### Recommended: create or refresh the current-year archive.
+POST {{baseUrl}}/archive-season/?year={{archiveYear}}&overwrite=true
+Authorization: Bearer {{login.response.body.$.access_token}}
+
+### Highly destructive: reset the selected sample dataset. Run last.
 DELETE {{baseUrl}}/clear-season/?sport_type={{sport}}&gender={{gender}}&level={{level}}
 Authorization: Bearer {{login.response.body.$.access_token}}
 

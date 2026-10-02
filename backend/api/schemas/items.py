@@ -11,7 +11,7 @@ It includes:
 - Serialization and deserialization logic for integration with MongoDB. 
 """
 
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Literal
 import json
 from enum import Enum
 from pydantic import (
@@ -98,7 +98,7 @@ class SeasonOpponent(BaseModel):
 
 
 class Team(BaseModel):
-    id: int = Field(..., description="Team ID") # class-ified
+    id: int = Field(..., description="Team ID")  # class-ified
     team_name: str = Field(..., description="Name of the team")
     city: Optional[str] = Field(None, description="Team's city")
     state: Optional[str] = Field(None, description="Team's state")
@@ -159,6 +159,45 @@ class UpdateTeamsData(BaseModel):
     away_team: str = Field(..., description="Away Team Name")
     home_score: int = Field(..., description="Home Team Score")
     away_score: int = Field(..., description="Away Team Score")
+
+
+class UpdateTeamInfo(BaseModel):
+    short_name: str = Field(..., min_length=1, max_length=150)
+    long_name: str = Field(default="", max_length=200)
+    state: str = Field(default="", max_length=50)
+    division: str = Field(default="", max_length=100)
+    conference: str = Field(default="", max_length=150)
+    ranked: bool
+
+    @field_validator("short_name", "long_name", "state", "division", "conference")
+    @classmethod
+    def strip_team_text(cls, value: str) -> str:
+        return " ".join(value.split())
+
+
+class NewGameData(BaseModel):
+    """One game submitted through the admin Add Games form."""
+
+    date: str = Field(..., min_length=1, max_length=10)
+    home_team: str = Field(..., min_length=1, max_length=200)
+    away_team: str = Field(..., min_length=1, max_length=200)
+    home_score: int = Field(..., ge=0)
+    away_score: int = Field(..., ge=0)
+    neutral_site: Literal[0, 999] = 0
+
+    @field_validator("date", "home_team", "away_team")
+    @classmethod
+    def strip_game_text(cls, value: str) -> str:
+        value = " ".join(value.split())
+        if not value:
+            raise ValueError("value cannot be blank")
+        return value
+
+    @model_validator(mode="after")
+    def teams_must_be_different(self):
+        if self.home_team.casefold() == self.away_team.casefold():
+            raise ValueError("home_team and away_team must be different")
+        return self
 
 
 async def update_method(

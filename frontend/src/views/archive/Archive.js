@@ -67,7 +67,7 @@ const ArchiveCatalog = ({ archives }) => {
   ))
 }
 
-const ArchiveTable = ({ dataset }) => {
+const ArchiveTable = ({ dataset, year }) => {
   const [searchTerm, setSearchTerm] = useState('')
   const teams = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase()
@@ -85,7 +85,9 @@ const ArchiveTable = ({ dataset }) => {
     <section aria-labelledby="archive-ranking-heading">
       <div className="d-flex flex-wrap align-items-end justify-content-between gap-3 mb-3">
         <div>
-          <h2 className="h4 mb-1" id="archive-ranking-heading">{dataset.label}</h2>
+          <h2 className="h4 mb-1" id="archive-ranking-heading">
+            {year} {dataset.label} Rankings
+          </h2>
           <div className="text-body-secondary">{dataset.team_count} archived teams</div>
         </div>
         <CFormInput
@@ -229,7 +231,9 @@ const Archive = () => {
 
       <CRow className="g-4">
         <CCol lg={4} xl={3}>
-          <label className="form-label fw-semibold" htmlFor="archive-dataset">Ranking</label>
+          <label className="form-label fw-semibold" htmlFor="archive-dataset">
+            {archive.year} Ranking
+          </label>
           <CFormSelect
             id="archive-dataset"
             value={selectedDataset.slug}
@@ -249,7 +253,7 @@ const Archive = () => {
           </a>
         </CCol>
         <CCol lg={8} xl={9}>
-          <ArchiveTable dataset={selectedDataset} />
+          <ArchiveTable dataset={selectedDataset} year={archive.year} />
         </CCol>
       </CRow>
     </CContainer>

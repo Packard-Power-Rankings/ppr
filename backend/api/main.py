@@ -1,9 +1,15 @@
 import os
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 import uvicorn
+from api.database import close_mongo_client, ensure_database_indexes
+from api.config.constants import LEVEL_CONSTANTS
 from api.routers import admin_routes, user_routes
+from api.service.admin_teams import AdminTeamsService
+from api.service.execution_history import prune_execution_history
 
 
 def comma_separated_env(name: str, default: str) -> list[str]:
@@ -15,7 +21,20 @@ def comma_separated_env(name: str, default: str) -> list[str]:
     ]
 
 
-app = FastAPI(root_path=os.getenv("ROOT_PATH", "").rstrip("/"))
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    await ensure_database_indexes()
+    await prune_execution_history()
+    for level_key in LEVEL_CONSTANTS:
+        await AdminTeamsService(level_key).migrate_legacy_uploads()
+    yield
+    close_mongo_client()
+
+
+app = FastAPI(
+    root_path=os.getenv("ROOT_PATH", "").rstrip("/"),
+    lifespan=lifespan,
+)
 
 origins = comma_separated_env("CORS_ORIGINS", "http://localhost:3000")
 allowed_hosts = comma_separated_env(

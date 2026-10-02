@@ -1,72 +1,51 @@
-# **Packard Power Rankings Pipeline**
+# Production Ranking Pipeline
 
-## **Overview**
-This part of the project processes sports game data from a sample CSV file, performs data cleaning, adds enrichment values (e.g., R-values, power rankings), runs key calculations (Z-scores, power differences, expected and actual performance), and outputs the results in JSON format. The project is designed to be modular and database-agnostic, allowing easy future integration with different data sources.
+This directory contains the calculation pipeline used by the FastAPI ARQ worker. CSV is an ingestion format only. By the time this pipeline starts, every game has already been validated and normalized into `sports_data.games`.
 
----
+## Data Flow
 
-## **Structure**
+```text
+Add Games
+  -> validate CSV or individual form
+  -> store canonical games in sports_data.games
+  -> retain source CSV under UPLOAD_DIR
 
-### 1. **`run.py`**
-   - **Description**: The main orchestrating script that ties all the modules together.
-   - **Functionality**: 
-     - Loads the CSV file.
-     - Calls data cleaning, enrichment, calculation, and output functions in sequence.
-     - The entry point for running the entire pipeline.
+Run Rankings
+  -> query canonical games in date/game-ID order
+  -> load each team's initial ranking seed
+  -> calculate the requested iterations in memory
+  -> replace derived team rankings and season_opp records
+  -> calculate z-scores from the same canonical game set
+  -> write z-scores to games and both reciprocal team views
+```
 
-### 2. **`upload.py`**
-   - **Description**: Handles uploading and validating the CSV data.
-   - **Functionality**:
-     - Loads the CSV file into a DataFrame.
-     - Checks for required columns and validates the input format.
-     - **Future integration**: If you later decide to pull data from APIs or databases instead of CSV files, this module should be updated accordingly.
+The original source upload is an immutable reference. The algorithm never opens it. Score corrections, team renames, and deletions update canonical game records, after which a ranking run rebuilds the derived views.
 
-### 3. **`data_cleaning.py`**
-   - **Description**: Cleans and normalizes the raw data.
-   - **Functionality**:
-     - Ensures all numeric fields (e.g., scores) are correctly formatted.
-     - Handles missing values and ensures the integrity of the data.
-     - **Future integration**: This module can be expanded to include additional validation rules based on real-world data constraints or specific database requirements.
+## Modules
 
-### 4. **`data_enrichment.py`**
-   - **Description**: Enriches the cleaned data with additional fields.
-   - **Functionality**:
-     - Adds placeholder values such as R-values, power rankings, and win/loss ratios.
-     - **Future integration**: Replace dummy values with real data fetched from a database or external data sources (e.g., team performance history). This module is the ideal place to integrate database getters for power rankings and other stats.
+| Module | Responsibility |
+| --- | --- |
+| `run.py` | Query MongoDB, adapt games to a DataFrame, coordinate iterations, persistence, and z-scores |
+| `data_cleaning.py` | Normalize score and team values for calculations |
+| `data_enrichment.py` | Add constants and current in-memory team rankings |
+| `main.py` | Calculate score adjustments, expected performance, power changes, propagation, and z-scores |
+| `output.py` | Replace derived team records, ranks, histories, and z-scores in MongoDB |
+| `upload.py` | Legacy/isolated file adapter; not used by the production runner |
 
-### 5. **`main.py`**
-   - **Description**: Runs the main algorithm for calculations.
-   - **Functionality**:
-     - Calculates Z-scores, power differences, expected and actual performance, and predicts scores.
-     - **Future integration**: This module can remain largely unchanged, as the calculations rely on the enriched data, which will eventually come from a database.
+## Repeatability
 
-### 6. **`output.py`**
-   - **Description**: Formats and saves the final results.
-   - **Functionality**:
-     - Converts the final processed DataFrame into JSON format.
-     - Saves the JSON file to disk.
-     - **Future integration**: Modify this module to write the results directly to a database or integrate with a REST API for real-time data reporting.
+Every ranking invocation starts from the first value in each team's `power_ranking` history. The worker then processes all canonical games for each requested iteration and writes one final snapshot. Running the same dataset with the same iteration count therefore produces the same rankings rather than adding the changes again.
 
----
+`POST /run_algorithm/{iterations}` accepts 1 through 100 iterations and runs rankings plus z-scores. `POST /calc_z_scores/` only refreshes z-scores using current rankings.
 
-## **Future Database Integration Points**
+## Tests
 
-1. **`data_enrichment.py`**:
-   - Replace the placeholder values (power rankings, win/loss ratios) with real data from a database.
-   - Integrate database queries to pull R-values, power rankings, team statistics, or even historical data.
-   
-2. **`upload.py`** (Optional):
-   - If CSV input is replaced by a database or API feed, modify `upload.py` to pull data directly from those sources instead of loading from files.
+From the repository root:
 
-3. **`output.py`**:
-   - Replace the JSON file output with direct database writes.
-   - Modify to integrate with SQL, MongoDB, or other databases using the chosen database driver or ORM (e.g., SQLAlchemy or MongoEngine).
+```bash
+make test-backend-algorithm
+make test-backend-service
+make test-app-reset CONFIRM_TEST_RESET=1
+```
 
----
-
-## **How to Run**
-1. Place your input CSV file in the project folder.
-2. Modify the `file_path` and `output_file` variables in `run.py` with your input CSV path and desired output path.
-3. Run the script:
-   ```bash
-   python run.py
+The full fixture reset creates 60 canonical games and six filesystem source references. The algorithm tests verify Mongo-backed loading, full pipeline sequencing, bounded iterations, and z-score scaling.

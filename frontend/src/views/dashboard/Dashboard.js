@@ -11,11 +11,11 @@ const sportSections = [
     links: [
       {
         label: 'Mens High School Football',
-        to: '/teams/football/mens/high_school',
+        to: '/football/mens/high_school',
       },
       {
         label: 'Mens College Football',
-        to: '/teams/football/mens/college',
+        to: '/football/mens/college',
       },
     ],
   },
@@ -25,19 +25,19 @@ const sportSections = [
     links: [
       {
         label: 'Mens High School Basketball',
-        to: '/teams/basketball/mens/high_school',
+        to: '/basketball/mens/high_school',
       },
       {
         label: 'Mens College Basketball',
-        to: '/teams/basketball/mens/college',
+        to: '/basketball/mens/college',
       },
       {
         label: 'Womens High School Basketball',
-        to: '/teams/basketball/womens/high_school',
+        to: '/basketball/womens/high_school',
       },
       {
         label: 'Womens College Basketball',
-        to: '/teams/basketball/womens/college',
+        to: '/basketball/womens/college',
       },
     ],
   },
@@ -51,7 +51,9 @@ const Dashboard = () => {
       </header>
 
       <section aria-labelledby="rankings-heading">
-        <h2 id="rankings-heading" className="h4 mb-3">Rankings</h2>
+        <h2 id="rankings-heading" className="h4 mb-3">
+          Current Rankings
+        </h2>
         <CRow className="g-4">
           {sportSections.map((section) => (
             <CCol md={6} key={section.name}>
@@ -59,7 +61,10 @@ const Dashboard = () => {
                 <CIcon icon={section.icon} />
                 {section.name}
               </h3>
-              <nav className="list-group" aria-label={`${section.name} rankings`}>
+              <nav
+                className="list-group"
+                aria-label={`Current ${section.name} rankings`}
+              >
                 {section.links.map((link) => (
                   <Link
                     className="list-group-item list-group-item-action d-flex align-items-center justify-content-between gap-3 py-3"
@@ -92,9 +97,6 @@ const Dashboard = () => {
         </nav>
       </section>
 
-      <div className="mt-4">
-        <Link to="/teams">View All Teams</Link>
-      </div>
     </CContainer>
   )
 }

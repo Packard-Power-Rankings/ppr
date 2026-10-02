@@ -4,6 +4,10 @@ import { Provider } from 'react-redux'
 import App from 'src/App'
 import { store } from 'src/store'
 
+jest.mock('src/services/authService', () => ({
+  initializeAuth: jest.fn(),
+}))
+
 const renderApp = () =>
   render(
     <Provider store={store}>
@@ -29,16 +33,21 @@ test('renders the public application at the root URL', async () => {
   ).toBeInTheDocument()
   expect(screen.getByRole('link', { name: /mens college football/i })).toHaveAttribute(
     'href',
-    '/teams/football/mens/college',
+    '/football/mens/college',
   )
   expect(screen.getByRole('link', { name: /womens high school basketball/i })).toHaveAttribute(
     'href',
-    '/teams/basketball/womens/high_school',
+    '/basketball/womens/high_school',
   )
   expect(screen.getByRole('link', { name: /season archives/i })).toHaveAttribute(
     'href',
     '/archives',
   )
+  expect(screen.queryByRole('link', { name: /view all teams/i })).not.toBeInTheDocument()
+  expect(screen.getByRole('heading', {
+    name: 'Current Rankings',
+  })).toBeInTheDocument()
+  expect(screen.getByRole('navigation', { name: 'Current Football rankings' })).toBeInTheDocument()
 })
 
 test('redirects a signed-out visitor from an admin route to the admin login', async () => {
@@ -47,4 +56,31 @@ test('redirects a signed-out visitor from an admin route to the admin login', as
 
   expect(await screen.findByRole('heading', { name: /admin login/i })).toBeInTheDocument()
   expect(window.location.pathname).toBe('/admin/login')
+})
+
+test('does not display the global dataset selectors on the admin dashboard', async () => {
+  store.dispatch({ type: 'login' })
+  window.history.pushState({}, '', '/admin')
+  renderApp()
+
+  expect(await screen.findByRole('heading', { name: /ppr admin page/i })).toBeInTheDocument()
+  expect(screen.queryByRole('radio')).not.toBeInTheDocument()
+})
+
+test('redirects a legacy Site Info URL to its shorter public URL', async () => {
+  window.history.pushState({}, '', '/info/privacy')
+  renderApp()
+
+  expect(await screen.findByRole('heading', { name: /privacy policy/i })).toBeInTheDocument()
+  expect(window.location.pathname).toBe('/privacy')
+})
+
+test('redirects the retired all-teams page to home', async () => {
+  window.history.pushState({}, '', '/teams')
+  renderApp()
+
+  expect(
+    await screen.findByRole('heading', { name: /welcome to packard power rankings/i }),
+  ).toBeInTheDocument()
+  expect(window.location.pathname).toBe('/')
 })

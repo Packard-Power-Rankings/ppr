@@ -1,112 +1,135 @@
-# from io import BytesIO
-# from run import MainAlgorithm
-# import pytest
-# import sys
-# from unittest.mock import AsyncMock, MagicMock, patch
+from types import SimpleNamespace
+from unittest.mock import AsyncMock, MagicMock
 
-# # Mock the `service` module
-# sys.modules['service'] = MagicMock()
-# sys.modules['service.admin_teams'] = MagicMock()
+import pandas as pd
+import pytest
+
+from api.utils.algorithm.run import MainAlgorithm
 
 
-# @pytest.fixture
-# def mock_team_services():
-#     team_services = MagicMock()
-#     team_services.level_constant = {
-#         "k_value": 30,
-#         "home_advantage": 50,
-#         "average_game_score": 200,
-#         "_id": "some_id"
-#     }
-#     team_services.retrieve_csv_file = AsyncMock(return_value=[
-#         {"filedata": b"2023-11-19,Team A,Team B,100,90,0\n2023-11-20,Team C,Team D,95,85,999"}
-#     ])
-#     team_services.sports_collection.find_one = AsyncMock(return_value={
-#         "teams": [
-#             {"team_name": "Team A", "power_ranking": [1500]},
-#             {"team_name": "Team B", "power_ranking": [1400]},
-#             {"team_name": "Team C", "power_ranking": [1300]},
-#             {"team_name": "Team D", "power_ranking": [1200]},
-#         ]
-#     })
-#     return team_services
+def game_record():
+    return {
+        "game_id": "1_2_2026-01-15",
+        "game_date": "2026-01-15",
+        "home_team_id": 1,
+        "home_team": "Team A",
+        "away_team_id": 2,
+        "away_team": "Team B",
+        "home_score": 72,
+        "away_score": 68,
+        "neutral_site": 0,
+    }
 
 
-# @pytest.fixture
-# def main_algorithm(mock_team_services):
-#     return MainAlgorithm(team_services=mock_team_services, level_key=('football', 'mens', 'college'))
+def team_document():
+    return {
+        "teams": [
+            {
+                "team_id": 1,
+                "team_name": "Team A",
+                "division": "1A",
+                "power_ranking": [{"initial": 100.0}, {"old": 105.0}],
+                "recent_opp": [2, 0, 0, 0, 0],
+            },
+            {
+                "team_id": 2,
+                "team_name": "Team B",
+                "division": "1A",
+                "power_ranking": [{"initial": 90.0}, {"old": 85.0}],
+                "recent_opp": [1, 0, 0, 0, 0],
+            },
+        ]
+    }
 
 
-# @patch("run.upload_csv", return_value=None)
-# @patch("run.clean_data", return_value=None)
-# @patch("run.enrich_data", return_value=None)
-# @patch("run.run_calculations", return_value=(None, None))
-# @patch("run.update_teams", new_callable=AsyncMock)
-# async def test_execute_pipeline(mock_update_teams, mock_run_calculations, mock_enrich_data, mock_clean_data, mock_upload_csv, main_algorithm):
-#     await main_algorithm.execute(1)
-
-#     # Ensure the full pipeline was executed
-#     mock_upload_csv.assert_called_once()
-#     mock_clean_data.assert_called_once()
-#     mock_enrich_data.assert_called_once()
-#     mock_run_calculations.assert_called_once()
-#     mock_update_teams.assert_called_once()
-
-
-# @pytest.mark.asyncio
-# async def test_load_csv(main_algorithm):
-#     csv_content = await main_algorithm.load_csv()
-#     assert len(csv_content) == 1
-#     assert "filedata" in csv_content[0]
+@pytest.fixture
+def algorithm():
+    sports_collection = SimpleNamespace(
+        find_one=AsyncMock(return_value=team_document())
+    )
+    service = SimpleNamespace(
+        retrieve_games=AsyncMock(return_value=[game_record()]),
+        sports_collection=sports_collection,
+        games_collection=MagicMock(),
+        level_key=("basketball", "mens", "high_school"),
+        level_constant={
+            "_id": "dataset-id",
+            "k_value": 0.43,
+            "home_advantage": 4.5,
+            "average_game_score": 106,
+        },
+    )
+    return MainAlgorithm(service, ("basketball", "mens", "high_school"))
 
 
-# @pytest.mark.asyncio
-# async def test_retrieve_teams(main_algorithm):
-#     teams = await main_algorithm.retrieve_teams()
-#     assert len(teams) == 4
-#     assert teams[0]["team_name"] == "Team A"
+@pytest.mark.asyncio
+async def test_load_games_uses_canonical_mongo_records(algorithm):
+    games = await algorithm.load_games()
+    frame = algorithm.games_dataframe(games)
+
+    assert list(frame.columns) == [
+        "date",
+        "home_team",
+        "away_team",
+        "home_score",
+        "away_score",
+        "neutral_site",
+    ]
+    assert frame.iloc[0].to_dict() == {
+        "date": "2026-01-15",
+        "home_team": "Team A",
+        "away_team": "Team B",
+        "home_score": 72,
+        "away_score": 68,
+        "neutral_site": 0,
+    }
 
 
-# # def test_data_cleaning(main_algorithm):
-# #     with patch("run.clean_data", return_value="cleaned_df") as mock_clean_data:
-# #         main_algorithm.df = "raw_df"
-# #         main_algorithm.data_cleaning()
-# #         mock_clean_data.assert_called_once_with("raw_df")
-# #         assert main_algorithm.df == "cleaned_df"
+@pytest.mark.asyncio
+async def test_new_season_starts_from_power_preserved_at_reset(algorithm):
+    document = team_document()
+    document["teams"][0]["season_initial_power"] = {
+        "2025-12-31": 105.0
+    }
+    algorithm.team_services.sports_collection.find_one.return_value = document
+
+    teams = await algorithm.retrieve_teams(use_initial=True)
+
+    assert teams[0]["initial_power_ranking"] == 105.0
+    assert teams[0]["power_ranking"] == [105.0]
+    assert teams[1]["initial_power_ranking"] == 90.0
 
 
-# @pytest.mark.asyncio
-# async def test_data_enrichment(main_algorithm):
-#     with patch("run.enrich_data", return_value="enriched_df") as mock_enrich_data:
-#         await main_algorithm.data_enrichment()
-#         mock_enrich_data.assert_called_once_with(
-#             main_algorithm.df,
-#             30,  # k_value
-#             50,  # home_advantage
-#             200,  # average_game_score
-#             main_algorithm.team_data
-#         )
-#         assert main_algorithm.df == "enriched_df"
+@pytest.mark.asyncio
+async def test_ranking_run_recomputes_then_persists_rankings_and_z_scores(
+    algorithm,
+):
+    algorithm.clean_data = MagicMock(side_effect=lambda frame: frame)
+    algorithm.enrich_data = MagicMock(side_effect=lambda frame, *_args: frame)
+    algorithm.run_calculations = MagicMock(
+        side_effect=lambda frame, teams: (frame, teams)
+    )
+    algorithm.output_to_db = AsyncMock()
+    algorithm.calculate_z_scores = MagicMock(
+        side_effect=lambda frame, _n: frame.assign(
+            home_z_score=1.0,
+            away_z_score=-1.0,
+        )
+    )
+    algorithm.set_z_scores = AsyncMock()
+
+    await algorithm.execute_algo(2)
+
+    algorithm.team_services.retrieve_games.assert_awaited_once()
+    assert algorithm.run_calculations.call_count == 2
+    algorithm.output_to_db.assert_awaited_once()
+    algorithm.set_z_scores.assert_awaited_once()
+    persisted_frame = algorithm.output_to_db.await_args.args[0]
+    assert isinstance(persisted_frame, pd.DataFrame)
+    assert algorithm.output_to_db.await_args.args[-1] == "2026-01-15"
 
 
-# @pytest.mark.asyncio
-# async def test_update_db(main_algorithm):
-#     with patch("run.update_teams", new_callable=AsyncMock) as mock_update_teams:
-#         await main_algorithm.update_db()
-#         mock_update_teams.assert_called_once_with(
-#             main_algorithm.df,
-#             main_algorithm.team_data,
-#             main_algorithm.team_services.sports_collection,
-#             main_algorithm.team_services.level_constant
-#         )
-
-
-# # def test_run_algorithm(main_algorithm):
-# #     with patch("run.run_calculations", return_value=("calculated_df", "calculated_teams")) as mock_run_calculations:
-# #         main_algorithm.df = "raw_df"
-# #         main_algorithm.team_data = "raw_team_data"
-# #         main_algorithm.run_algorithm()
-# #         mock_run_calculations.assert_called_once_with(
-# #             "raw_df", "raw_team_data")
-# #         assert main_algorithm.df == "calculated_df"
-# #         assert main_algorithm.team_data == "calculated_teams"
+@pytest.mark.asyncio
+async def test_ranking_run_rejects_unbounded_iterations(algorithm):
+    with pytest.raises(Exception, match="Iterations must be between 1 and 100"):
+        await algorithm.execute_algo(0)

@@ -158,6 +158,8 @@ celerybeat.pid
 
 # Environments
 backups/
+uploads/*
+!uploads/.gitkeep
 .venv
 env/
 venv/

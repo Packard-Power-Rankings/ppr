@@ -12,16 +12,8 @@ from html import escape
 from pathlib import Path
 from typing import Any
 
-import motor.motor_asyncio
 from fastapi import HTTPException, status
-
-
-MONGO_DETAILS = os.getenv("MONGO_URI") or \
-    f"mongodb+srv://{os.getenv('MONGO_USER')}:{os.getenv('MONGO_PASS')}@" \
-    "sports-cluster.mx1mo.mongodb.net/" \
-    "?retryWrites=true&w=majority&appName=Sports-Cluster"
-client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_DETAILS)
-database = client["sports_data"]
+from api.database import sports_database as database
 
 
 class ArchiveService:
@@ -125,13 +117,24 @@ class ArchiveService:
             dataset["level"],
         )
 
-    async def _current_datasets(self, year: int) -> list[dict[str, Any]]:
+    async def _current_datasets(
+        self,
+        year: int,
+        dataset_key: tuple[str, str, str] | None = None,
+    ) -> list[dict[str, Any]]:
+        query = {
+            "sport_type": {"$exists": True},
+            "gender": {"$exists": True},
+            "level": {"$exists": True},
+        }
+        if dataset_key:
+            query = {
+                "sport_type": dataset_key[0],
+                "gender": dataset_key[1],
+                "level": dataset_key[2],
+            }
         cursor = self.sports_collection.find(
-            {
-                "sport_type": {"$exists": True},
-                "gender": {"$exists": True},
-                "level": {"$exists": True},
-            },
+            query,
             {
                 "_id": 0,
                 "sport_type": 1,
@@ -243,8 +246,9 @@ class ArchiveService:
             )
         table = (
             '<div class="table-wrap"><table>'
-            '<thead><tr><th>Id</th><th>Rank</th><th>Team</th><th class="number">Power</th>'
-            '<th class="number">Div. Rank</th><th>Division</th>'
+                '<thead><tr><th>Id</th><th>Rank</th><th>Team</th>'
+                '<th class="number">Power</th>'
+                '<th class="number">Div. Rank</th><th>Division</th>'
             '<th class="number">W</th><th class="number">L</th></tr></thead>'
             f"<tbody>{''.join(rows)}</tbody></table></div>"
             if rows else '<p class="empty">No ranking data was available for this dataset.</p>'
@@ -307,11 +311,37 @@ class ArchiveService:
         except (OSError, json.JSONDecodeError):
             return None
 
-    def archive_status(self, year: int | None = None) -> dict[str, Any]:
+    def archive_status(
+        self,
+        year: int | None = None,
+        dataset_key: tuple[str, str, str] | None = None,
+    ) -> dict[str, Any]:
         archive_year = year or self.current_year()
+        archive = self._read_archive(archive_year)
+        if dataset_key:
+            slug = self._dataset_slug(*dataset_key)
+            dataset_exists = bool(archive and any(
+                dataset.get("slug") == slug
+                for dataset in archive.get("datasets", [])
+            ))
+            return {
+                "year": archive_year,
+                "exists": dataset_exists,
+                "archive_exists": archive is not None,
+                "dataset": {
+                    "sport": dataset_key[0],
+                    "gender": dataset_key[1],
+                    "level": dataset_key[2],
+                    "slug": slug,
+                    "label": self._dataset_label(*dataset_key),
+                },
+            }
         return {
             "year": archive_year,
-            "exists": (self.archive_dir / str(archive_year)).is_dir(),
+            "exists": archive is not None,
+            "complete": bool(
+                archive and archive.get("complete", True)
+            ),
         }
 
     def list_archives(self) -> dict[str, list[dict[str, Any]]]:
@@ -343,37 +373,8 @@ class ArchiveService:
         self._write_json(temporary_path, catalog)
         temporary_path.replace(self.archive_dir / "index.json")
 
-    async def archive_current_season(
-        self,
-        year: int | None = None,
-        overwrite: bool = False,
-    ) -> dict[str, Any]:
-        archive_year = year or self.current_year()
-        target = self.archive_dir / str(archive_year)
-        existed = target.exists()
-        if existed and not overwrite:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=f"Archive for {archive_year} already exists",
-            )
-
-        datasets = await self._current_datasets(archive_year)
-        if not datasets:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="No sport datasets are available to archive",
-            )
-
-        archived_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
-        archive = {
-            "version": 1,
-            "year": archive_year,
-            "archived_at": archived_at,
-            "dataset_count": len(datasets),
-            "team_count": sum(dataset["team_count"] for dataset in datasets),
-            "datasets": datasets,
-        }
-
+    def _write_archive(self, archive: dict[str, Any], target: Path):
+        archive_year = archive["year"]
         self.archive_dir.mkdir(parents=True, exist_ok=True)
         temporary = Path(tempfile.mkdtemp(
             prefix=f".{archive_year}-",
@@ -386,9 +387,13 @@ class ArchiveService:
                 self._render_year_index(archive),
                 encoding="utf-8",
             )
-            for dataset in datasets:
+            for dataset in archive["datasets"]:
                 (temporary / f"{dataset['slug']}.html").write_text(
-                    self._render_dataset_page(archive_year, archived_at, dataset),
+                    self._render_dataset_page(
+                        archive_year,
+                        dataset.get("archived_at", archive["archived_at"]),
+                        dataset,
+                    ),
                     encoding="utf-8",
                 )
 
@@ -407,9 +412,99 @@ class ArchiveService:
                 backup.replace(target)
             raise
 
+    async def archive_current_season(
+        self,
+        year: int | None = None,
+        overwrite: bool = False,
+        dataset_key: tuple[str, str, str] | None = None,
+    ) -> dict[str, Any]:
+        archive_year = year or self.current_year()
+        target = self.archive_dir / str(archive_year)
+        target_existed = target.exists()
+        existing_archive = self._read_archive(archive_year)
+        archive_exists = existing_archive is not None
+        if dataset_key:
+            dataset_key = tuple(str(value).lower() for value in dataset_key)
+            selected_slug = self._dataset_slug(*dataset_key)
+            dataset_existed = bool(existing_archive and any(
+                dataset.get("slug") == selected_slug
+                for dataset in existing_archive.get("datasets", [])
+            ))
+            if dataset_existed and not overwrite:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=(
+                        f"{self._dataset_label(*dataset_key)} is already "
+                        f"archived for {archive_year}"
+                    ),
+                )
+            if target.exists() and not archive_exists and not overwrite:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=(
+                        f"Archive for {archive_year} exists but could not be read"
+                    ),
+                )
+        else:
+            dataset_existed = False
+        if not dataset_key and target.exists() and not overwrite:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Archive for {archive_year} already exists",
+            )
+
+        datasets = await self._current_datasets(archive_year, dataset_key)
+        if not datasets:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=(
+                    "The selected sport dataset is not available to archive"
+                    if dataset_key
+                    else "No sport datasets are available to archive"
+                ),
+            )
+
+        archived_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        for dataset in datasets:
+            dataset["archived_at"] = archived_at
+        if dataset_key and existing_archive:
+            retained_datasets = [
+                dataset
+                for dataset in existing_archive.get("datasets", [])
+                if dataset.get("slug") != selected_slug
+            ]
+            for dataset in retained_datasets:
+                dataset.setdefault(
+                    "archived_at",
+                    existing_archive.get("archived_at", archived_at),
+                )
+            datasets = [*retained_datasets, *datasets]
+            datasets.sort(key=self._dataset_sort_key)
+
+        archive = {
+            "version": 2,
+            "year": archive_year,
+            "archived_at": archived_at,
+            "dataset_count": len(datasets),
+            "team_count": sum(dataset["team_count"] for dataset in datasets),
+            "complete": (
+                bool(existing_archive.get("complete", True))
+                if dataset_key and existing_archive
+                else not dataset_key
+            ),
+            "datasets": datasets,
+        }
+        self._write_archive(archive, target)
+
         summary = self._archive_summary(archive)
+        if dataset_key:
+            label = self._dataset_label(*dataset_key)
+            message = f"Archived {archive_year} {label} rankings"
+        else:
+            message = f"Archived all sports for {archive_year}"
         return {
             **summary,
-            "overwritten": existed,
-            "message": f"Archived {archive_year} rankings",
+            "scope": "selected" if dataset_key else "all",
+            "overwritten": dataset_existed if dataset_key else target_existed,
+            "message": message,
         }

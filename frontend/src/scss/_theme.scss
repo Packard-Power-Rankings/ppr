@@ -36,6 +36,18 @@ body {
   @include ltr-rtl("margin-left", auto);
 }
 
+.sidebar-nav {
+  .nav-group-items {
+    .nav-link {
+      padding-left: calc(var(--cui-sidebar-nav-link-padding-x, 1rem) + 1rem);
+    }
+
+    .nav-group-items .nav-link {
+      padding-left: calc(var(--cui-sidebar-nav-link-padding-x, 1rem) + 2rem);
+    }
+  }
+}
+
 .sidebar-narrow,
 .sidebar-narrow-unfoldable:not(:hover) {
   .sidebar-toggler {

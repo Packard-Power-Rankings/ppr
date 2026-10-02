@@ -23,9 +23,11 @@ Separate development path:
 CSV fixtures ------> tests/isolation/algorithm ------> generated CSV output
 ```
 
-The public side reads rankings and predictions from MongoDB. Its canonical entry point is `/`, with public ranking and prediction pages under `/teams`, `/team`, and `/predictions`. The admin side lives under `/admin`, loads game data, and starts calculations that update MongoDB. Redis and the ARQ worker keep those calculations out of normal HTTP request processing.
+The public side reads rankings and predictions from MongoDB. Its canonical entry point is `/`; ranking lists use sport-first paths such as `/football/mens/college`, the complete directory is `/teams`, team details are under `/team`, and predictions are under `/predictions`. The admin side lives under `/admin`, loads game data, and starts calculations that update MongoDB. Redis and the ARQ worker keep those calculations out of normal HTTP request processing.
 
 Season archives are filesystem snapshots rather than live MongoDB views. FastAPI writes ranked JSON and self-contained HTML into the shared `archive_data` volume. React reads the JSON through `/api/archives`, while Caddy serves the generated pages directly under `/archive/<year>/`.
+
+See the [season archive mental model](../frontend/public/archive/README.md) for year isolation, overwrite behavior, runtime storage, reset interactions, and recovery considerations.
 
 The AWS Lightsail production topology adds Caddy in front of the same logical services:
 
@@ -186,16 +188,24 @@ Logging out removes the token from the browser. The backend does not currently m
 
 ## Admin Data-Ingestion Workflow
 
-The normal sequence for adding games is:
+The admin selects a sport, gender, and level from the shared dropdowns before adding games. The selected values form the dataset key used by every request. Games can be entered individually or uploaded as a CSV.
 
 ```text
 Select CSV
-  -> browser parses rows with Papa Parse
-  -> extract home and away team names
-  -> POST /check-teams/
-  -> add missing team metadata through POST /add_teams/
-  -> POST /upload_csv/
-  -> store original CSV bytes for later processing
+  -> confirm that the file belongs to the selected dataset
+  -> browser parses and validates every row
+  -> POST /games/upload/
+  -> backend repeats the full validation
+  -> reject duplicate games within the file or existing dataset
+  -> create any missing teams with neutral defaults
+  -> store normalized games in MongoDB
+  -> store the validated source CSV under uploads/ for reference
+  -> store only upload metadata and its relative path in MongoDB
+
+Individual game form
+  -> browser validates the six game fields
+  -> POST /games/
+  -> use the same duplicate, team-creation, and storage workflow
 ```
 
 The expected game CSV has six columns and no header:
@@ -204,9 +214,13 @@ The expected game CSV has six columns and no header:
 date,home_team,away_team,home_score,away_score,neutral_site
 ```
 
-Uploaded files are grouped by the organizing key in `sports_data.csv_files`. Each stored entry contains the filename, binary file data, upload date, and a `sports_week` value taken from the first row's date.
+Dates may use `YYYY-MM-DD` or `MM/DD/YYYY`. Scores must be nonnegative integers, the teams must be different, and `neutral_site` must be `0` or `999`. Files are UTF-8, headerless, limited to six columns, 5 MB, and 5,000 games. A duplicate is the same pair of teams on the same date, regardless of case or which team is listed as home.
 
-Adding missing teams initializes the fields the algorithm expects, including the team ID, ranking history, recent opponents, season opponents, wins, and losses.
+Canonical games are individual documents in `sports_data.games`. Each record has the dataset key, stable team IDs and names, normalized date, scores, neutral-site value, source upload ID, and z-scores. A unique identity uses the dataset, date, and sorted team IDs, so home/away reversal is still a duplicate and a later team rename does not change game identity.
+
+Validated source files are immutable references under `UPLOAD_DIR`. Local Docker maps that directory to root `uploads/`; Lightsail uses the persistent `upload_data` volume. `sports_data.csv_files` stores only filename, relative path, upload ID, upload time, game count, and sports week. Existing Mongo blobs are migrated to the filesystem once during backend startup.
+
+Automatically created teams initialize all fields the algorithm expects, including the team ID, a neutral initial ranking, recent opponents, season opponents, wins, and losses. The existing `/check-teams/` and `/add_teams/` endpoints remain available for fixture loading and detailed team metadata maintenance, but the Add Games page no longer requires that separate step.
 
 ## Background-Job Workflow
 
@@ -219,30 +233,30 @@ Admin Calculate Values page
   -> API immediately returns task_id
   -> ARQ worker claims the job
   -> AdminTeamsService starts MainAlgorithm
-  -> algorithm reads CSV and team data from MongoDB
-  -> algorithm writes results to MongoDB
+  -> algorithm reads canonical games and team seeds from MongoDB
+  -> algorithm replaces derived rankings and season records
+  -> algorithm calculates and persists z-scores
   -> frontend polls GET /task-status/{task_id}
 ```
 
-The frontend polls every three seconds while a job is queued or in progress. Z-scores follow the same pattern through `/calc_z_scores/` and the `calc_z_score` worker function.
+The frontend polls every three seconds while a job is queued or in progress. A ranking run now completes the whole pipeline, including z-scores. `/calc_z_scores/` remains available to refresh only z-scores.
 
 ## Ranking Pipeline
 
 The production pipeline is orchestrated by [`backend/api/utils/algorithm/run.py`](../backend/api/utils/algorithm/run.py):
 
-1. `load_csv()` retrieves all uploaded files for the selected dataset.
-2. `retrieve_teams()` loads each team's ID, name, latest power ranking, and recent opponents.
-3. `upload.py` turns one stored CSV into a Pandas DataFrame.
-4. `data_cleaning.py` normalizes names, scores, dates, and flags.
-5. `data_enrichment.py` combines each game with current team rankings and dataset constants.
+1. `load_games()` reads all canonical games for the selected dataset in date and game-ID order.
+2. `retrieve_teams(use_initial=True)` loads team IDs, names, divisions, and the first ranking seed while clearing transient recent-opponent state.
+3. `run.py` adapts the Mongo documents to the algorithm's Pandas contract.
+4. `data_cleaning.py` normalizes scores and names.
+5. `data_enrichment.py` combines every game with current in-memory rankings and dataset constants.
 6. `main.py` normalizes score margins, calculates expected and actual performance, and derives ranking changes.
 7. Ranking changes propagate through the recent-opponent graph with decreasing influence at greater depth.
-8. `output.py` updates team rankings, records, recent opponents, and season game history in MongoDB.
-9. The process repeats for every uploaded file and for the requested number of iterations.
+8. Steps 3 through 7 repeat for the requested number of iterations, entirely in memory.
+9. `output.py` replaces wins, losses, rankings, recent opponents, and reciprocal `season_opp` views in MongoDB.
+10. The same canonical games are used to calculate z-scores, which are written to both `games` and the team-facing records.
 
-Iterations let results settle across connected opponents. A team's updated value can affect earlier expectations when the full set of games is processed again.
-
-Z-scores are calculated separately and written into the corresponding season game records.
+Iterations let results settle across connected opponents. Every invocation starts from the stored initial ranking, so the same games and iteration count produce the same result instead of compounding a previous run.
 
 ## MongoDB Mental Model
 
@@ -250,8 +264,9 @@ The code currently selects database names directly, even though the connection U
 
 | Database | Collection | Purpose |
 | --- | --- | --- |
-| `sports_data` | `temp2` | Dataset documents containing nested teams and games |
-| `sports_data` | `csv_files` | Original uploaded CSV files grouped by dataset |
+| `sports_data` | `temp2` | Teams plus derived rankings and reciprocal season-game views |
+| `sports_data` | `games` | Canonical normalized current-season game documents |
+| `sports_data` | `csv_files` | Source-upload metadata and filesystem paths; no CSV bytes |
 | `sports_data` | `flagged_games` | User-reported games that need review |
 | `sports_data` | `previous_season` | Previous-season reference data |
 | `admin_details` | `admin` | The admin username and password hash |
@@ -276,7 +291,15 @@ dataset document
     `-- losses
 ```
 
-One top-level document represents one sport/gender/level dataset. Teams and games are nested inside that document rather than stored as separate MongoDB documents.
+One `temp2` document represents one sport/gender/level dataset. Its nested game views support public team pages, but they are derived from the separate canonical `games` collection and may be fully rebuilt.
+
+### Index and Connection Model
+
+FastAPI creates the application indexes idempotently during startup. The `temp2`, `csv_files`, `flagged_games`, and `previous_season` collections each have a unique compound index on `(sport_type, gender, level)`. Canonical games have a unique `(sport_type, gender, level, identity)` index plus a `(sport_type, gender, level, game_date)` lookup index. The admin collection has a unique index on `username`.
+
+All backend services share one Motor client and connection pool. `MONGO_MAX_POOL_SIZE` can override the default maximum of 50 connections per backend process.
+
+MongoDB's built-in `_id` index remains the fastest path for operations that already know the configured dataset ID. Team views remain embedded arrays, so rebuilding them scales with dataset size. Canonical game search, update, and deletion no longer require scanning CSV blobs or reciprocal team arrays.
 
 ## Two Algorithm Workspaces
 
@@ -284,7 +307,7 @@ There are two similar but differently connected algorithm implementations:
 
 | Location | Data source | Output | Use |
 | --- | --- | --- | --- |
-| `backend/api/utils/algorithm/` | MongoDB teams and stored CSVs | MongoDB updates | Running application |
+| `backend/api/utils/algorithm/` | MongoDB teams and canonical games | MongoDB updates | Running application |
 | `tests/isolation/algorithm/` | Local CSV fixtures | Generated CSVs | Isolated development and comparison |
 
 The standalone runner starts with `TEAMSNEW.csv`, processes `GAMES1.csv` through `GAMES3.csv` in order, carries updated team state forward, and writes generated output files. Changes to shared ranking behavior may need to be applied to both workspaces so they do not drift.
@@ -299,7 +322,8 @@ The standalone runner starts with `TEAMSNEW.csv`, processes `GAMES1.csv` through
 | Add or change an HTTP endpoint | `backend/api/routers/` |
 | Change request validation | `backend/api/schemas/items.py` |
 | Change public queries or predictions | `backend/api/service/users_teams.py` |
-| Change admin CRUD or CSV storage | `backend/api/service/admin_teams.py` |
+| Change admin CRUD or game storage | `backend/api/service/admin_teams.py` |
+| Change source-file persistence | `backend/api/service/upload_storage.py` |
 | Change login or JWT behavior | `backend/api/service/admin_service.py` |
 | Change dataset constants | `backend/api/config/constants.py` |
 | Change ranking math | Both algorithm `main.py` files |
@@ -314,8 +338,7 @@ The standalone runner starts with `TEAMSNEW.csv`, processes `GAMES1.csv` through
 - Dataset IDs and algorithm constants are hard-coded in `config/constants.py`; a database must contain documents with those IDs.
 - The schema permits football and both gender values, but `LEVEL_CONSTANTS` only defines men's football datasets.
 - The integrated and standalone algorithms are separate copies and can diverge.
-- The current z-score runner replaces its DataFrame for each uploaded file and performs the final calculation after the loop, so its effective input is the last loaded file.
-- [`backend/api/README.md`](../backend/api/README.md) describes an older proposed backend layout. This document and the root [`README.md`](../README.md) describe the current repository.
+- Source files are audit references, not operational input. Updating or deleting a game changes canonical and derived Mongo records but does not rewrite the original upload.
 
 ## Suggested Reading Order
 
@@ -327,7 +350,7 @@ For a first pass through the code, read:
 4. `backend/api/service/users_teams.py` for public reads and predictions.
 5. `backend/api/service/admin_teams.py` for ingestion and database updates.
 6. `backend/api/service/tasks.py` and `backend/api/utils/algorithm/run.py` for queued processing.
-7. The algorithm modules in order: `upload`, `data_cleaning`, `data_enrichment`, `main`, and `output`.
+7. The production algorithm modules in order: `run`, `data_cleaning`, `data_enrichment`, `main`, and `output`.
 
 That path follows the same direction as a real request and avoids beginning with the densest calculation code.
 
@@ -335,6 +358,6 @@ That path follows the same direction as a real request and avoids beginning with
 
 [`tests/application/`](../tests/application/) contains a fresh-database seed, team metadata, connected weekly game files, expected records, negative cases, and an HTTP smoke-test sequence. Its README describes the safe execution order and identifies the final destructive maintenance checks.
 
-Run the automated happy-path suite from the repository root with `make test-app`. Use `make test-app-reset CONFIRM_TEST_RESET=1` to replace every local application collection with the full fixture baseline: six datasets, 60 current teams, 60 games, six uploaded CSV records, six flagged games, and six previous-season datasets. Destructive maintenance endpoint checks are kept behind `make test-app-maintenance CONFIRM_DESTRUCTIVE=1`.
+Run the automated happy-path suite from the repository root with `make test-app`. Use `make test-app-reset CONFIRM_TEST_RESET=1` to replace every local application collection and fixture upload file with the full baseline: six datasets, 60 current teams, 60 canonical games, six source uploads, six flagged games, and six previous-season datasets. Destructive maintenance endpoint checks are kept behind `make test-app-maintenance CONFIRM_DESTRUCTIVE=1`.
 
 The default test account is `test-admin` with password `test-admin-password`. The full fixture reset recreates that account; the separately guarded `make test-admin-reset CONFIRM_ADMIN_RESET=1` target replaces only `admin_details.admin`. Both reset commands are for isolated local data and must not be used with shared or production databases.

@@ -14,3 +14,4 @@ redis               # Redis Python client
 hypothesis          # Hypothesis Unittest Framework
 pytest-asyncio      # Pytest async
 arq                 # Job queues and RPC in python with asyncio and redis
+watchfiles          # Reload the local ARQ worker when backend task code changes

@@ -16,22 +16,16 @@
 import os
 from typing import Optional
 from datetime import datetime, timedelta, timezone
-import motor.motor_asyncio
 from fastapi import HTTPException, status, Request, Response
 from fastapi.security import OAuth2PasswordRequestForm
 import bcrypt
 import jwt
 from jwt.exceptions import InvalidTokenError, ExpiredSignatureError
+from api.database import admin_database as database
 from api.schemas.items import TokenData, Token, LogoutResponse
 
 ACCESS_TOKEN_TIME = 60.0
 ALGORITHM = "HS256"
-MONGO_DETAILS = os.getenv("MONGO_URI") or \
-    f"mongodb+srv://{os.getenv('MONGO_USER')}:{os.getenv('MONGO_PASS')}@" \
-    "sports-cluster.mx1mo.mongodb.net/" \
-    "?retryWrites=true&w=majority&appName=Sports-Cluster"
-client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_DETAILS)
-database = client['admin_details']
 admin = database.get_collection('admin')
 
 

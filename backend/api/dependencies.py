@@ -7,12 +7,12 @@
 
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
-from motor.motor_asyncio import AsyncIOMotorClient
+
+from api.database import mongo_client, sports_database
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    app.mongodb_client = AsyncIOMotorClient("mongodb://localhost:27017")
-    app.mongodb = app.mongodb_client["PPR-DB"]
+    app.mongodb_client = mongo_client
+    app.mongodb = sports_database
     yield
-    app.mongodb_client.close()

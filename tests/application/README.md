@@ -49,7 +49,7 @@ The full fixture covers these dataset combinations:
 | Basketball | Women's | High School |
 | Basketball | Women's | College |
 
-For each combination, the loader creates 10 current teams, 10 unique games stored as reciprocal team records, one uploaded CSV containing those games, one flagged game, and a 10-team previous-season dataset. In total, the fixture contains 60 current teams and 60 unique current-season games.
+For each combination, the loader creates 10 current teams, 10 canonical games plus reciprocal derived team records, one source CSV under `uploads/`, one upload-metadata record, one flagged game, and a 10-team previous-season dataset. In total, the fixture contains 60 current teams and 60 unique current-season games.
 
 ## Full Database Reset
 
@@ -62,10 +62,13 @@ make test-app-reset CONFIRM_TEST_RESET=1
 The confirmation is required because the command replaces every document in:
 
 - `sports_data.temp2`
+- `sports_data.games`
 - `sports_data.csv_files`
 - `sports_data.flagged_games`
 - `sports_data.previous_season`
 - `admin_details.admin`
+
+It also replaces fixture source files under the local `uploads/` directory.
 
 After loading, the runner logs in as the test admin and verifies collection counts plus public team and protected flagged-game API responses for all six datasets. A successful run ends with:
 
@@ -95,7 +98,7 @@ Application CSV uploads are headerless and contain exactly six columns:
 date,home_team,away_team,home_score,away_score,neutral_site
 ```
 
-Use `0` for a normal home game and `999` for a neutral-site game. Team names must exactly match their MongoDB records.
+Use `0` for a normal home game and `999` for a neutral-site game. The upload creates missing team records automatically. It rejects malformed rows and duplicate games within the upload or selected dataset.
 
 ## Maintenance Checks
 
@@ -105,7 +108,7 @@ After loading the full fixture or completing the ingestion smoke test, destructi
 make test-app-maintenance CONFIRM_DESTRUCTIVE=1
 ```
 
-The maintenance suite updates a score, renames and restores a team, deletes a game, deletes a team, and clears the season. Reload the full baseline afterward with the guarded reset command.
+The maintenance suite updates a score, renames and restores a team, deletes a game, deletes a team, archives the current year, and resets the selected season. The dashboard warns before resetting without a current-year archive, while the reset endpoints do not create an archive or write to `previous_season`. Reload the full baseline afterward with the guarded reset command.
 
 ## Troubleshooting
 
@@ -133,4 +136,4 @@ Inspect FastAPI and ARQ output with `make app-logs`. On a slow machine, increase
 JOB_TIMEOUT_SECONDS=300 make test-app
 ```
 
-The upload endpoint stores CSV bytes before background validation. Keep files under `negative-cases/` out of the happy-path dataset.
+The upload endpoint validates files before writing normalized games or the filesystem reference. Keep files under `negative-cases/` out of the happy-path dataset.

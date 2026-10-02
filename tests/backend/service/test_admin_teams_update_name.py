@@ -1,11 +1,7 @@
-import base64
-import csv
 from copy import deepcopy
-from io import StringIO
 from types import SimpleNamespace
 
 import pytest
-from bson.binary import Binary
 
 from api.service.admin_teams import AdminTeamsService
 
@@ -26,6 +22,20 @@ class FakeCollection:
         for key, value in update.get("$set", {}).items():
             self.document[key] = value
         return SimpleNamespace(matched_count=1, modified_count=1)
+
+
+class FakeGamesCollection:
+    def __init__(self, documents):
+        self.documents = deepcopy(documents)
+
+    async def update_many(self, query, update):
+        modified_count = 0
+        for document in self.documents:
+            if any(document.get(key) != value for key, value in query.items()):
+                continue
+            document.update(update.get("$set", {}))
+            modified_count += 1
+        return SimpleNamespace(modified_count=modified_count)
 
 
 @pytest.mark.asyncio
@@ -55,19 +65,32 @@ async def test_update_team_name_updates_all_related_datastores():
             ],
         },
     ]
-    csv_content = (
-        "2026-01-01,Northstar Academy,Cedar Valley,80,70,0\n"
-        "2026-01-02,Cedar Valley,Northstar Academy,65,75,0\n"
-    ).encode("utf-8")
     service.sports_collection = FakeCollection({
         **dataset_fields,
         "teams": deepcopy(teams),
     })
-    service.csv_collection = FakeCollection({
-        "_id": "csv-document",
-        **{key: value for key, value in dataset_fields.items() if key != "_id"},
-        "csv_files": [{"filename": "week.csv", "filedata": Binary(csv_content)}],
-    })
+    service.games_collection = FakeGamesCollection([
+        {
+            "sport_type": "basketball",
+            "gender": "mens",
+            "level": "high_school",
+            "game_id": "12_20_2026-01-01",
+            "home_team_id": 12,
+            "home_team": "North Start Academy",
+            "away_team_id": 20,
+            "away_team": "Cedar Valley",
+        },
+        {
+            "sport_type": "basketball",
+            "gender": "mens",
+            "level": "high_school",
+            "game_id": "20_12_2026-01-02",
+            "home_team_id": 20,
+            "home_team": "Cedar Valley",
+            "away_team_id": 12,
+            "away_team": "North Start Academy",
+        },
+    ])
     service.flagged_games = FakeCollection({
         "_id": "flagged-document",
         **{key: value for key, value in dataset_fields.items() if key != "_id"},
@@ -111,8 +134,8 @@ async def test_update_team_name_updates_all_related_datastores():
         "team_records": 1,
         "game_records": 1,
         "game_ids": 1,
-        "csv_replacements": 2,
-        "csv_files": 1,
+        "canonical_games": 2,
+        "source_uploads_changed": 0,
         "flagged_games": 1,
         "flagged_game_ids": 1,
         "archived_team_records": 1,
@@ -125,10 +148,8 @@ async def test_update_team_name_updates_all_related_datastores():
     assert current_teams[1]["season_opp"][0]["opponent_name"] == "Northstar Prep"
     assert "Northstar Prep" in current_teams[1]["season_opp"][0]["game_id"]
 
-    csv_filedata = service.csv_collection.document["csv_files"][0]["filedata"]
-    csv_rows = list(csv.reader(StringIO(bytes(csv_filedata).decode("utf-8"))))
-    assert csv_rows[0][1] == "Northstar Prep"
-    assert csv_rows[1][2] == "Northstar Prep"
+    assert service.games_collection.documents[0]["home_team"] == "Northstar Prep"
+    assert service.games_collection.documents[1]["away_team"] == "Northstar Prep"
 
     flagged_game = service.flagged_games.document["flagged_games"][0]
     assert flagged_game["team1_name"] == "Northstar Prep"
@@ -139,19 +160,43 @@ async def test_update_team_name_updates_all_related_datastores():
     assert "Northstar Prep" in archived_teams[1]["season_opp"][0]["game_id"]
 
 
-def test_rename_team_rows_in_csv_supports_legacy_base64_data():
-    csv_content = (
-        "2026-01-01,Northstar Academy,Cedar Valley,80,70,0\n"
-    ).encode("utf-8")
-    legacy_filedata = base64.b64encode(csv_content).decode("utf-8")
+@pytest.mark.asyncio
+async def test_update_team_info_updates_editable_metadata():
+    service = AdminTeamsService(("basketball", "mens", "high_school"))
+    service.sports_collection = FakeCollection({
+        "_id": service.level_constant["_id"],
+        "sport_type": "basketball",
+        "gender": "mens",
+        "level": "high_school",
+        "teams": [{
+            "team_id": 12,
+            "team_name": "Northstar Academy",
+            "short_name": "Northstar Academy",
+            "long_name": "Northstar Academy",
+            "state": "Oregon",
+            "division": "5A",
+            "conference": "West",
+            "ranked": True,
+        }],
+    })
 
-    updated_filedata, replacements = \
-        AdminTeamsService._rename_team_rows_in_csv(
-            legacy_filedata,
-            {"Northstar Academy"},
-            "Northstar Prep"
-        )
-    rows = list(csv.reader(StringIO(bytes(updated_filedata).decode("utf-8"))))
+    response = await service.update_team_info(12, {
+        "short_name": "Northstar Academy",
+        "long_name": "Northstar Preparatory School",
+        "state": "Washington",
+        "division": "4A",
+        "conference": "Northwest",
+        "ranked": False,
+    })
 
-    assert replacements == 1
-    assert rows[0][1] == "Northstar Prep"
+    assert response["status"] == 200
+    assert service.sports_collection.document["teams"][0] == {
+        "team_id": 12,
+        "team_name": "Northstar Academy",
+        "short_name": "Northstar Academy",
+        "long_name": "Northstar Preparatory School",
+        "state": "Washington",
+        "division": "4A",
+        "conference": "Northwest",
+        "ranked": False,
+    }

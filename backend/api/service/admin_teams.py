@@ -2,32 +2,32 @@
 """
 
 
-import os
-import io
 import asyncio
 import binascii
 import re
-from io import StringIO
 from typing import Any, List, Dict, Tuple
 import traceback
-import csv
-import pandas as pd
 import base64
-from datetime import datetime
+from datetime import datetime, timezone
 from fastapi import HTTPException, status, UploadFile
-import bson
-from bson.binary import Binary
-import motor.motor_asyncio
+from pymongo import UpdateOne
+from pymongo.errors import BulkWriteError, DuplicateKeyError
 from api.config.constants import LEVEL_CONSTANTS
+from api.database import sports_database as database
+from api.service.game_ingestion import (
+    canonical_game_id,
+    canonical_game_identity,
+    GameFileValidationError,
+    GameRow,
+    normalize_team_name,
+    normalized_date,
+    parse_game_csv,
+    serialize_game_rows,
+    validate_game_values,
+)
+from api.service.team_ingestion import parse_team_csv
+from api.service.upload_storage import delete_game_file, store_game_file
 from api.utils.json_helper import query_params_builder
-
-
-MONGO_DETAILS = os.getenv("MONGO_URI") or \
-    f"mongodb+srv://{os.getenv('MONGO_USER')}:{os.getenv('MONGO_PASS')}@" \
-    "sports-cluster.mx1mo.mongodb.net/" \
-    "?retryWrites=true&w=majority&appName=Sports-Cluster"
-client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_DETAILS)
-database = client["sports_data"]
 
 
 class AdminTeamsService():
@@ -46,10 +46,14 @@ class AdminTeamsService():
         """
         self.sports_collection = database.get_collection('temp2')
         self.csv_collection = database.get_collection('csv_files')
+        self.games_collection = database.get_collection('games')
         self.flagged_games = database.get_collection('flagged_games')
         self.previous_season = database.get_collection('previous_season')
-        self.level_key = level_key
-        self.level_constant = LEVEL_CONSTANTS[level_key]
+        self.level_key = tuple(
+            getattr(value, "value", value) for value in level_key
+        )
+        self.level_constant = LEVEL_CONSTANTS[self.level_key]
+        self._ingest_lock = asyncio.Lock()
         # self.teams_check: List[Dict[str, str]] = []
         # self.main_algorithm = MainAlgorithm(self, level_key)
 
@@ -75,47 +79,266 @@ class AdminTeamsService():
         Returns:
             dict: Message for successful upload and an array of missing teams (if any).
         """
-        try:
-            # Read the uploaded CSV file
-            file_name = csv_file.filename
-            file_content = await csv_file.read()
-            decode_content = file_content.decode("utf-8")
-            csv_reader = csv.reader(StringIO(decode_content))
-            first_row = next(csv_reader, None)
-            date = first_row[0]
-
-            query_csv = {
-                "sport_type": sport_type,
-                "gender": gender,
-                "level": level
-            }
-
-            # Add CSV file metadata to storage (this should be after validation)
-            file_upload = await self._add_csv_file(
-                query_csv,
-                file_name,
-                file_content,
-                date
-            )
-            if file_upload > 0:
-                return {
-                    "message": "File has been uploaded successfully",
-                    "status": status.HTTP_200_OK,
-                    "files_uploaded": file_upload
-                }
-            else:
-                return {
-                    "message": "No file was uploaded",
-                    "status": status.HTTP_200_OK,
-                    "files_uploaded": file_upload
-                }
-
-        except Exception as exc:
-            traceback.print_exc()
+        file_name = csv_file.filename or "games.csv"
+        if not file_name.lower().endswith(".csv"):
             raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="An internal error has occurred."
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Game file must be a CSV file",
+            )
+        file_content = await csv_file.read()
+        return await self._ingest_games(
+            sport_type,
+            gender,
+            level,
+            file_name,
+            file_content,
+        )
+
+    async def store_game(
+        self,
+        sport_type: str,
+        gender: str,
+        level: str,
+        game_data: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Store one manually entered game through the CSV-backed workflow."""
+        values = [game_data[column] for column in (
+            "date",
+            "home_team",
+            "away_team",
+            "home_score",
+            "away_score",
+            "neutral_site",
+        )]
+        try:
+            game = validate_game_values(values)
+        except GameFileValidationError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail={"message": "Game validation failed",
+                        "errors": exc.errors},
             ) from exc
+
+        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
+        return await self._ingest_games(
+            sport_type,
+            gender,
+            level,
+            f"manual-game-{timestamp}.csv",
+            serialize_game_rows([game]),
+        )
+
+    async def _ingest_games(
+        self,
+        sport_type: str,
+        gender: str,
+        level: str,
+        file_name: str,
+        file_content: bytes,
+    ) -> Dict[str, Any]:
+        """Validate, deduplicate, create missing teams, and store game rows."""
+        try:
+            games = parse_game_csv(file_content)
+        except GameFileValidationError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail={
+                    "message": "Game file validation failed",
+                    "errors": exc.errors,
+                },
+            ) from exc
+
+        async with self._ingest_lock:
+            return await self._commit_games(
+                sport_type,
+                gender,
+                level,
+                file_name,
+                games,
+            )
+
+    async def _commit_games(
+        self,
+        sport_type: str,
+        gender: str,
+        level: str,
+        file_name: str,
+        games: List[GameRow],
+    ) -> Dict[str, Any]:
+        """Write normalized games and filesystem upload metadata."""
+        sport_type, gender, level = (
+            getattr(value, "value", value)
+            for value in (sport_type, gender, level)
+        )
+        team_names = []
+        for game in games:
+            team_names.extend((game.home_team, game.away_team))
+        missing_teams = await self.find_missing_teams(team_names)
+        team_result = await self.add_teams_to_db([
+            {
+                "team_name": team_name,
+                "division": None,
+                "conference": None,
+                "power_ranking": 0.0,
+                "state": None,
+            }
+            for team_name in missing_teams
+        ]) if missing_teams else {"added": []}
+
+        dataset_query = {
+            "sport_type": sport_type,
+            "gender": gender,
+            "level": level,
+        }
+        game_documents = await self._build_game_documents(
+            games,
+            dataset_query,
+        )
+        identities = [game["identity"] for game in game_documents]
+        existing = await self.games_collection.find(
+            {**dataset_query, "identity": {"$in": identities}},
+            {"identity": 1},
+        ).to_list(length=None)
+        existing_identities = {game["identity"] for game in existing}
+        if existing_identities:
+            duplicates = [
+                f"{game.date}: {game.home_team} vs {game.away_team}"
+                for game, document in zip(games, game_documents)
+                if document["identity"] in existing_identities
+            ]
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={
+                    "message": "One or more games already exist",
+                    "duplicates": duplicates,
+                },
+            )
+
+        reference_content = serialize_game_rows(games)
+        upload_id, storage_path = store_game_file(
+            tuple(getattr(value, "value", value) for value in (
+                sport_type,
+                gender,
+                level,
+            )),
+            file_name,
+            reference_content,
+        )
+        now = datetime.now(timezone.utc)
+        for document in game_documents:
+            document.update({
+                "source_upload_id": upload_id,
+                "source_filename": file_name,
+                "created_at": now,
+                "updated_at": now,
+            })
+
+        try:
+            await self.games_collection.insert_many(game_documents, ordered=True)
+            files_uploaded = await self._add_upload_metadata(
+                dataset_query,
+                upload_id,
+                file_name,
+                storage_path,
+                len(game_documents),
+                game_documents[0]["game_date"],
+                now,
+            )
+            await self.sports_collection.update_one(
+                {"_id": self.level_constant.get("_id")},
+                {"$set": {"rankings_stale": True}},
+            )
+        except (BulkWriteError, DuplicateKeyError) as exc:
+            await self.games_collection.delete_many({
+                **dataset_query,
+                "source_upload_id": upload_id,
+            })
+            await self.csv_collection.update_one(
+                dataset_query,
+                {"$pull": {"csv_files": {"upload_id": upload_id}}},
+            )
+            delete_game_file(storage_path)
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={"message": "One or more games already exist"},
+            ) from exc
+        except Exception:
+            await self.games_collection.delete_many({
+                **dataset_query,
+                "source_upload_id": upload_id,
+            })
+            await self.csv_collection.update_one(
+                dataset_query,
+                {"$pull": {"csv_files": {"upload_id": upload_id}}},
+            )
+            delete_game_file(storage_path)
+            raise
+
+        display_gender = getattr(gender, "value", gender)
+        display_level = getattr(level, "value", level)
+        display_sport = getattr(sport_type, "value", sport_type)
+        return {
+            "message": (
+                f"Added {len(games)} game{'s' if len(games) != 1 else ''}"
+                f" to {display_gender} {display_level} {display_sport}"
+            ),
+            "status": status.HTTP_200_OK,
+            "files_uploaded": files_uploaded,
+            "games_added": len(games),
+            "teams_added": team_result.get("added", []),
+        }
+
+    async def _build_game_documents(
+        self,
+        games: List[GameRow],
+        dataset_query: Dict[str, Any],
+    ) -> List[Dict[str, Any]]:
+        """Resolve validated rows to stable team IDs and canonical documents."""
+        team_document = await self.sports_collection.find_one(
+            {"_id": self.level_constant.get("_id")},
+            {"teams.team_id": 1, "teams.team_name": 1},
+        )
+        teams = team_document.get("teams", []) if team_document else []
+        teams_by_name = {
+            normalize_team_name(team.get("team_name", "")).casefold(): team
+            for team in teams
+        }
+        documents = []
+        for game in games:
+            home_team = teams_by_name.get(game.home_team.casefold())
+            away_team = teams_by_name.get(game.away_team.casefold())
+            if not home_team or not away_team:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="A validated game could not be matched to its teams",
+                )
+            game_date = normalized_date(game.date)
+            home_team_id = int(home_team["team_id"])
+            away_team_id = int(away_team["team_id"])
+            documents.append({
+                **dataset_query,
+                "identity": canonical_game_identity(
+                    game_date,
+                    home_team_id,
+                    away_team_id,
+                ),
+                "game_id": canonical_game_id(
+                    game_date,
+                    home_team_id,
+                    away_team_id,
+                ),
+                "game_date": game_date,
+                "home_team_id": home_team_id,
+                "home_team": home_team["team_name"],
+                "away_team_id": away_team_id,
+                "away_team": away_team["team_name"],
+                "home_score": game.home_score,
+                "away_score": game.away_score,
+                "neutral_site": game.neutral_site,
+                "home_z_score": 0.0,
+                "away_z_score": 0.0,
+            })
+        return documents
 
     async def find_missing_teams(
         self,
@@ -129,11 +352,28 @@ class AdminTeamsService():
         }
 
         try:
-            documents = await self.sports_collection.find(query_base, {"teams.team_name": 1}).to_list(length=None)
+            documents = await self.sports_collection.find(
+                query_base,
+                {"teams.team_name": 1},
+            ).to_list(length=None)
             found_team_names = {
-                team["team_name"] for doc in documents for team in doc["teams"] if "team_name" in team}
-
-            missing_teams = list(set(teams) - found_team_names)
+                str(team["team_name"]).strip().casefold()
+                for doc in documents
+                for team in doc.get("teams", [])
+                if team.get("team_name")
+            }
+            missing_teams = []
+            seen = set()
+            for team_name in teams:
+                clean_name = " ".join(str(team_name).split())
+                normalized_name = clean_name.casefold()
+                if (
+                    clean_name
+                    and normalized_name not in found_team_names
+                    and normalized_name not in seen
+                ):
+                    missing_teams.append(clean_name)
+                    seen.add(normalized_name)
             return missing_teams
         except Exception as exc:
             traceback.print_exc()
@@ -156,27 +396,85 @@ class AdminTeamsService():
             that the team already exists in the db
         """
         base_filter = {"_id": self.level_constant.get('_id')}
-        added, skipped = [], []
-        team_id = await self._generate_team_id()
+        await self.sports_collection.update_one(
+            base_filter,
+            {
+                "$setOnInsert": {
+                    "sport_type": self.level_key[0],
+                    "gender": self.level_key[1],
+                    "level": self.level_key[2],
+                    "teams": [],
+                }
+            },
+            upsert=True,
+        )
+        document = await self.sports_collection.find_one(
+            base_filter,
+            {
+                "teams.team_id": 1,
+                "teams.team_name": 1,
+                "teams.short_name": 1,
+                "teams.long_name": 1,
+            },
+        )
+        existing_teams = document.get("teams", []) if document else []
+        existing_names = set()
+        for existing_team in existing_teams:
+            for name_field in ("team_name", "short_name", "long_name"):
+                name = normalize_team_name(existing_team.get(name_field) or "")
+                if name:
+                    existing_names.add(name.casefold())
+        team_id = max(
+            (team.get("team_id", 0) for team in existing_teams),
+            default=0,
+        )
+        preexisting_names = set(existing_names)
+        added, skipped, new_teams = [], [], []
         for team in teams:
-            team_id = team_id + 1
-            team_name = team.get("team_name")
-            existing = await self.sports_collection.find_one(
-                {**base_filter, "teams.team_name": team_name}
+            short_name = normalize_team_name(
+                team.get("short_name") or team.get("team_name") or ""
             )
-            if existing:
-                skipped.append(team_name)
+            long_name = normalize_team_name(team.get("long_name") or "")
+            team_name = short_name
+            aliases = {
+                name.casefold() for name in (short_name, long_name) if name
+            }
+            if not short_name:
+                skipped.append({
+                    "team_name": team.get("team_name") or "",
+                    "reason": "Team name is required",
+                })
                 continue
+            matched_aliases = aliases.intersection(existing_names)
+            if matched_aliases:
+                reason = (
+                    "A team with this short or long name already exists in the database"
+                    if matched_aliases.intersection(preexisting_names)
+                    else "Duplicate short or long name within the uploaded file"
+                )
+                skipped.append({"team_name": team_name, "reason": reason})
+                existing_names.update(aliases)
+                continue
+            team_id += 1
+            try:
+                initial_ranking = float(team.get("power_ranking", 0.0) or 0.0)
+            except (TypeError, ValueError):
+                initial_ranking = 0.0
             new_team_data = {
                 "team_id": team_id,
                 "team_name": team_name,
+                "short_name": short_name,
+                "long_name": long_name,
                 "city": "",
                 "state": team.get('state'),
                 "division": team.get('division'),
                 "conference": team.get('conference'),
+                "ranked": bool(team.get("ranked", False)),
                 "division_rank": 0,
+                "conference_rank": 0,
                 "overall_rank": 0,
-                "power_ranking": [{"initial": team.get('power_ranking')}],
+                "last_rank": 0,
+                "power_ranking": [{"initial": initial_ranking}],
                 "win_ratio": 0.0,
                 "wins": 0,
                 "losses": 0,
@@ -184,12 +482,16 @@ class AdminTeamsService():
                 "recent_opp": [0, 0, 0, 0, 0],
                 "season_opp": []
             }
+            new_teams.append(new_team_data)
+            added.append(team_name)
+            existing_names.update(aliases)
+        if new_teams:
             result = await self.sports_collection.update_one(
                 base_filter,
-                {"$push": {"teams": new_team_data}}
+                {"$push": {"teams": {"$each": new_teams}}},
             )
-            if result.modified_count > 0:
-                added.append(team_name)
+            if result.modified_count == 0:
+                added = []
         response_message = {
             "status": status.HTTP_200_OK,
             "added": added,
@@ -202,6 +504,38 @@ class AdminTeamsService():
         else:
             response_message["message"] = "No teams were processed"
         return response_message
+
+    async def import_team_csv(
+        self,
+        file_name: str,
+        file_content: bytes,
+    ) -> Dict[str, Any]:
+        """Validate and store team records from a header-based CSV file."""
+        if not file_name.lower().endswith(".csv"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Team data file must be a CSV file",
+            )
+
+        imported_teams = parse_team_csv(file_content)
+        async with self._ingest_lock:
+            result = await self.add_teams_to_db([
+                {
+                    **team,
+                    "team_name": team["short_name"],
+                }
+                for team in imported_teams
+            ])
+        added = result.get("added", [])
+        failed = result.get("skipped", [])
+        return {
+            "message": (
+                f"Added {len(added)} team{'s' if len(added) != 1 else ''}; "
+                f"failed to add {len(failed)} team{'s' if len(failed) != 1 else ''}."
+            ),
+            "teams_added_count": len(added),
+            "teams_failed": failed,
+        }
 
     async def run_main_algorithm(self, iterations: int):
         """Runs the main algorithm
@@ -239,13 +573,22 @@ class AdminTeamsService():
             away_score (int): Away team Score
             game_id (str): Game ID based on 
         """
+        dataset_filter = {"_id": self.level_constant.get("_id")}
         home_team_data = await self.sports_collection.find_one(
-            {"teams.team_name": home_team, "teams.season_opp.game_id": game_id},
+            {
+                **dataset_filter,
+                "teams.team_name": home_team,
+                "teams.season_opp.game_id": game_id,
+            },
             {"teams.$": 1}
         )
 
         away_team_data = await self.sports_collection.find_one(
-            {"teams.team_name": away_team, "teams.season_opp.game_id": game_id},
+            {
+                **dataset_filter,
+                "teams.team_name": away_team,
+                "teams.season_opp.game_id": game_id,
+            },
             {"teams.$": 1}
         )
 
@@ -278,6 +621,7 @@ class AdminTeamsService():
 
             await self.sports_collection.find_one_and_update(
                 {
+                    **dataset_filter,
                     "teams.team_name": home_team,
                     "teams.season_opp.game_id": game_id
                 },
@@ -296,6 +640,7 @@ class AdminTeamsService():
             )
             await self.sports_collection.find_one_and_update(
                 {
+                    **dataset_filter,
                     "teams.team_name": away_team,
                     "teams.season_opp.game_id": game_id
                 },
@@ -322,7 +667,7 @@ class AdminTeamsService():
         date: str,
         game_id: str = None
     ):
-        """Update a game's scores in team records and its source CSV row."""
+        """Update a canonical game's scores and any materialized team records."""
         if home_score < 0 or away_score < 0:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -335,7 +680,7 @@ class AdminTeamsService():
             "gender": self.level_key[1],
             "level": self.level_key[2]
         }
-        related_query = {
+        game_dataset_query = {
             "sport_type": self.level_key[0],
             "gender": self.level_key[1],
             "level": self.level_key[2]
@@ -377,44 +722,63 @@ class AdminTeamsService():
                     detail="One or both teams were not found"
                 )
 
+            canonical_id = canonical_game_id(
+                date,
+                home_team_data["team_id"],
+                away_team_data["team_id"],
+            )
+            if game_id and game_id != canonical_id:
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail="The selected teams and date do not match the game ID",
+                )
+            canonical_game = await self.games_collection.find_one({
+                **game_dataset_query,
+                "game_id": canonical_id,
+            })
+            if not canonical_game:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Game not found for the selected teams and date",
+                )
+
             def find_game(team: Dict[str, Any], opponent_id: int):
                 return next(
                     (
                         game for game in team.get("season_opp", [])
                         if game.get("opponent_id") == opponent_id
-                        and game.get("game_date") == date
-                        and (not game_id or game.get("game_id") == game_id)
+                        and game.get("game_date") == canonical_game["game_date"]
+                        and game.get("game_id") == canonical_id
                     ),
                     None
                 )
 
             home_game = find_game(home_team_data, away_team_data["team_id"])
             away_game = find_game(away_team_data, home_team_data["team_id"])
-            if not home_game or not away_game:
+            if home_game and home_game.get("home_team") not in (1, True, "1"):
                 raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Game not found for the selected teams and date"
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail="The selected home and away teams do not match the stored game"
                 )
-
-            home_is_home = home_game.get("home_team") in (1, True, "1")
-            away_is_home = away_game.get("home_team") in (1, True, "1")
-            if not home_is_home or away_is_home:
+            if away_game and away_game.get("home_team") in (1, True, "1"):
                 raise HTTPException(
                     status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                     detail="The selected home and away teams do not match the stored game"
                 )
 
-            old_home_score = float(home_game.get("home_score", 0))
-            old_away_score = float(home_game.get("away_score", 0))
+            old_home_score = float(canonical_game.get("home_score", 0))
+            old_away_score = float(canonical_game.get("away_score", 0))
             old_home_won = old_home_score > old_away_score
             new_home_won = home_score > away_score
 
-            home_game["home_score"] = home_score
-            home_game["away_score"] = away_score
-            away_game["home_score"] = home_score
-            away_game["away_score"] = away_score
+            materialized_records = 0
+            for materialized_game in (home_game, away_game):
+                if materialized_game:
+                    materialized_game["home_score"] = home_score
+                    materialized_game["away_score"] = away_score
+                    materialized_records += 1
 
-            if old_home_won != new_home_won:
+            if materialized_records and old_home_won != new_home_won:
                 if new_home_won:
                     home_team_data["wins"] = home_team_data.get("wins", 0) + 1
                     home_team_data["losses"] = max(
@@ -425,80 +789,54 @@ class AdminTeamsService():
                         0,
                         away_team_data.get("wins", 0) - 1
                     )
-                    away_team_data["losses"] = away_team_data.get("losses", 0) + 1
+                    away_team_data["losses"] = away_team_data.get(
+                        "losses", 0) + 1
                 else:
                     home_team_data["wins"] = max(
                         0,
                         home_team_data.get("wins", 0) - 1
                     )
-                    home_team_data["losses"] = home_team_data.get("losses", 0) + 1
+                    home_team_data["losses"] = home_team_data.get(
+                        "losses", 0) + 1
                     away_team_data["wins"] = away_team_data.get("wins", 0) + 1
                     away_team_data["losses"] = max(
                         0,
                         away_team_data.get("losses", 0) - 1
                     )
 
-            csv_document = await self.csv_collection.find_one(related_query)
-            if not csv_document:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Source game file not found"
-                )
-
-            updated_csv_files = []
-            csv_rows_updated = 0
-            for csv_file in csv_document.get("csv_files", []):
-                updated_csv_file = dict(csv_file)
-                rows = list(csv.reader(StringIO(
-                    self._decode_csv_filedata(
-                        csv_file.get("filedata", b"")
-                    ).decode("utf-8")
-                )))
-                file_changed = False
-                for row in rows:
-                    if (
-                        len(row) >= 5
-                        and row[0].strip() == date
-                        and row[1].strip().casefold() == normalized_home_name
-                        and row[2].strip().casefold() == normalized_away_name
-                    ):
-                        row[3] = str(home_score)
-                        row[4] = str(away_score)
-                        csv_rows_updated += 1
-                        file_changed = True
-
-                if file_changed:
-                    output = StringIO(newline="")
-                    csv.writer(output).writerows(rows)
-                    updated_csv_file["filedata"] = Binary(
-                        output.getvalue().encode("utf-8")
-                    )
-                updated_csv_files.append(updated_csv_file)
-
-            if not csv_rows_updated:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Game row not found in uploaded files"
-                )
-
-            sports_result = await self.sports_collection.update_one(
-                dataset_query,
-                {"$set": {"teams": teams}}
+            game_result = await self.games_collection.update_one(
+                {"_id": canonical_game["_id"]},
+                {"$set": {
+                    "home_score": home_score,
+                    "away_score": away_score,
+                    "updated_at": datetime.now(timezone.utc),
+                }},
             )
-            if not sports_result.matched_count:
-                raise RuntimeError("Game dataset disappeared during update")
-            await self.csv_collection.update_one(
-                {"_id": csv_document["_id"]},
-                {"$set": {"csv_files": updated_csv_files}}
-            )
+            if not game_result.matched_count:
+                raise RuntimeError("Canonical game disappeared during update")
+            if materialized_records:
+                sports_result = await self.sports_collection.update_one(
+                    dataset_query,
+                    {"$set": {
+                        "teams": teams,
+                        "rankings_stale": True,
+                    }},
+                )
+                if not sports_result.matched_count:
+                    raise RuntimeError(
+                        "Game dataset disappeared during update")
 
             return {
-                "message": f"Updated {home_team} vs {away_team} on {date}",
+                "message": (
+                    f"Updated {home_team} vs {away_team} on "
+                    f"{canonical_game['game_date']}"
+                ),
                 "status": status.HTTP_200_OK,
                 "updated": {
-                    "game_id": home_game.get("game_id"),
-                    "team_game_records": 2,
-                    "csv_rows": csv_rows_updated
+                    "game_id": canonical_id,
+                    "canonical_games": 1,
+                    "team_game_records": materialized_records,
+                    "source_upload_changed": False,
                 }
             }
         except HTTPException:
@@ -547,6 +885,8 @@ class AdminTeamsService():
                 if team.get("team_name") != new_team_name:
                     team["team_name"] = new_team_name
                     team_records_updated += 1
+                if team.get("short_name"):
+                    team["short_name"] = new_team_name
 
             for game in team.get("season_opp", []):
                 opponent_name = str(game.get("opponent_name", "")) \
@@ -580,42 +920,17 @@ class AdminTeamsService():
         """Collect current and stale aliases tied to a stable team ID."""
         names = set()
         for team in teams:
-            if team.get("team_id") == team_id and team.get("team_name"):
-                names.add(str(team["team_name"]).strip())
+            if team.get("team_id") == team_id:
+                names.update(
+                    str(team[field]).strip()
+                    for field in ("team_name", "short_name", "long_name")
+                    if team.get(field)
+                )
             for game in team.get("season_opp", []):
                 if game.get("opponent_id") == team_id \
                         and game.get("opponent_name"):
                     names.add(str(game["opponent_name"]).strip())
         return {name for name in names if name}
-
-    @classmethod
-    def _rename_team_rows_in_csv(
-        cls,
-        filedata: Any,
-        team_names: set,
-        new_team_name: str
-    ) -> Tuple[Binary, int]:
-        """Rename either participant column in an uploaded game CSV."""
-        rows = list(csv.reader(StringIO(
-            cls._decode_csv_filedata(filedata).decode("utf-8")
-        )))
-        normalized_team_names = {
-            name.strip().casefold() for name in team_names if name.strip()
-        }
-        replacements = 0
-
-        for row in rows:
-            for column in (1, 2):
-                if (
-                    len(row) > column
-                    and row[column].strip().casefold() in normalized_team_names
-                ):
-                    row[column] = new_team_name
-                    replacements += 1
-
-        output = StringIO(newline="")
-        csv.writer(output).writerows(rows)
-        return Binary(output.getvalue().encode("utf-8")), replacements
 
     @staticmethod
     def _rename_team_in_flagged_games(
@@ -724,8 +1039,11 @@ class AdminTeamsService():
                 (
                     team for team in current_teams
                     if team.get("team_id") != team_id
-                    and str(team.get("team_name", "")).strip().casefold()
-                    == normalized_new_name
+                    and normalized_new_name in {
+                        normalize_team_name(team.get(field) or "").casefold()
+                        for field in ("team_name", "short_name", "long_name")
+                        if team.get(field)
+                    }
                 ),
                 None
             )
@@ -735,9 +1053,6 @@ class AdminTeamsService():
                     detail=f"A team named {new_team_name} already exists"
                 )
 
-            csv_document = await self.csv_collection.find_one(related_query)
-            csv_files = csv_document.get("csv_files", []) \
-                if csv_document else []
             flagged_document = await self.flagged_games.find_one(related_query)
             flagged_entries = flagged_document.get("flagged_games", []) \
                 if flagged_document else []
@@ -771,23 +1086,6 @@ class AdminTeamsService():
                 new_team_name
             )
 
-            csv_files_updated = 0
-            csv_replacements = 0
-            updated_csv_files = []
-            for csv_file in csv_files:
-                updated_csv_file = dict(csv_file)
-                updated_filedata, replacements = \
-                    self._rename_team_rows_in_csv(
-                        csv_file.get("filedata", b""),
-                        known_team_names,
-                        new_team_name
-                    )
-                if replacements:
-                    updated_csv_file["filedata"] = updated_filedata
-                    csv_files_updated += 1
-                    csv_replacements += replacements
-                updated_csv_files.append(updated_csv_file)
-
             flagged_stats = self._rename_team_in_flagged_games(
                 flagged_entries,
                 team_id,
@@ -815,11 +1113,21 @@ class AdminTeamsService():
             if not current_result.matched_count:
                 raise RuntimeError("Team dataset disappeared during update")
 
-            if csv_document and csv_files_updated:
-                await self.csv_collection.update_one(
-                    {"_id": csv_document["_id"]},
-                    {"$set": {"csv_files": updated_csv_files}}
-                )
+            now = datetime.now(timezone.utc)
+            home_games_result = await self.games_collection.update_many(
+                {**related_query, "home_team_id": team_id},
+                {"$set": {
+                    "home_team": new_team_name,
+                    "updated_at": now,
+                }},
+            )
+            away_games_result = await self.games_collection.update_many(
+                {**related_query, "away_team_id": team_id},
+                {"$set": {
+                    "away_team": new_team_name,
+                    "updated_at": now,
+                }},
+            )
             if flagged_document and any(flagged_stats.values()):
                 await self.flagged_games.update_one(
                     {"_id": flagged_document["_id"]},
@@ -842,8 +1150,11 @@ class AdminTeamsService():
                     "team_records": current_stats["team_records"],
                     "game_records": current_stats["game_records"],
                     "game_ids": current_stats["game_ids"],
-                    "csv_replacements": csv_replacements,
-                    "csv_files": csv_files_updated,
+                    "canonical_games": (
+                        home_games_result.modified_count
+                        + away_games_result.modified_count
+                    ),
+                    "source_uploads_changed": 0,
                     "flagged_games": flagged_stats["team_names"],
                     "flagged_game_ids": flagged_stats["game_ids"],
                     "archived_team_records": archived_stats["team_records"],
@@ -859,29 +1170,108 @@ class AdminTeamsService():
                 detail="Internal Server Error"
             ) from exc
 
-    async def clear_season(self):
-        """
-        Clears the season and stores the previous season in a separate collection.
-        """
+    async def update_team_info(
+        self,
+        team_id: int,
+        team_info: Dict[str, Any],
+    ):
+        """Update editable team metadata and propagate a changed short name."""
+        team_info = {
+            "short_name": normalize_team_name(team_info.get("short_name", "")),
+            "long_name": normalize_team_name(team_info.get("long_name", "")),
+            "state": normalize_team_name(team_info.get("state", "")),
+            "division": normalize_team_name(team_info.get("division", "")),
+            "conference": normalize_team_name(team_info.get("conference", "")),
+            "ranked": bool(team_info.get("ranked", False)),
+        }
+        if not team_info["short_name"]:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Short team name cannot be empty",
+            )
 
-        query_base = {
-            "_id": 1,
-            "sport_type": 1,
-            "gender": 1,
-            "level": 1,
-            "teams": 1
+        dataset_query = {
+            "_id": self.level_constant.get("_id"),
+            "sport_type": self.level_key[0],
+            "gender": self.level_key[1],
+            "level": self.level_key[2],
+        }
+        document = await self.sports_collection.find_one(dataset_query, {"teams": 1})
+        if not document:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Team not found",
+            )
+
+        teams = document.get("teams", [])
+        selected_team = next(
+            (team for team in teams if team.get("team_id") == team_id),
+            None,
+        )
+        if not selected_team:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Team not found",
+            )
+
+        updated_aliases = {
+            value.casefold()
+            for value in (team_info["short_name"], team_info["long_name"])
+            if value
+        }
+        for team in teams:
+            if team.get("team_id") == team_id:
+                continue
+            existing_aliases = {
+                normalize_team_name(team.get(field) or "").casefold()
+                for field in ("team_name", "short_name", "long_name")
+                if team.get(field)
+            }
+            if updated_aliases.intersection(existing_aliases):
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="A team with this short or long name already exists",
+                )
+
+        current_team_name = selected_team.get("team_name", "")
+        if current_team_name != team_info["short_name"]:
+            await self.update_team_name(team_id, team_info["short_name"])
+            document = await self.sports_collection.find_one(dataset_query, {"teams": 1})
+            teams = document.get("teams", []) if document else []
+            selected_team = next(
+                (team for team in teams if team.get("team_id") == team_id),
+                None,
+            )
+            if not selected_team:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Team not found",
+                )
+
+        selected_team.update(team_info)
+        selected_team["team_name"] = team_info["short_name"]
+        result = await self.sports_collection.update_one(
+            dataset_query,
+            {"$set": {"teams": teams}},
+        )
+        if not result.matched_count:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Team not found",
+            )
+
+        return {
+            "status": status.HTTP_200_OK,
+            "message": f"Updated {team_info['short_name']} information",
+            "team": team_info,
         }
 
-        # Archive the current season into previous_season collection
-        pipeline = [
-            {"$project": query_base},
-            {"$out": "previous_season"}
-        ]
-        cursor = self.sports_collection.aggregate(pipeline)
-        await cursor.to_list(None)  # Execute the aggregation pipeline
+    def _season_reset_pipeline(self, match_query=None):
+        pipeline = []
+        if match_query is not None:
+            pipeline.append({"$match": match_query})
 
-        update_pipeline = [
-            {"$match": {"_id": self.level_constant.get("_id")}},
+        pipeline.extend([
             {"$addFields": {
                 "teams": {
                     "$map": {
@@ -894,17 +1284,28 @@ class AdminTeamsService():
                                     "win_ratio": 0.0,
                                     "wins": 0,
                                     "losses": 0,
-                                    "season_opp": [],
-                                    "power_ranking": {
+                                    "season_initial_power": {
                                         "$cond": [
                                             {"$isArray": "$$team.power_ranking"},
                                             {"$cond": [
                                                 {"$gt": [
-                                                    {"$size": "$$team.power_ranking"}, 0]},
-                                                [{"$arrayElemAt": [
-                                                    "$$team.power_ranking", -1]}],
-                                                []
+                                                    {"$size": "$$team.power_ranking"},
+                                                    0
+                                                ]},
+                                                {"$arrayElemAt": [
+                                                    "$$team.power_ranking",
+                                                    -1
+                                                ]},
+                                                None
                                             ]},
+                                            None
+                                        ]
+                                    },
+                                    "season_opp": {
+                                        "$cond": [
+                                            {"$isArray": "$$team.season_opp"},
+                                            {"$slice": [
+                                                "$$team.season_opp", -5]},
                                             []
                                         ]
                                     }
@@ -915,20 +1316,78 @@ class AdminTeamsService():
                 }
             }},
             {"$merge": {
-                "into": self.sports_collection.name,  # Use the actual collection name
+                "into": self.sports_collection.name,
                 "on": "_id",
                 "whenMatched": "replace"
             }}
-        ]
+        ])
+        return pipeline
 
-        await self.sports_collection.aggregate(update_pipeline).to_list(None)
+    async def _reset_seasons(self, match_query=None):
+        reset_cursor = self.sports_collection.aggregate(
+            self._season_reset_pipeline(match_query)
+        )
+        await reset_cursor.to_list(None)
+
+    async def _delete_current_games(self, dataset_query=None):
+        """Delete canonical games, upload metadata, and their source files."""
+        dataset_query = dataset_query or {}
+        upload_documents = await self.csv_collection.find(
+            dataset_query,
+            {"csv_files.storage_path": 1},
+        ).to_list(length=None)
+        files_deleted = 0
+        for document in upload_documents:
+            for upload in document.get("csv_files", []):
+                storage_path = upload.get("storage_path")
+                if storage_path and delete_game_file(storage_path):
+                    files_deleted += 1
+        games_result = await self.games_collection.delete_many(dataset_query)
+        uploads_result = await self.csv_collection.delete_many(dataset_query)
+        return {
+            "games_deleted": games_result.deleted_count,
+            "upload_records_deleted": uploads_result.deleted_count,
+            "upload_files_deleted": files_deleted,
+        }
+
+    async def clear_season(self):
+        """Reset the selected season without modifying archive storage."""
+
+        dataset_query = {
+            "sport_type": self.level_key[0],
+            "gender": self.level_key[1],
+            "level": self.level_key[2],
+        }
+        deleted = await self._delete_current_games(dataset_query)
+        await self._reset_seasons({
+            "_id": self.level_constant.get("_id")
+        })
 
         doc = await self.sports_collection.find_one({"_id": self.level_constant.get("_id")})
 
         return {
-            "archived": True,
+            "archive_unchanged": True,
             "teams_reset": doc is not None,
-            "return_data": "Cleared season" if doc is not None else "Failed to clear season",
+            **deleted,
+            "return_data": (
+                "Reset selected sport"
+                if doc is not None
+                else "Failed to reset selected sport"
+            ),
+        }
+
+    async def reset_all_sports(self):
+        """Reset every current sport dataset without modifying archive storage."""
+
+        deleted = await self._delete_current_games()
+        await self._reset_seasons()
+        datasets_reset = await self.sports_collection.count_documents({})
+
+        return {
+            "archive_unchanged": True,
+            "datasets_reset": datasets_reset,
+            **deleted,
+            "return_data": f"Reset {datasets_reset} sports datasets",
         }
 
     async def get_team_names_and_ids(self):
@@ -940,14 +1399,33 @@ class AdminTeamsService():
             level=self.level_key[2]
         )
 
-        projection = {"teams.team_name": 1, "teams.team_id": 1, "_id": 0}
+        projection = {
+            "teams.team_name": 1,
+            "teams.team_id": 1,
+            "teams.short_name": 1,
+            "teams.long_name": 1,
+            "teams.state": 1,
+            "teams.division": 1,
+            "teams.conference": 1,
+            "teams.ranked": 1,
+            "_id": 0,
+        }
 
         try:
             cursor = self.sports_collection.find(query, projection)
             documents = await cursor.to_list(length=None)
 
             teams = [
-                {"team_name": team["team_name"], "team_id": team["team_id"]}
+                {
+                    "team_name": team["team_name"],
+                    "team_id": team["team_id"],
+                    "short_name": team.get("short_name", team["team_name"]),
+                    "long_name": team.get("long_name", ""),
+                    "state": team.get("state", ""),
+                    "division": team.get("division", ""),
+                    "conference": team.get("conference", ""),
+                    "ranked": team.get("ranked", False),
+                }
                 for doc in documents if "teams" in doc
                 for team in doc["teams"]
             ]
@@ -974,47 +1452,60 @@ class AdminTeamsService():
         team_one: int,
         team_two: int
     ):
+        """Return active canonical games between two teams.
+
+        Team documents can retain a five-game historical snapshot after a
+        season reset. Those records are read-only and must not appear in the
+        update/delete game workflows.
+        """
         query = {
-            "_id": self.level_constant.get('_id'),
             "sport_type": self.level_key[0],
             "gender": self.level_key[1],
             "level": self.level_key[2],
-            "teams.team_id": team_one
+            "$or": [
+                {
+                    "home_team_id": team_one,
+                    "away_team_id": team_two,
+                },
+                {
+                    "home_team_id": team_two,
+                    "away_team_id": team_one,
+                },
+            ],
         }
-
-        projection = {"teams.$": 1}
-
-        document = await self.sports_collection.find_one(
+        projection = {
+            "_id": 0,
+            "game_date": 1,
+            "game_id": 1,
+            "home_team_id": 1,
+            "home_team": 1,
+            "away_team_id": 1,
+            "away_team": 1,
+            "home_score": 1,
+            "away_score": 1,
+        }
+        cursor = self.games_collection.find(
             query,
-            projection
-        )
+            projection,
+        ).sort([
+            ("game_date", 1),
+            ("game_id", 1),
+        ])
+        games = await cursor.to_list(length=None)
 
-        if not document:
-            return []
-        result = []
-        for team in document.get('teams', []):
-            for game in team.get('season_opp', []):
-                if game.get('opponent_id') == team_two:
-                    result.append({
-                        'game_date': game.get('game_date'),
-                        'game_id': game.get('game_id'),
-                        'home_team_id': team.get('team_id')
-                        if game.get('home_team') in (1, True, "1")
-                        else game.get('opponent_id'),
-                        'home_team_name': team.get('team_name')
-                        if game.get('home_team') in (1, True, "1")
-                        else game.get('opponent_name'),
-                        'away_team_id': game.get('opponent_id')
-                        if game.get('home_team') in (1, True, "1")
-                        else team.get('team_id'),
-                        'away_team_name': game.get('opponent_name')
-                        if game.get('home_team') in (1, True, "1")
-                        else team.get('team_name'),
-                        'home_score': game.get('home_score'),
-                        'away_score': game.get('away_score')
-                    })
-
-        return result
+        return [
+            {
+                "game_date": game.get("game_date"),
+                "game_id": game.get("game_id"),
+                "home_team_id": game.get("home_team_id"),
+                "home_team_name": game.get("home_team"),
+                "away_team_id": game.get("away_team_id"),
+                "away_team_name": game.get("away_team"),
+                "home_score": game.get("home_score"),
+                "away_score": game.get("away_score"),
+            }
+            for game in games
+        ]
 
     async def delete_game(
         self,
@@ -1023,68 +1514,77 @@ class AdminTeamsService():
         game_id: str,
         game_date: str
     ):
-        # Need to clear the season_opp array for both teams, utilizing team id's
-        # and game id
-        query1 = {
-            "_id": self.level_constant.get('_id'),
+        dataset_query = {
             "sport_type": self.level_key[0],
             "gender": self.level_key[1],
             "level": self.level_key[2],
-            "teams.team_id": team_one,
-            "teams.season_opp.game_id": game_id
-        }
-        update = {
-            "$pull": {
-                "teams.$.season_opp": {
-                    "game_id": game_id
-                }
-            }
-        }
-
-        query2 = {
-            "_id": self.level_constant.get('_id'),
-            "sport_type": self.level_key[0],
-            "gender": self.level_key[1],
-            "level": self.level_key[2],
-            "teams.team_id": team_two,
-            "teams.season_opp.game_id": game_id
-        }
-
-        query_csv = {
-            "_id": self.level_constant.get('_id'),
-            "sport_type": self.level_key[0],
-            "gender": self.level_key[1],
-            "level": self.level_key[2],
-            "csv_files.sports_week": game_date
         }
         try:
-            team_1_delete = await self.sports_collection.find_one_and_update(query1, update)
-            team_2_delete = await self.sports_collection.find_one_and_update(query2, update)
+            canonical_game = await self.games_collection.find_one({
+                **dataset_query,
+                "game_id": game_id,
+                "game_date": normalized_date(game_date),
+                "home_team_id": team_one,
+                "away_team_id": team_two,
+            })
+            if not canonical_game:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Game not found",
+                )
 
-            csv_file = await self.sports_collection.find_one(query_csv, {"csv_files.$": 1})
+            current_document = await self.sports_collection.find_one(
+                {"_id": self.level_constant.get("_id")},
+                {"teams": 1},
+            )
+            teams = current_document.get("teams", []) \
+                if current_document else []
+            home_won = (
+                canonical_game["home_score"] > canonical_game["away_score"]
+            )
+            team_records_removed = 0
+            for team in teams:
+                if team.get("team_id") not in (team_one, team_two):
+                    continue
+                games_before = team.get("season_opp", [])
+                team["season_opp"] = [
+                    game for game in games_before
+                    if game.get("game_id") != game_id
+                ]
+                if len(team["season_opp"]) == len(games_before):
+                    continue
+                team_records_removed += 1
+                won = home_won if team["team_id"] == team_one else not home_won
+                record_key = "wins" if won else "losses"
+                team[record_key] = max(0, int(team.get(record_key, 0)) - 1)
+                total = int(team.get("wins", 0)) + int(team.get("losses", 0))
+                team["win_ratio"] = (
+                    int(team.get("wins", 0)) / total if total else 0.0
+                )
 
-            if csv_file and "csv_files" in csv_file:
-                csv_document = csv_file["csv_files"][0]
-
-                csv_string = csv_document["filedata"].decode("utf-8")
-                df = pd.read_csv(io.StringIO(csv_string), header=None)
-
-                df_filtered = df[~df.iloc[:, 1].isin([team_one, team_two])]
-
-                new_csv_string = df_filtered.to_csv(index=False, header=False)
-                new_filedata_binary = bson.Binary(
-                    new_csv_string.encode("utf-8"))
-
-                updated_csv = await self.sports_collection.update_one(
-                    query_csv,
-                    {"$set": {"csv_files.$.filedata": new_filedata_binary}}
+            delete_result = await self.games_collection.delete_one({
+                "_id": canonical_game["_id"],
+            })
+            if current_document:
+                await self.sports_collection.update_one(
+                    {"_id": self.level_constant.get("_id")},
+                    {"$set": {
+                        "teams": teams,
+                        "rankings_stale": True,
+                    }},
                 )
 
             return {
-                "message": "Game was successfully removed" if team_1_delete and team_2_delete else "Error removing both games",
-                "csv_file": "CSV file was successfully updated" if updated_csv else "CSV file was not updated",
-                "status": status.HTTP_200_OK
+                "message": "Game was successfully removed",
+                "deleted": {
+                    "canonical_games": delete_result.deleted_count,
+                    "team_game_records": team_records_removed,
+                    "source_uploads_changed": 0,
+                },
+                "status": status.HTTP_200_OK,
             }
+        except HTTPException:
+            raise
         except Exception as exc:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -1161,29 +1661,6 @@ class AdminTeamsService():
             "linked_games_removed": linked_games_removed
         }
 
-    @staticmethod
-    def _remove_team_rows_from_csv(
-        filedata: Any,
-        team_name: str
-    ) -> Tuple[Binary, int]:
-        """Remove rows where the selected team is either game participant."""
-        raw_filedata = AdminTeamsService._decode_csv_filedata(filedata)
-        rows = list(csv.reader(StringIO(raw_filedata.decode("utf-8"))))
-        normalized_name = team_name.strip().casefold()
-
-        def includes_team(row: List[str]) -> bool:
-            return any(
-                len(row) > column
-                and row[column].strip().casefold() == normalized_name
-                for column in (1, 2)
-            )
-
-        filtered_rows = [row for row in rows if not includes_team(row)]
-        rows_removed = len(rows) - len(filtered_rows)
-        output = StringIO(newline="")
-        csv.writer(output).writerows(filtered_rows)
-        return Binary(output.getvalue().encode("utf-8")), rows_removed
-
     async def delete_team(
         self,
         team_name: str,
@@ -1222,25 +1699,6 @@ class AdminTeamsService():
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail="Team not found"
                 )
-
-            csv_document = await self.csv_collection.find_one(related_query)
-            csv_files = csv_document.get("csv_files", []) \
-                if csv_document else []
-            csv_rows_removed = 0
-            csv_files_updated = 0
-            updated_csv_files = []
-            for csv_file in csv_files:
-                updated_csv_file = dict(csv_file)
-                updated_filedata, rows_removed = \
-                    self._remove_team_rows_from_csv(
-                        csv_file.get("filedata", b""),
-                        team_name
-                    )
-                if rows_removed:
-                    updated_csv_file["filedata"] = updated_filedata
-                    csv_rows_removed += rows_removed
-                    csv_files_updated += 1
-                updated_csv_files.append(updated_csv_file)
 
             flagged_document = await self.flagged_games.find_one(related_query)
             flagged_entries = flagged_document.get("flagged_games", []) \
@@ -1282,16 +1740,21 @@ class AdminTeamsService():
 
             current_result = await self.sports_collection.update_one(
                 dataset_query,
-                {"$set": {"teams": current_teams}}
+                {"$set": {
+                    "teams": current_teams,
+                    "rankings_stale": True,
+                }}
             )
             if not current_result.matched_count:
                 raise RuntimeError("Team dataset disappeared during deletion")
 
-            if csv_document and csv_files_updated:
-                await self.csv_collection.update_one(
-                    {"_id": csv_document["_id"]},
-                    {"$set": {"csv_files": updated_csv_files}}
-                )
+            games_result = await self.games_collection.delete_many({
+                **related_query,
+                "$or": [
+                    {"home_team_id": team_id},
+                    {"away_team_id": team_id},
+                ],
+            })
             if flagged_document and flagged_games_removed:
                 await self.flagged_games.update_one(
                     {"_id": flagged_document["_id"]},
@@ -1314,8 +1777,8 @@ class AdminTeamsService():
                     "team_name": team_name,
                     "games": current_stats["team_games_removed"],
                     "linked_game_records": current_stats["linked_games_removed"],
-                    "csv_rows": csv_rows_removed,
-                    "csv_files": csv_files_updated,
+                    "canonical_games": games_result.deleted_count,
+                    "source_uploads_changed": 0,
                     "flagged_games": flagged_games_removed,
                     "archived_team": archived_stats["team_found"]
                 }
@@ -1407,36 +1870,147 @@ class AdminTeamsService():
             "status": 200
         }
 
-    async def _add_csv_file(
+    async def _add_upload_metadata(
         self,
         query: dict,
+        upload_id: str,
         filename: str,
-        csv_file: Any,
-        date: str
+        storage_path: str,
+        game_count: int,
+        date: str,
+        uploaded_at: datetime | None = None,
     ) -> int:
-        """Adds a csv file to the database for later
-        processing
-
-        Args:
-            query (dict): Filtering query for db
-            filename (str): CSV filename
-            csv_file (Any): CSV file data
-
-        Returns:
-            int: The number of uploaded documents
-        """
+        """Store upload metadata without storing file contents in MongoDB."""
         file_entry = {
+            "upload_id": upload_id,
             "filename": filename,
-            "filedata": Binary(csv_file),
-            "upload_date": str(datetime.today()),
-            "sports_week": date
+            "storage_path": storage_path,
+            "upload_date": uploaded_at or datetime.now(timezone.utc),
+            "sports_week": date,
+            "game_count": game_count,
         }
         results = await self.csv_collection.update_one(
             query,
             {"$push": {"csv_files": file_entry}},
-            upsert=True
+            upsert=True,
         )
-        return results.modified_count
+        return 1 if results.modified_count or results.upserted_id else 0
+
+    async def retrieve_games(self) -> List[Dict[str, Any]]:
+        """Return canonical games for this dataset in deterministic order."""
+        cursor = self.games_collection.find(
+            {
+                "sport_type": self.level_key[0],
+                "gender": self.level_key[1],
+                "level": self.level_key[2],
+            },
+            {"_id": 0},
+        ).sort([("game_date", 1), ("game_id", 1)])
+        return await cursor.to_list(length=None)
+
+    async def migrate_legacy_uploads(self) -> Dict[str, int]:
+        """Move legacy Mongo CSV blobs to disk and create canonical games."""
+        dataset_query = {
+            "sport_type": self.level_key[0],
+            "gender": self.level_key[1],
+            "level": self.level_key[2],
+        }
+        upload_document = await self.csv_collection.find_one(
+            dataset_query,
+            {"csv_files": 1},
+        )
+        if not upload_document:
+            return {"files_migrated": 0, "games_migrated": 0}
+
+        entries = upload_document.get("csv_files", [])
+        if not any("filedata" in entry for entry in entries):
+            return {"files_migrated": 0, "games_migrated": 0}
+
+        migrated_entries = []
+        files_migrated = 0
+        games_migrated = 0
+        for index, entry in enumerate(entries):
+            if "filedata" not in entry:
+                migrated_entries.append(entry)
+                continue
+
+            content = self._decode_csv_filedata(entry["filedata"])
+            games = parse_game_csv(content)
+            team_names = [
+                team_name
+                for game in games
+                for team_name in (game.home_team, game.away_team)
+            ]
+            missing_teams = await self.find_missing_teams(team_names)
+            if missing_teams:
+                await self.add_teams_to_db([
+                    {
+                        "team_name": team_name,
+                        "division": None,
+                        "conference": None,
+                        "power_ranking": 0.0,
+                        "state": None,
+                    }
+                    for team_name in missing_teams
+                ])
+
+            upload_id = entry.get("upload_id") or (
+                f"legacy-{upload_document['_id']}-{index}"
+            )
+            filename = entry.get("filename") or f"legacy-{index}.csv"
+            normalized_content = serialize_game_rows(games)
+            _, storage_path = store_game_file(
+                self.level_key,
+                filename,
+                normalized_content,
+                upload_id=upload_id,
+            )
+            now = datetime.now(timezone.utc)
+            game_documents = await self._build_game_documents(
+                games,
+                dataset_query,
+            )
+            operations = []
+            for document in game_documents:
+                document.update({
+                    "source_upload_id": upload_id,
+                    "source_filename": filename,
+                    "created_at": now,
+                    "updated_at": now,
+                })
+                operations.append(UpdateOne(
+                    {**dataset_query, "identity": document["identity"]},
+                    {"$setOnInsert": document},
+                    upsert=True,
+                ))
+            if operations:
+                result = await self.games_collection.bulk_write(
+                    operations,
+                    ordered=False,
+                )
+                games_migrated += result.upserted_count
+
+            migrated_entries.append({
+                "upload_id": upload_id,
+                "filename": filename,
+                "storage_path": storage_path,
+                "upload_date": entry.get("upload_date", now),
+                "sports_week": normalized_date(
+                    entry.get("sports_week") or games[0].date
+                ),
+                "game_count": len(games),
+                "migrated_at": now,
+            })
+            files_migrated += 1
+
+        await self.csv_collection.update_one(
+            {"_id": upload_document["_id"]},
+            {"$set": {"csv_files": migrated_entries}},
+        )
+        return {
+            "files_migrated": files_migrated,
+            "games_migrated": games_migrated,
+        }
 
     async def _find_teams(self, query: dict, teams_search: list) -> list:
         """Finds the teams that are in the database and
@@ -1472,20 +2046,3 @@ class AdminTeamsService():
         existing_ids = [team.get("team_id")
                         for team in team_list if "team_id" in team]
         return max(existing_ids) if existing_ids else 0
-
-    async def retrieve_csv_file(self) -> Dict:
-        """Retrieves the CSV file from the database
-
-        Returns:
-            Dict: Returns the contents received from
-            MongoDB
-        """
-        csv_document = await self.csv_collection.find_one(
-            {
-                "sport_type": self.level_key[0],
-                "gender": self.level_key[1],
-                "level": self.level_key[2]
-            },
-            {"csv_files": 1}
-        )
-        return csv_document['csv_files']

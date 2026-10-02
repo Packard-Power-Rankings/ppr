@@ -245,12 +245,8 @@ def nested_power_change(df, teams_id_dict, teams_names_dict):
         home_opponent_ids = home_team['recent_opp']
         home_opponent_ids.insert(0, home_team['team_id'])
 
-        print(home_team)
-
         home_team['power_ranking'][-1] = \
             round(home_team['power_ranking'][-1], 5) + round(row['home_power_change'], 5)
-
-        print(home_team)
 
         away_team = teams_names_dict[row['away_team'].lower()]
         away_opponent_ids = away_team['recent_opp']
@@ -287,13 +283,18 @@ def calculate_z_scores(df, n):
     df = modify_game_scores(df)
     df = expected_wl(df)
     df = calculate_power_difference(df)
-    potential_changes = df['home_power_change'].tolist()
-    updated_potential_changes = [elem ** 2 for elem in potential_changes]
+    squared_changes = (
+        df['home_power_change'].pow(2).sum()
+        + df['away_power_change'].pow(2).sum()
+    )
+    standard_deviation = math.sqrt(squared_changes / n) if n else 0.0
 
-    standard_deviation = math.sqrt(sum(updated_potential_changes) / n)
-
-    df['home_z_score'] = df['home_power_change'] / standard_deviation
-    df['away_z_score'] = df['away_power_change'] / standard_deviation
+    if standard_deviation == 0:
+        df['home_z_score'] = 0.0
+        df['away_z_score'] = 0.0
+    else:
+        df['home_z_score'] = df['home_power_change'] / standard_deviation
+        df['away_z_score'] = df['away_power_change'] / standard_deviation
     return df
 
 

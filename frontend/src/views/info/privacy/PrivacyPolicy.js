@@ -21,7 +21,7 @@ const PrivacyPolicy = () => {
             <p>The Communications section is for businesses that may contact users via email (email newsletters) or other methods.</p>
             <p><strong>Cookies</strong></p>
             <p>Cookies are files with small amount of data, which may include an anonymous unique identifier. Cookies are sent to your browser from a web site and stored on your computer's hard drive.</p>
-            <p>Like many sites, we use "cookies" to collect information. You can instruct your browser to refuse all cookies or to indicate when a cookie is being sent. However, if you do not accept cookies, you may not be able to use some portions of our Site. See <Link to="/info/cookies">Cookies policy</Link> for details.</p>
+            <p>Like many sites, we use "cookies" to collect information. You can instruct your browser to refuse all cookies or to indicate when a cookie is being sent. However, if you do not accept cookies, you may not be able to use some portions of our Site. See <Link to="/cookies">Cookies policy</Link> for details.</p>
             <p><strong>Security</strong></p>
             <p>The security of your Personal Information is important to us, but remember that no method of transmission over the Internet, or method of electronic storage, is 100% secure. While we strive to use commercially acceptable means to protect your Personal Information, we cannot guarantee its absolute security.</p>
             <p><strong>Changes To This Privacy Policy</strong></p>

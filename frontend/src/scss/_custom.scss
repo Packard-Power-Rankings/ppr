@@ -50,3 +50,15 @@
 .archive-search {
   width: min(100%, 18rem);
 }
+
+.team-list-table {
+  --cui-table-striped-bg: #f7f7f2;
+}
+
+@if $enable-dark-mode {
+  @include color-mode(dark) {
+    .team-list-table {
+      --cui-table-striped-bg: var(--cui-tertiary-bg);
+    }
+  }
+}

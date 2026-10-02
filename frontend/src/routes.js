@@ -1,5 +1,6 @@
 import React from 'react'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useParams } from 'react-router-dom'
+import { CURRENT_RANKING_YEAR } from './utils/rankingYear'
 
 const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 // const Colors = React.lazy(() => import('./views/theme/colors/Colors'))
@@ -8,8 +9,12 @@ const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 // Admin
 const AdminDashboard = React.lazy(() => import('./views/admin/dashboard/AdminDashboard'))
 const AddTeams = React.lazy(() => import('./views/admin/add_teams/AddTeams'))
+const AddGames = React.lazy(() => import('./views/admin/add_games/AddGames'))
 const CalculateValues = React.lazy(() => import('./views/admin/calc_values/CalculateValues'))
+const RankingPage = () => <CalculateValues view="ranking" />
+const ZScorePage = () => <CalculateValues view="z-score" />
 const UpdateGame = React.lazy(() => import('./views/admin/update_game/UpdateGame'))
+const UpdateTeam = React.lazy(() => import('./views/admin/update_team/UpdateTeam'))
 const UpdateTeamName = React.lazy(() => import('./views/admin/update_team_name/UpdateTeamName'))
 const DeleteTeam = React.lazy(() => import('./views/admin/delete_team/DeleteTeam'))
 const DeleteGame = React.lazy(() => import('./views/admin/delete_game/DeleteGame'))
@@ -79,30 +84,61 @@ const Predictions = React.lazy(() => import('./views/predictions/Predictions'))
 // Archives
 const Archive = React.lazy(() => import('./views/archive/Archive'))
 
+const FootballDirectory = () => <AllTeams fixedSport="football" />
+const BasketballDirectory = () => <AllTeams fixedSport="basketball" />
+const FootballRankings = () => <Teams fixedSport="football" />
+const BasketballRankings = () => <Teams fixedSport="basketball" />
+
 const LegacyRankingRedirect = () => <Navigate to="/admin/ranking" replace />
+const LegacyAboutRedirect = () => <Navigate to="/about" replace />
+const LegacyTosRedirect = () => <Navigate to="/tos" replace />
+const LegacyPrivacyRedirect = () => <Navigate to="/privacy" replace />
+const LegacyCookiesRedirect = () => <Navigate to="/cookies" replace />
+const LegacyPredictionRedirect = () => <Navigate to="/prediction" replace />
+const LegacyAllTeamsRedirect = () => <Navigate to="/" replace />
+const LegacyTeamsRedirect = () => {
+  const { sport, gender, level } = useParams()
+  const destination = `/${[sport, gender, level].filter(Boolean).join('/')}`
+
+  return <Navigate to={destination} replace />
+}
 
 const routes = [
   { path: '/', name: 'Home', element: Dashboard },
   { path: '/dashboard', name: 'Dashboard', element: Dashboard },
-  { path: '/info', name: 'Info', element: About },
-  { path: '/info/about', name: 'About', element: About },
-  { path: '/info/tos', name: 'Terms of Service', element: TOS },
-  { path: '/info/privacy', name: 'Privacy Policy', element: Privacy },
-  { path: '/info/cookies', name: 'Cookies Policy', element: Cookies },
-  { path: '/teams', name: 'Teams', element: AllTeams },
-  { path: '/teams/:sport', name: 'Sport Teams', element: AllTeams },
-  { path: '/teams/:sport/:gender', name: 'Gender Teams', element: AllTeams },
-  { path: '/teams/:sport/:gender/:level', name: 'Teams', element: Teams },
+  { path: '/about', name: 'About', element: About },
+  { path: '/tos', name: 'Terms of Service', element: TOS },
+  { path: '/privacy', name: 'Privacy Policy', element: Privacy },
+  { path: '/cookies', name: 'Cookies Policy', element: Cookies },
+  { path: '/info', name: 'About', element: LegacyAboutRedirect },
+  { path: '/info/about', name: 'About', element: LegacyAboutRedirect },
+  { path: '/info/tos', name: 'Terms of Service', element: LegacyTosRedirect },
+  { path: '/info/privacy', name: 'Privacy Policy', element: LegacyPrivacyRedirect },
+  { path: '/info/cookies', name: 'Cookies Policy', element: LegacyCookiesRedirect },
+  { path: '/football', name: 'Football', element: FootballDirectory },
+  { path: '/football/:gender', name: 'Football Teams', element: FootballDirectory },
+  { path: '/football/:gender/:level', name: 'Football Rankings', element: FootballRankings },
+  { path: '/basketball', name: 'Basketball', element: BasketballDirectory },
+  { path: '/basketball/:gender', name: 'Basketball Teams', element: BasketballDirectory },
+  { path: '/basketball/:gender/:level', name: 'Basketball Rankings', element: BasketballRankings },
+  { path: '/teams', name: 'Legacy Teams Redirect', element: LegacyAllTeamsRedirect },
+  { path: '/teams/:sport', name: 'Sport Teams', element: LegacyTeamsRedirect },
+  { path: '/teams/:sport/:gender', name: 'Gender Teams', element: LegacyTeamsRedirect },
+  { path: '/teams/:sport/:gender/:level', name: 'Teams', element: LegacyTeamsRedirect },
   { path: '/team/:team_name/:sport/:gender/:level', name: "Team", element: Team },
-  { path: '/predictions', name: 'Predictions', element: Predictions },
+  { path: '/prediction', name: 'Prediction', element: Predictions },
+  { path: '/predictions', name: 'Legacy Prediction Redirect', element: LegacyPredictionRedirect },
   { path: '/archives', name: 'Archive', element: Archive },
   { path: '/archives/:year', name: 'Season Archive', element: Archive },
   { path: '/archives/:year/:dataset', name: 'Archived Rankings', element: Archive },
   { path: '/admin', name: 'Admin Dashboard', element: AdminDashboard, admin: true },
-  { path: '/admin/add_teams', name: 'AddTeams', element: AddTeams, admin: true },
-  { path: '/admin/ranking', name: 'Rankings', element: CalculateValues, admin: true },
-  { path: '/admin/calc_values', name: 'Rankings', element: LegacyRankingRedirect },
+  { path: '/admin/add_games', name: 'Add Games', element: AddGames, admin: true },
+  { path: '/admin/add_teams', name: 'Add Teams', element: AddTeams, admin: true },
+  { path: '/admin/ranking', name: `${CURRENT_RANKING_YEAR} Ranking`, element: RankingPage, admin: true },
+  { path: '/admin/z_scores', name: 'Z-Score', element: ZScorePage, admin: true },
+  { path: '/admin/calc_values', name: `${CURRENT_RANKING_YEAR} Ranking`, element: LegacyRankingRedirect },
   { path: '/admin/update_game', name: 'UpdateGame', element: UpdateGame, admin: true },
+  { path: '/admin/update_team', name: 'Update Team', element: UpdateTeam, admin: true },
   { path: '/admin/update_team_name', name: 'UpdateTeamName', element: UpdateTeamName, admin: true },
   { path: '/admin/delete_team', name: 'DeleteTeam', element: DeleteTeam, admin: true },
   { path: '/admin/delete_game', name: 'DeleteGame', element: DeleteGame, admin: true },
