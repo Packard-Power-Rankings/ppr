@@ -199,7 +199,9 @@ Mongo upload metadata and the `upload_data` backup belong to the same snapshot. 
 
 **Caddy cannot obtain a certificate:** confirm the DNS `A` record points to the attached static IP and the Lightsail firewall allows inbound TCP 80 and 443.
 
-**A container remains unhealthy:** run `make lightsail-status`, then `make lightsail-logs`. Backend startup waits for authenticated MongoDB and Redis health checks.
+**The backend reports `Operation not permitted` while changing archive or upload ownership:** update to the current Compose file and rebuild with `make lightsail-up`. The backend and worker drop all Linux capabilities except the three needed by their entrypoint to prepare persistent directories and switch to the non-root application user.
+
+**A container remains unhealthy:** run `make lightsail-status`, then inspect bounded logs with `docker compose --env-file .env/production -f docker-compose.lightsail.yml logs --tail=200 backend db redis`. Backend startup waits for authenticated MongoDB and Redis health checks.
 
 **The site loads but API requests fail:** confirm `DOMAIN`, `CORS_ORIGINS`, and `ALLOWED_HOSTS` use the same public hostname, then rebuild with `make lightsail-up`.
 
