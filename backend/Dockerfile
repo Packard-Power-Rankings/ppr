@@ -6,11 +6,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
-COPY requirements.txt .
+ARG REQUIREMENTS_FILE=requirements.txt
+
+COPY requirements*.txt ./
 COPY docker-entrypoint.sh /usr/local/bin/ppr-entrypoint
 
 RUN python -m pip install --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir -r "${REQUIREMENTS_FILE}" && \
     groupadd --gid 10001 app && \
     useradd --uid 10001 --gid app --create-home app && \
     mkdir -p /var/lib/ppr-archives /var/lib/ppr-uploads && \

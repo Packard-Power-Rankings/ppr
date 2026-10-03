@@ -1,3 +1,4 @@
+import re
 from typing import Tuple, Dict, List
 from math import e
 from fastapi import status, HTTPException
@@ -66,7 +67,12 @@ class UsersServices():
             {"$match": query},
             {"$unwind": "$teams"},  # Unwind to access individual team entries
             # Filter for the specific team
-            {"$match": {"teams.team_name": {"$regex": f"^{team_name}$", "$options": "i"}}},
+            {"$match": {
+                "teams.team_name": {
+                    "$regex": f"^{re.escape(team_name)}$",
+                    "$options": "i",
+                }
+            }},
             {"$project": {
                 "_id": 0,
                 "teams.team_id": 1,
@@ -241,9 +247,19 @@ class UsersServices():
         self.sports_data = sports_data
 
     async def _retrieve_team_info(self, team_name_list: List):
-        team_names_lower = [names.lower() for names in team_name_list]
+        team_names_lower = [names.casefold() for names in team_name_list]
+        if len(set(team_names_lower)) != 2:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail="Select two different teams",
+            )
         results = await self.user_collection.find_one(
-            {"_id": self.level_constants.get("_id")},
+            {
+                "_id": self.level_constants.get("_id"),
+                "sport_type": self.level_key[0],
+                "gender": self.level_key[1],
+                "level": self.level_key[2],
+            },
             {
                 "_id": 0,
                 "teams": {
@@ -261,16 +277,26 @@ class UsersServices():
                 }
             }
         )
-        team_list = results['teams']
-        team_one, team_two = team_list
-        if team_names_lower[0] == team_one['team_name'].lower():
-            return team_one, team_two
-        return team_two, team_one
+        team_list = results.get("teams", []) if results else []
+        teams_by_name = {
+            team.get("team_name", "").casefold(): team
+            for team in team_list
+        }
+        missing = [
+            name for name, normalized in zip(team_name_list, team_names_lower)
+            if normalized not in teams_by_name
+        ]
+        if missing:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Team not found: {', '.join(missing)}",
+            )
+        return tuple(teams_by_name[name] for name in team_names_lower)
 
     async def _sports_retrieval(self, pipeline: list):
         try:
             cursor = self.user_collection.aggregate(pipeline)
-            result = await cursor.to_list(length=None)
+            result = await cursor.to_list(length=1)
             if result and len(result) > 0:
                 return {
                     "message": "Successfully Found Teams",

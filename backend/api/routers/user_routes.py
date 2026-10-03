@@ -1,5 +1,5 @@
 from typing import Dict, Tuple
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Path
 from api.schemas.items import InputMethod
 # from api.schemas import items
 from api.service.users_teams import UsersServices
@@ -11,9 +11,10 @@ archive_service = ArchiveService()
 
 
 def users_class(level_key: Tuple) -> "UsersServices":
-    if level_key not in _instance_cache:
-        _instance_cache[level_key] = UsersServices(level_key)
-    return _instance_cache[level_key]
+    canonical_key = tuple(getattr(value, "value", value) for value in level_key)
+    if canonical_key not in _instance_cache:
+        _instance_cache[canonical_key] = UsersServices(canonical_key)
+    return _instance_cache[canonical_key]
 
 
 @router.get("/archives/", response_description="List season ranking archives")
@@ -48,7 +49,7 @@ async def list_teams(
 
 @router.get("/teams/{team_name}", response_description="Display Team Specific Data")
 async def list_team_info(
-    team_name: str,
+    team_name: str = Path(..., min_length=1, max_length=200),
     items: InputMethod = Depends()
 ):
     """
@@ -83,9 +84,9 @@ async def get_sports_team_names(
 
 @router.get("/predictions/{team_one}/{team_two}/{home_field_adv}", response_description="Get Predictions")
 async def get_game_predictions(
-    team_one: str,
-    team_two: str,
-    home_field_adv: bool,
+    team_one: str = Path(..., min_length=1, max_length=200),
+    team_two: str = Path(..., min_length=1, max_length=200),
+    home_field_adv: bool = Path(...),
     items: InputMethod = Depends()
 ):
     level_key: Tuple = (

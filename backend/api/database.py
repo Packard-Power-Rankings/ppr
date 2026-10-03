@@ -2,14 +2,22 @@
 
 import os
 from typing import Any
+from urllib.parse import quote_plus
 
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo import ASCENDING, DESCENDING, IndexModel
 
 
 def _mongo_uri() -> str:
-    return os.getenv("MONGO_URI") or (
-        f"mongodb+srv://{os.getenv('MONGO_USER')}:{os.getenv('MONGO_PASS')}@"
+    configured_uri = os.getenv("MONGO_URI", "").strip()
+    if configured_uri:
+        return configured_uri
+    username = os.getenv("MONGO_USER", "").strip()
+    password = os.getenv("MONGO_PASS", "").strip()
+    if not username or not password:
+        raise RuntimeError("Configure MONGO_URI or both MONGO_USER and MONGO_PASS")
+    return (
+        f"mongodb+srv://{quote_plus(username)}:{quote_plus(password)}@"
         "sports-cluster.mx1mo.mongodb.net/"
         "?retryWrites=true&w=majority&appName=Sports-Cluster"
     )
@@ -27,6 +35,8 @@ mongo_client = AsyncIOMotorClient(
     maxPoolSize=_pool_size("MONGO_MAX_POOL_SIZE", 50),
     minPoolSize=0,
     maxIdleTimeMS=60_000,
+    serverSelectionTimeoutMS=_pool_size("MONGO_SERVER_TIMEOUT_MS", 5_000),
+    connectTimeoutMS=_pool_size("MONGO_CONNECT_TIMEOUT_MS", 5_000),
 )
 sports_database = mongo_client["sports_data"]
 admin_database = mongo_client["admin_details"]
@@ -40,6 +50,7 @@ DATASET_COLLECTIONS = (
 DATASET_INDEX_NAME = "uq_dataset_key"
 GAME_IDENTITY_INDEX_NAME = "uq_game_identity"
 GAME_DATE_INDEX_NAME = "ix_games_dataset_date"
+GAME_ID_INDEX_NAME = "ix_games_dataset_game_id"
 ADMIN_USERNAME_INDEX_NAME = "uq_admin_username"
 EXECUTION_HISTORY_INDEX_NAME = "ix_execution_history_process_queued"
 
@@ -107,6 +118,13 @@ async def ensure_database_indexes(
         IndexModel(
             [*_DATASET_KEY, ("game_date", ASCENDING)],
             name=GAME_DATE_INDEX_NAME,
+        ),
+    ))
+    created["games"].extend(await _ensure_index(
+        games_collection,
+        IndexModel(
+            [*_DATASET_KEY, ("game_id", ASCENDING)],
+            name=GAME_ID_INDEX_NAME,
         ),
     ))
 

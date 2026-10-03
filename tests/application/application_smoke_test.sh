@@ -394,6 +394,7 @@ team_id() {
 
 verify_public_workflows() {
   local response actual expected detail prediction ids northstar_id cedar_id game_id payload flagged
+  local issue_id flagged_count
   response="$(api "$BASE_URL/teams?$(dataset_query)")"
   actual="$(jq -c '[.data.teams[] | {team_name, wins, losses}] | sort_by(.team_name)' <<<"$response")"
   expected="$(jq -c 'sort_by(.team_name)' "$FIXTURE_DIR/expected-records.json")"
@@ -420,16 +421,24 @@ verify_public_workflows() {
     --arg game_id "$game_id" \
     --argjson team1_id "$northstar_id" \
     --argjson team2_id "$cedar_id" \
-    '{game_id: $game_id, team1_id: $team1_id, team1_name: "Northstar Academy", team2_id: $team2_id, team2_name: "Cedar Valley"}')"
+    '{game_id: $game_id, team1_id: $team1_id, team1_name: "Northstar Academy", team2_id: $team2_id, team2_name: "Cedar Valley", description: "The displayed score needs administrator review."}')"
 
   api \
     -X POST "$BASE_URL/flagged-game/?$(dataset_query)" \
     -H 'Content-Type: application/json' \
     --data "$payload" | jq -e '.game_flagged == 1' >/dev/null
-  flagged="$(authenticated_api "$BASE_URL/retrieve-flagged?$(dataset_query)")"
-  jq -e --arg game_id "$game_id" '.flagged_games | any(.game_id == $game_id)' <<<"$flagged" >/dev/null || fail \
-    "The flagged game was not returned"
-  authenticated_api -X DELETE "$BASE_URL/clear-flagged?$(dataset_query)" >/dev/null
+  flagged="$(authenticated_api "$BASE_URL/flagged-games/?skip=0&limit=50")"
+  issue_id="$(jq -er --arg game_id "$game_id" \
+    '.issues[] | select(.game_id == $game_id) | .issue_id' <<<"$flagged")" || fail \
+    "The flagged game was not returned in the admin review queue"
+  jq -e --arg game_id "$game_id" \
+    '.issues | any(.game_id == $game_id and (.description | length >= 5))' \
+    <<<"$flagged" >/dev/null || fail "The flagged game description was not retained"
+  authenticated_api -X PATCH "$BASE_URL/flagged-games/$issue_id/resolve" \
+    | jq -e --arg issue_id "$issue_id" '.issue_id == $issue_id' >/dev/null
+  flagged_count="$(authenticated_api "$BASE_URL/flagged-games/count")"
+  jq -e '.count == 0' <<<"$flagged_count" >/dev/null || fail \
+    "The resolved game remained in the pending issue count"
 
   info "Verified records, ranking updates, team detail, prediction, and flag lifecycle"
 }

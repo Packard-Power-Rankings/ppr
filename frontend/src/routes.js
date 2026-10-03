@@ -19,6 +19,7 @@ const UpdateTeam = React.lazy(() => import('./views/admin/update_team/UpdateTeam
 const UpdateTeamName = React.lazy(() => import('./views/admin/update_team_name/UpdateTeamName'))
 const DeleteTeam = React.lazy(() => import('./views/admin/delete_team/DeleteTeam'))
 const DeleteGame = React.lazy(() => import('./views/admin/delete_game/DeleteGame'))
+const FlaggedGames = React.lazy(() => import('./views/admin/flagged_games/FlaggedGames'))
 
 // Base
 // const Accordion = React.lazy(() => import('./views/base/accordion/Accordion'))
@@ -144,6 +145,12 @@ const routes = [
   { path: '/admin/update_team_name', name: 'UpdateTeamName', element: UpdateTeamName, admin: true },
   { path: '/admin/delete_team', name: 'DeleteTeam', element: DeleteTeam, admin: true },
   { path: '/admin/delete_game', name: 'DeleteGame', element: DeleteGame, admin: true },
+  {
+    path: '/admin/flagged-games',
+    name: 'Flagged Game Issues',
+    element: FlaggedGames,
+    admin: true,
+  },
 ]
 
 export default routes

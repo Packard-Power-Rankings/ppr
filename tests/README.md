@@ -41,9 +41,10 @@ make test-frontend-archive
 make test-frontend-teams
 make test-lint
 make test-build
+make test-security
 ```
 
-These targets build and start the local Docker Compose stack when needed. Run `make help` for the complete command list.
+These targets build and start the local Docker Compose stack when needed. `make test-security` checks the pinned Python runtime requirements with `pip-audit` and production frontend packages with `npm audit`; it requires access to current advisory databases. Run `make help` for the complete command list.
 
 ## Application Smoke Test
 

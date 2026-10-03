@@ -65,11 +65,17 @@ services:
     init: true
     environment:
       PYTHONPATH: /app
+      APP_ENV: production
+      ENABLE_API_DOCS: ${ENABLE_API_DOCS:-false}
       MONGO_URI: mongodb://${MONGO_USER}:${MONGO_PASS}@db:27017/${MONGO_DB_NAME}?authSource=admin
       MONGO_MAX_POOL_SIZE: ${MONGO_MAX_POOL_SIZE:-50}
       REDIS_HOST: redis
       REDIS_PORT: "6379"
       REDIS_PASSWORD: ${REDIS_PASSWORD}
+      RANKING_DEBOUNCE_SECONDS: ${RANKING_DEBOUNCE_SECONDS:-600}
+      AUTO_RANKING_ITERATIONS: ${AUTO_RANKING_ITERATIONS:-1}
+      RANKING_TIMEZONE: ${RANKING_TIMEZONE:-America/Denver}
+      RANKING_JOB_GUARD_SECONDS: ${RANKING_JOB_GUARD_SECONDS:-3600}
       DOMAIN: ${DOMAIN}
       ROOT_PATH: /api
       CORS_ORIGINS: ${CORS_ORIGINS:?Set CORS_ORIGINS in .env/production}
@@ -112,6 +118,10 @@ services:
       - "8000"
       - --proxy-headers
       - --forwarded-allow-ips=*
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     logging: *default-logging
 
   arq_worker:
@@ -123,11 +133,16 @@ services:
     working_dir: /app
     environment:
       PYTHONPATH: /app
+      APP_ENV: production
       MONGO_URI: mongodb://${MONGO_USER}:${MONGO_PASS}@db:27017/${MONGO_DB_NAME}?authSource=admin
       MONGO_MAX_POOL_SIZE: ${MONGO_MAX_POOL_SIZE:-50}
       REDIS_HOST: redis
       REDIS_PORT: "6379"
       REDIS_PASSWORD: ${REDIS_PASSWORD}
+      RANKING_DEBOUNCE_SECONDS: ${RANKING_DEBOUNCE_SECONDS:-600}
+      AUTO_RANKING_ITERATIONS: ${AUTO_RANKING_ITERATIONS:-1}
+      RANKING_TIMEZONE: ${RANKING_TIMEZONE:-America/Denver}
+      RANKING_JOB_GUARD_SECONDS: ${RANKING_JOB_GUARD_SECONDS:-3600}
     networks:
       - app-network
     depends_on:
@@ -140,6 +155,10 @@ services:
     command:
       - arq
       - api.service.tasks.WorkerSettings
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     logging: *default-logging
 
   frontend:

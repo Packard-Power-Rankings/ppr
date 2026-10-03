@@ -94,6 +94,7 @@ async def record_execution(
     gender: str,
     level: str,
     iterations: int | None = None,
+    trigger: str = "manual",
 ) -> None:
     queued_at = _iso_timestamp()
     collection = _history_collection()
@@ -105,6 +106,7 @@ async def record_execution(
         "gender": gender,
         "level": level,
         "iterations": iterations,
+        "trigger": trigger,
         "status": "queued",
         "queued_at": queued_at,
         "started_at": None,

@@ -19,7 +19,7 @@ In AWS Lightsail:
 3. Create and attach a static IP to the instance.
 4. In the instance networking firewall, allow TCP `80` and `443` from all addresses.
 5. Keep TCP `22` restricted to your own IP whenever possible.
-6. Create an `A` record such as `rankings.example.com` pointing to the static IP.
+6. Create an `A` record such as `packardpowerrankings.com` pointing to the static IP.
 
 Wait for public DNS to resolve before starting the application. Caddy needs the domain to reach the instance on ports 80 and 443 before it can obtain a certificate.
 
@@ -47,7 +47,7 @@ The bootstrap installs Docker from Docker's official Ubuntu package repository, 
 Create the ignored production environment file with independent generated secrets:
 
 ```bash
-make lightsail-init DOMAIN=rankings.example.com
+make lightsail-init DOMAIN=packardpowerrankings.com
 ```
 
 The command uses `openssl rand -hex 32` for the MongoDB password, Redis password, setup token, and JWT signing key, and writes the file with owner-only permissions. To rotate a value later, generate a new URL-safe secret with:
@@ -56,12 +56,13 @@ The command uses `openssl rand -hex 32` for the MongoDB password, Redis password
 openssl rand -hex 32
 ```
 
-The generated domain settings for `rankings.example.com` are:
+The generated domain settings for `packardpowerrankings.com` are:
 
-````env
+```env
 DOMAIN=packardpowerrankings.com
 CORS_ORIGINS=packardpowerrankings.com/
 ALLOWED_HOSTS=packardpowerrankings.com/
+```
 
 Do not put `https://` in `DOMAIN` or `ALLOWED_HOSTS`. Passwords should use the documented hexadecimal format because `MONGO_PASS` is embedded in a MongoDB connection URI.
 
@@ -69,7 +70,7 @@ Validate the file and rendered Compose configuration without starting anything:
 
 ```bash
 make lightsail-check
-````
+```
 
 ## 4. Deploy
 

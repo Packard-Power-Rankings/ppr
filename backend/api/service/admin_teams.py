@@ -4,11 +4,12 @@
 
 import asyncio
 import binascii
+import logging
 import re
 from typing import Any, List, Dict, Tuple
-import traceback
 import base64
 from datetime import datetime, timezone
+from uuid import uuid4
 from fastapi import HTTPException, status, UploadFile
 from pymongo import UpdateOne
 from pymongo.errors import BulkWriteError, DuplicateKeyError
@@ -19,6 +20,7 @@ from api.service.game_ingestion import (
     canonical_game_identity,
     GameFileValidationError,
     GameRow,
+    MAX_GAME_FILE_BYTES,
     normalize_team_name,
     normalized_date,
     parse_game_csv,
@@ -27,7 +29,14 @@ from api.service.game_ingestion import (
 )
 from api.service.team_ingestion import parse_team_csv
 from api.service.upload_storage import delete_game_file, store_game_file
+from api.service.ranking_scheduler import (
+    mark_dataset_stale,
+    stale_ranking_update,
+)
 from api.utils.json_helper import query_params_builder
+
+
+logger = logging.getLogger(__name__)
 
 
 class AdminTeamsService():
@@ -85,7 +94,7 @@ class AdminTeamsService():
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Game file must be a CSV file",
             )
-        file_content = await csv_file.read()
+        file_content = await csv_file.read(MAX_GAME_FILE_BYTES + 1)
         return await self._ingest_games(
             sport_type,
             gender,
@@ -249,10 +258,12 @@ class AdminTeamsService():
                 game_documents[0]["game_date"],
                 now,
             )
-            await self.sports_collection.update_one(
+            stale_result = await mark_dataset_stale(
+                self.sports_collection,
                 {"_id": self.level_constant.get("_id")},
-                {"$set": {"rankings_stale": True}},
             )
+            if not stale_result.matched_count:
+                raise RuntimeError("Game dataset disappeared during import")
         except (BulkWriteError, DuplicateKeyError) as exc:
             await self.games_collection.delete_many({
                 **dataset_query,
@@ -380,7 +391,7 @@ class AdminTeamsService():
                     seen.add(normalized_name)
             return missing_teams
         except Exception as exc:
-            traceback.print_exc()
+            logger.exception("Failed to find missing teams for %s", self.level_key)
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An internal error has occurred."
@@ -795,6 +806,10 @@ class AdminTeamsService():
 
             old_home_score = float(canonical_game.get("home_score", 0))
             old_away_score = float(canonical_game.get("away_score", 0))
+            scores_changed = (
+                old_home_score != float(home_score)
+                or old_away_score != float(away_score)
+            )
             old_home_won = old_home_score > old_away_score
             new_home_won = home_score > away_score
 
@@ -831,23 +846,23 @@ class AdminTeamsService():
                         away_team_data.get("losses", 0) - 1
                     )
 
-            game_result = await self.games_collection.update_one(
-                {"_id": canonical_game["_id"]},
-                {"$set": {
-                    "home_score": home_score,
-                    "away_score": away_score,
-                    "updated_at": datetime.now(timezone.utc),
-                }},
-            )
-            if not game_result.matched_count:
-                raise RuntimeError("Canonical game disappeared during update")
-            if materialized_records:
+            if scores_changed:
+                game_result = await self.games_collection.update_one(
+                    {"_id": canonical_game["_id"]},
+                    {"$set": {
+                        "home_score": home_score,
+                        "away_score": away_score,
+                        "updated_at": datetime.now(timezone.utc),
+                    }},
+                )
+                if not game_result.matched_count:
+                    raise RuntimeError("Canonical game disappeared during update")
+                ranking_update = stale_ranking_update(
+                    extra_fields={"teams": teams} if materialized_records else None
+                )
                 sports_result = await self.sports_collection.update_one(
                     dataset_query,
-                    {"$set": {
-                        "teams": teams,
-                        "rankings_stale": True,
-                    }},
+                    ranking_update,
                 )
                 if not sports_result.matched_count:
                     raise RuntimeError(
@@ -861,8 +876,10 @@ class AdminTeamsService():
                 "status": status.HTTP_200_OK,
                 "updated": {
                     "game_id": canonical_id,
-                    "canonical_games": 1,
-                    "team_game_records": materialized_records,
+                    "canonical_games": 1 if scores_changed else 0,
+                    "team_game_records": (
+                        materialized_records if scores_changed else 0
+                    ),
                     "source_upload_changed": False,
                 }
             }
@@ -1300,6 +1317,16 @@ class AdminTeamsService():
 
         pipeline.extend([
             {"$addFields": {
+                "games_revision": {
+                    "$add": [{"$ifNull": ["$games_revision", 0]}, 1]
+                },
+                "ranked_revision": {
+                    "$add": [{"$ifNull": ["$games_revision", 0]}, 1]
+                },
+                "rankings_stale": False,
+                "ranking_status": "no_games",
+                "ranking_requested_at": None,
+                "ranking_error": None,
                 "teams": {
                     "$map": {
                         "input": "$teams",
@@ -1603,10 +1630,7 @@ class AdminTeamsService():
             if current_document:
                 await self.sports_collection.update_one(
                     {"_id": self.level_constant.get("_id")},
-                    {"$set": {
-                        "teams": teams,
-                        "rankings_stale": True,
-                    }},
+                    stale_ranking_update(extra_fields={"teams": teams}),
                 )
 
             return {
@@ -1775,10 +1799,7 @@ class AdminTeamsService():
 
             current_result = await self.sports_collection.update_one(
                 dataset_query,
-                {"$set": {
-                    "teams": current_teams,
-                    "rankings_stale": True,
-                }}
+                stale_ranking_update(extra_fields={"teams": current_teams}),
             )
             if not current_result.matched_count:
                 raise RuntimeError("Team dataset disappeared during deletion")
@@ -1830,29 +1851,66 @@ class AdminTeamsService():
         self,
         game_id: str,
         team1_id: int,
-        team1_name: str,
         team2_id: int,
-        team2_name: str
+        description: str,
     ):
-        query = {
+        dataset_query = {
             "sport_type": self.level_key[0],
             "gender": self.level_key[1],
             "level": self.level_key[2]
         }
-        response = await self.flagged_games.update_one(
-            query,
-            {"$push": {"flagged_games": {
-                'game_id': game_id,
-                'team1_id': team1_id,
-                'team1_name': team1_name,
-                'team2_id': team2_id,
-                'team2_name': team2_name
-            }}}
+        game = await self.games_collection.find_one({
+            **dataset_query,
+            "game_id": game_id,
+            "$or": [
+                {"home_team_id": team1_id, "away_team_id": team2_id},
+                {"home_team_id": team2_id, "away_team_id": team1_id},
+            ],
+        })
+        if not game:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="The game could not be found in the selected dataset",
+            )
+
+        flagged_game = {
+            "issue_id": uuid4().hex,
+            "game_id": game["game_id"],
+            "team1_id": game["home_team_id"],
+            "team1_name": game["home_team"],
+            "team2_id": game["away_team_id"],
+            "team2_name": game["away_team"],
+            "description": description,
+            "reported_at": datetime.now(timezone.utc),
+            "status": "open",
+        }
+        await self.flagged_games.update_one(
+            dataset_query,
+            {"$setOnInsert": {**dataset_query, "flagged_games": []}},
+            upsert=True,
         )
+        response = await self.flagged_games.update_one(
+            {
+                **dataset_query,
+                "flagged_games": {
+                    "$not": {
+                        "$elemMatch": {
+                            "game_id": game_id,
+                            "status": {"$ne": "resolved"},
+                        }
+                    }
+                },
+            },
+            {"$push": {"flagged_games": flagged_game}},
+        )
+        was_added = bool(response.modified_count)
         return {
-            'message': "Team was successfully reported" if response.modified_count else "Error marking game",
-            "game_flagged": 1 if response.modified_count else 0,
-            "status": 200   # Need to update this
+            "message": (
+                "Game was successfully reported"
+                if was_added else "Game has already been reported"
+            ),
+            "game_flagged": 1,
+            "status": status.HTTP_200_OK,
         }
 
     async def clear_flagged_games(self):
@@ -1889,12 +1947,16 @@ class AdminTeamsService():
         self,
         game_id: str
     ):
-        print(game_id)
         query = {
             "sport_type": self.level_key[0],
             "gender": self.level_key[1],
             "level": self.level_key[2],
-            "flagged_games.game_id": game_id
+            "flagged_games": {
+                "$elemMatch": {
+                    "game_id": game_id,
+                    "status": {"$ne": "resolved"},
+                }
+            },
         }
         response = await self.flagged_games.find_one(
             query

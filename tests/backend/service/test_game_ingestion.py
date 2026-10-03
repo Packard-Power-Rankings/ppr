@@ -143,6 +143,13 @@ async def test_ingestion_resolves_known_teams_and_stores_validated_games(
     assert stored_file.read_text() == (
         "2026-01-15,Central High,Lincoln High,72,68,0\n"
     )
+    ranking_query, ranking_update = (
+        service.sports_collection.update_one.await_args.args
+    )
+    assert ranking_query == {"_id": service.level_constant["_id"]}
+    assert ranking_update["$inc"] == {"games_revision": 1}
+    assert ranking_update["$set"]["rankings_stale"] is True
+    assert ranking_update["$set"]["ranking_status"] == "stale"
 
 
 @pytest.mark.asyncio

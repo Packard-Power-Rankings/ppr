@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
     CContainer,
     CRow,
@@ -23,19 +23,12 @@ const DeleteGame = () => {
     const [gameDate, setGameDate] = useState(null);
     const [gameWaiting, setGameWaiting] = useState(false);
 
-    useEffect(() => {
-        handleTeamsOptions();
-    }, []);
-
-    const handleTeamsOptions = async () => {
+    const handleTeamsOptions = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await api.get(
-                `/teams-ids/?sport_type=${sport}&gender=${gender}&level=${level}`,
-                {
-                    headers: { "Content-Type": "application/json" }
-                }
-            );
+            const response = await api.get('/teams-ids/', {
+                params: { sport_type: sport, gender, level },
+            });
             const teamsArray = response.data.data.teams;
             setTeamsOptions(teamsArray.map(item => ({
                 value: item.team_id,
@@ -46,7 +39,15 @@ const DeleteGame = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [gender, level, sport]);
+
+    useEffect(() => {
+        setTeamOne(null);
+        setTeamTwo(null);
+        setGameDate(null);
+        setGameData([]);
+        handleTeamsOptions();
+    }, [handleTeamsOptions]);
 
     const handleGameDate = async () => {
         if (!teamOne || !teamTwo) return;

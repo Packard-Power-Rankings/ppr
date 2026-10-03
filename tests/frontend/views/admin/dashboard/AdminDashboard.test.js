@@ -69,6 +69,7 @@ test('renders the dashboard links and season group', () => {
     ['Export Teams', '/admin/export_teams'],
     ['Ranking', '/admin/ranking'],
     ['Z-Score', '/admin/z_scores'],
+    ['Resolve Flagged Issues', '/admin/flagged-games'],
     ['Update Game', '/admin/update_game'],
     ['Update Team', '/admin/update_team'],
     ['Delete Game', '/admin/delete_game'],

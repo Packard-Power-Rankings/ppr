@@ -9,6 +9,7 @@ LIGHTSAIL_COMPOSE = docker compose --env-file $(LIGHTSAIL_ENV) -f docker-compose
 .PHONY: help app-up app-down app-logs test test-check test-backend \
 	test-backend-service test-backend-algorithm test-frontend test-frontend-app \
 	test-frontend-admin test-frontend-archive test-frontend-teams test-lint test-build test-app \
+	test-security \
 	test-app-reset test-app-maintenance test-admin-reset \
 	team-id-migration-check team-id-migration-apply \
 	lightsail-init lightsail-check lightsail-up lightsail-down lightsail-restart \
@@ -32,6 +33,7 @@ help:
 	@echo "  make test-frontend-teams     Run public team page tests"
 	@echo "  make test-lint               Run frontend lint checks"
 	@echo "  make test-build              Create the frontend production build"
+	@echo "  make test-security           Audit runtime dependencies"
 	@echo "  make test-app                Run the happy-path application smoke test"
 	@echo "  make test-app-reset          Replace all local app data with full fixtures"
 	@echo "  make test-app-maintenance    Run destructive maintenance endpoint checks"
@@ -54,7 +56,7 @@ help:
 	@echo "Reset and maintenance targets require an explicit confirmation variable."
 
 app-up:
-	$(APP_COMPOSE) up -d --build
+	$(APP_COMPOSE) up -d --build --wait --wait-timeout 120
 
 app-down:
 	$(APP_COMPOSE) down
@@ -98,6 +100,10 @@ test-lint: app-up
 
 test-build: app-up
 	$(APP_COMPOSE) exec -T frontend npm run build
+
+test-security: app-up
+	$(APP_COMPOSE) exec -T backend pip-audit -r requirements.txt
+	$(APP_COMPOSE) exec -T frontend npm audit --omit=dev --audit-level=high
 
 test-app: app-up
 	APP_ENV="$(APP_ENV)" ./tests/application/application_smoke_test.sh

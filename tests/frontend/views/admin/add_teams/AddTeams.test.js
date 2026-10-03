@@ -94,7 +94,8 @@ test('adds one team with all CSV fields through the manual form', async () => {
   expect(api.get).toHaveBeenCalledWith('/teams-ids/', {
     params: { sport_type: 'basketball', gender: 'womens', level: 'college' },
   })
-  await user.selectOptions(screen.getByLabelText('State'), 'Alaska')
+  expect(screen.getByRole('option', { name: 'British Columbia' })).toBeInTheDocument()
+  await user.selectOptions(screen.getByLabelText('State'), 'British Columbia')
   await user.type(screen.getByLabelText('Short Name'), 'North Alaska')
   await user.type(screen.getByLabelText('Long Name'), 'University of North Alaska')
   await user.type(screen.getByLabelText('Division'), 'NCAA 2')
@@ -105,7 +106,7 @@ test('adds one team with all CSV fields through the manual form', async () => {
     '/add_teams/?sport_type=basketball&gender=womens&level=college',
     [{
       team_id: 1003,
-      state: 'Alaska',
+      state: 'British Columbia',
       short_name: 'North Alaska',
       long_name: 'University of North Alaska',
       division: 'NCAA 2',

@@ -1,30 +1,22 @@
-import api, { setAuthHeader } from "src/api";
+import api from "src/api";
 import { store } from "src/store";
 
-const removeToken = () => {
-    setAuthHeader(null);
+const clearSession = () => {
     store.dispatch({ type: "logout" });
 };
 
 export const checkAuthentication = async () => {
-    const token = localStorage.getItem("access_token");
-    if (!token) {
-        removeToken();
-        return false;
-    }
-    setAuthHeader(token);
-
     try {
         const response = await api.get("/validate-token/");
         if (response.data.status === "valid") {
             store.dispatch({ type: "login" });
             return true;
         }
-        removeToken();
+        clearSession();
         return false;
     } catch (error) {
         console.error("Authentication check failed", error);
-        removeToken();
+        clearSession();
         return false;
     }
 };
@@ -37,7 +29,7 @@ export const loginUser = async (credentials) => {
         formData.append('username', credentials.username);
         formData.append('password', credentials.password);
 
-        const { data } = await api.post(
+        await api.post(
             '/token/',
             formData,
             {
@@ -46,7 +38,6 @@ export const loginUser = async (credentials) => {
                 }
             }
         );
-        setAuthHeader(data.access_token);
         store.dispatch({ type: 'login' });
         return true;
     } catch (error) {
@@ -61,7 +52,7 @@ export const logoutUser = async () => {
     } catch (error) {
         console.error("Logout Failed", error);
     } finally {
-        removeToken();
+        clearSession();
     }
     return true;
 };

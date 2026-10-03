@@ -240,16 +240,56 @@ class LogoutResponse(BaseModel):
 
 
 class SetupAdminRequest(BaseModel):
-    username: str
-    password: str
+    username: str = Field(
+        ...,
+        min_length=3,
+        max_length=64,
+        pattern=r"^[A-Za-z0-9_.-]+$",
+    )
+    password: str = Field(..., min_length=12, max_length=72)
+
+    @field_validator("username", "password")
+    @classmethod
+    def strip_admin_credentials(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("value cannot be blank")
+        return value
+
+    @field_validator("password")
+    @classmethod
+    def enforce_bcrypt_byte_limit(cls, value: str) -> str:
+        if len(value.encode("utf-8")) > 72:
+            raise ValueError("password cannot exceed 72 UTF-8 bytes")
+        return value
 
 
 class FlaggedGame(BaseModel):
-    game_id: str
-    team1_id: int
-    team1_name: str
-    team2_id: int
-    team2_name: str
+    game_id: str = Field(..., min_length=1, max_length=200)
+    team1_id: int = Field(..., gt=0)
+    team1_name: str = Field(..., min_length=1, max_length=200)
+    team2_id: int = Field(..., gt=0)
+    team2_name: str = Field(..., min_length=1, max_length=200)
+    description: str = Field(..., min_length=5, max_length=1000)
+
+    @field_validator("game_id", "team1_name", "team2_name")
+    @classmethod
+    def strip_flagged_game_text(cls, value: str) -> str:
+        return " ".join(value.split())
+
+    @field_validator("description")
+    @classmethod
+    def strip_issue_description(cls, value: str) -> str:
+        description = value.strip()
+        if len(description) < 5:
+            raise ValueError("description must contain at least 5 characters")
+        return description
+
+    @model_validator(mode="after")
+    def teams_must_be_different(self):
+        if self.team1_id == self.team2_id:
+            raise ValueError("flagged game teams must be different")
+        return self
 
 
 class NewTeamData(BaseModel):

@@ -37,6 +37,7 @@ test('loads persisted algorithm history when Ranking opens', async () => {
         gender: 'womens',
         level: 'college',
         iterations: 4,
+        trigger: 'automatic',
         status: 'complete',
       }, {
         task_id: 'other-dataset-run',
@@ -58,6 +59,8 @@ test('loads persisted algorithm history when Ranking opens', async () => {
   expect(await screen.findByText('College Womens Basketball')).toBeInTheDocument()
   expect(screen.queryByText('High School Mens Football')).not.toBeInTheDocument()
   expect(screen.getByRole('columnheader', { name: 'Elapsed Time' })).toBeInTheDocument()
+  expect(screen.getByRole('columnheader', { name: 'Source' })).toBeInTheDocument()
+  expect(screen.getByText('Automatic')).toBeInTheDocument()
   expect(screen.getByText('1H 5M 6S')).toBeInTheDocument()
   expect(screen.getByRole('img', { name: 'Successfully completed' }).closest('.text-success'))
     .toBeInTheDocument()
@@ -142,10 +145,10 @@ test('refreshes start time, finish time, and latest status for an execution', as
 
   const row = screen.getByRole('row', { name: /College Womens Basketball/ })
   const cells = within(row).getAllByRole('cell')
-  expect(cells[3]).not.toHaveTextContent('N/A')
   expect(cells[4]).not.toHaveTextContent('N/A')
-  expect(cells[5]).toHaveTextContent('0H 0M 11S')
-  expect(cells[6]).toHaveTextContent('Complete')
+  expect(cells[5]).not.toHaveTextContent('N/A')
+  expect(cells[6]).toHaveTextContent('0H 0M 11S')
+  expect(cells[7]).toHaveTextContent('Complete')
   expect(screen.getByText('Last 5 Execution History')).toBeInTheDocument()
 })
 

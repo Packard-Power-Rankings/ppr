@@ -6,6 +6,7 @@ from api.database import (
     DATASET_INDEX_NAME,
     EXECUTION_HISTORY_INDEX_NAME,
     GAME_DATE_INDEX_NAME,
+    GAME_ID_INDEX_NAME,
     GAME_IDENTITY_INDEX_NAME,
     ensure_database_indexes,
 )
@@ -48,7 +49,11 @@ async def test_ensure_database_indexes_matches_application_queries():
 
     assert created == {
         **{name: [DATASET_INDEX_NAME] for name in DATASET_COLLECTIONS},
-        "games": [GAME_IDENTITY_INDEX_NAME, GAME_DATE_INDEX_NAME],
+        "games": [
+            GAME_IDENTITY_INDEX_NAME,
+            GAME_DATE_INDEX_NAME,
+            GAME_ID_INDEX_NAME,
+        ],
         "admin": [ADMIN_USERNAME_INDEX_NAME],
         "execution_history": [EXECUTION_HISTORY_INDEX_NAME],
     }
@@ -77,6 +82,8 @@ async def test_ensure_database_indexes_matches_application_queries():
     assert game_indexes[0]["unique"] is True
     assert list(game_indexes[1]["key"].items())[-1] == ("game_date", 1)
     assert "unique" not in game_indexes[1]
+    assert list(game_indexes[2]["key"].items())[-1] == ("game_id", 1)
+    assert "unique" not in game_indexes[2]
 
     admin_index = admin_db.collections["admin"].indexes[0].document
     assert list(admin_index["key"].items()) == [("username", 1)]

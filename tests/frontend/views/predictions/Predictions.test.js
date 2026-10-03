@@ -25,9 +25,10 @@ test('uses dropdowns for sport, gender, and level and identifies Team 1 as home'
   expect(sportSelect).toHaveValue('basketball')
   expect(genderSelect).toHaveValue('womens')
   expect(levelSelect).toHaveValue('college')
-  expect(
-    screen.getByRole('checkbox', {
-      name: 'Apply home-field advantage to Team 1 (home team)',
-    }),
-  ).not.toBeChecked()
+  const homeFieldAdvantage = screen.getByRole('checkbox', {
+    name: 'Apply home-field advantage to Team 1 (home team)',
+  })
+  expect(homeFieldAdvantage).toBeChecked()
+  fireEvent.click(homeFieldAdvantage)
+  expect(homeFieldAdvantage).not.toBeChecked()
 })

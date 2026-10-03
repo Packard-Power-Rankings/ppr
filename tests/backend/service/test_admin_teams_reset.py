@@ -60,6 +60,12 @@ async def test_reset_all_sports_does_not_copy_data_to_previous_season():
     assert not any("$out" in stage for stage in reset_pipeline)
     assert not any("$match" in stage for stage in reset_pipeline)
     assert reset_pipeline[-1]["$merge"]["into"] == "temp2"
+    reset_document = reset_pipeline[0]["$addFields"]
+    assert reset_document["rankings_stale"] is False
+    assert reset_document["ranking_status"] == "no_games"
+    assert reset_document["games_revision"] == {
+        "$add": [{"$ifNull": ["$games_revision", 0]}, 1]
+    }
     reset_values = reset_pipeline[0]["$addFields"]["teams"]["$map"]["in"][
         "$mergeObjects"
     ][1]
@@ -127,6 +133,8 @@ async def test_selected_season_reset_remains_scoped_to_its_dataset():
             [],
         ]
     }
+    assert reset_pipeline[1]["$addFields"]["rankings_stale"] is False
+    assert reset_pipeline[1]["$addFields"]["ranking_status"] == "no_games"
     assert response["archive_unchanged"] is True
     assert response["teams_reset"] is True
     assert response["games_deleted"] == 10

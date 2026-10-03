@@ -26,6 +26,7 @@ const ADMIN_TOOLS = [
   { group: 'Team', label: 'Export Teams', to: '/admin/export_teams' },
   { group: 'Other', label: 'Ranking', to: '/admin/ranking' },
   { group: 'Other', label: 'Z-Score', to: '/admin/z_scores' },
+  { group: 'Other', label: 'Resolve Flagged Issues', to: '/admin/flagged-games' },
   { group: 'Game', label: 'Update Game', to: '/admin/update_game' },
   { group: 'Team', label: 'Update Team', to: '/admin/update_team' },
   { group: 'Game', label: 'Delete Game', to: '/admin/delete_game' },

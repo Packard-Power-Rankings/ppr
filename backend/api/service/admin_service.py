@@ -1,17 +1,4 @@
-"""Admin service class that creates a single admin,
-    generates password hash and stores in database, checks
-    if password is correct, and generates an access token
-
-    Raises:
-        HTTPException: 401 Unauthorized Access
-        HTTPException: 500 Server Error
-        HTTPException: 404 Not Found
-        HTTPException: 400 Bad Request
-        credentials_exception: 401 Unauthorized Access
-
-    Returns:
-        None
-"""
+"""Authentication and single-admin account operations."""
 
 import os
 from typing import Optional
@@ -21,15 +8,35 @@ from fastapi.security import OAuth2PasswordRequestForm
 import bcrypt
 import jwt
 from jwt.exceptions import InvalidTokenError, ExpiredSignatureError
+from api.config.settings import is_production, required_secret
 from api.database import admin_database as database
 from api.schemas.items import TokenData, Token, LogoutResponse
 
 ACCESS_TOKEN_TIME = 60.0
 ALGORITHM = "HS256"
+AUTH_COOKIE_NAME = "ppr_admin_session"
+MAX_PASSWORD_BYTES = 72
 admin = database.get_collection('admin')
+_DUMMY_PASSWORD_HASH = bcrypt.hashpw(
+    b"invalid-password-used-for-timing-only",
+    bcrypt.gensalt(),
+).decode("utf-8")
 
 
-class AdminServices():
+def _credentials_exception(detail: str = "Could not validate credentials"):
+    return HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail=detail,
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+
+def _auth_cookie_path() -> str:
+    root_path = os.getenv("ROOT_PATH", "").strip().rstrip("/")
+    return f"{root_path}/" if root_path else "/"
+
+
+class AdminServices:
     def __init__(self):
         """Initializes the collection from the database
         """
@@ -51,29 +58,23 @@ class AdminServices():
             str: The id returned from the insertion into the
             database
         """
-        try:
-            existing_admin = await self.admin_collection.find_one({})
-            if existing_admin:
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Admin Already Exists"
-                )
-            hashed_pass = self.hashed_password(password)
-            new_admin = {
-                "username": username,
-                "password": hashed_pass
-            }
-            result = await self.admin_collection.insert_one(new_admin)
-            return str(result.inserted_id)
-        except Exception as exc:
+        existing_admin = await self.admin_collection.find_one({})
+        if existing_admin:
             raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Error has occurred"
-            ) from exc
+                status_code=status.HTTP_409_CONFLICT,
+                detail="An admin account already exists",
+            )
+        new_admin = {
+            "username": username,
+            "password": self.hashed_password(password),
+        }
+        result = await self.admin_collection.insert_one(new_admin)
+        return str(result.inserted_id)
 
     async def login(
         self,
-        form_data: OAuth2PasswordRequestForm
+        form_data: OAuth2PasswordRequestForm,
+        response: Response,
     ) -> Token:
         """Verifies the admin username and the password are
         correct
@@ -88,12 +89,28 @@ class AdminServices():
             form_data.username,
             form_data.password
         )
+        response.set_cookie(
+            key=AUTH_COOKIE_NAME,
+            value=access_token,
+            max_age=int(ACCESS_TOKEN_TIME * 60),
+            httponly=True,
+            secure=is_production(),
+            samesite="strict",
+            path=_auth_cookie_path(),
+        )
         return Token(access_token=access_token, token_type="bearer")
 
     async def logout(
         self,
         response: Response
     ) -> LogoutResponse:
+        response.delete_cookie(
+            AUTH_COOKIE_NAME,
+            path=_auth_cookie_path(),
+            secure=is_production(),
+            httponly=True,
+            samesite="strict",
+        )
         return LogoutResponse(message="Logout Successful")
 
     @staticmethod
@@ -125,21 +142,19 @@ class AdminServices():
         Returns:
             str: A generated JWT access token
         """
-        admin = await self.admin_collection.find_one({"username": username})
-        if not admin:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Admin not found"
-            )
+        admin_record = None
+        if 1 <= len(username) <= 64:
+            admin_record = await self.admin_collection.find_one({"username": username})
 
-        hash_pass = admin["password"]
-        # admin_username = admin['username']
-        if self.check_password(password, hash_pass):
-            return self.generate_access_token({"sub": username}, None)
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid Password or Username"
+        stored_hash = (
+            admin_record.get("password")
+            if admin_record and isinstance(admin_record.get("password"), str)
+            else _DUMMY_PASSWORD_HASH
         )
+        password_matches = self.check_password(password, stored_hash)
+        if admin_record and password_matches:
+            return self.generate_access_token({"sub": username}, None)
+        raise _credentials_exception("Invalid username or password")
 
     async def get_current_user(
         self,
@@ -157,16 +172,14 @@ class AdminServices():
         Returns:
             TokenData: Returns token data
         """
-        credentials_exception = HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
-            headers={"WWW-Authenticate": "Bearer"}
-        )
+        credentials_exception = _credentials_exception()
 
         auth_header = request.headers.get("Authorization")
         token = None
         if auth_header and auth_header.startswith("Bearer "):
             token = auth_header.split(" ", 1)[1].strip()
+        if not token:
+            token = request.cookies.get(AUTH_COOKIE_NAME)
 
         if not token:
             raise credentials_exception
@@ -174,11 +187,17 @@ class AdminServices():
         try:
             payload = jwt.decode(
                 token,
-                os.getenv("SECRET_KEY"),
+                required_secret("SECRET_KEY"),
                 algorithms=[ALGORITHM]
             )
             username: str = payload.get('sub')
             if username is None:
+                raise credentials_exception
+            current_admin = await self.admin_collection.find_one(
+                {"username": username},
+                {"_id": 1},
+            )
+            if not current_admin:
                 raise credentials_exception
             return TokenData(username=username)
 
@@ -216,7 +235,7 @@ class AdminServices():
         to_encode.update({'iat': datetime.now(timezone.utc)})
         encode_jwt = jwt.encode(
             to_encode,
-            os.getenv('SECRET_KEY'),
+            required_secret("SECRET_KEY"),
             algorithm=ALGORITHM
         )
         return encode_jwt
@@ -241,9 +260,12 @@ class AdminServices():
         Returns:
             str: The hashed password
         """
+        encoded_password = password.encode("utf-8")
+        if len(encoded_password) > MAX_PASSWORD_BYTES:
+            raise ValueError("Password cannot exceed 72 UTF-8 bytes")
         salt = bcrypt.gensalt()
         return bcrypt.hashpw(
-            password=password.encode('utf-8'),
+            password=encoded_password,
             salt=salt
         ).decode('utf-8')
 
@@ -259,7 +281,13 @@ class AdminServices():
         Returns:
             bool: Whether they are matched or not
         """
-        return bcrypt.checkpw(
-            submitted_pass.encode("utf-8"),
-            hashed_pass.encode('utf-8')
-        )
+        try:
+            encoded_password = submitted_pass.encode("utf-8")
+            if len(encoded_password) > MAX_PASSWORD_BYTES:
+                return False
+            return bcrypt.checkpw(
+                encoded_password,
+                hashed_pass.encode('utf-8')
+            )
+        except (TypeError, ValueError):
+            return False

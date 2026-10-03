@@ -6,7 +6,6 @@ import {
 } from '@coreui/react'
 import { useSelector } from 'react-redux'
 import api from 'src/api'
-import { formatDisplayName } from 'src/utils/displayNames'
 
 const TEAM_EXPORT_COLUMNS = [
   ['team_id', 'Team ID'],

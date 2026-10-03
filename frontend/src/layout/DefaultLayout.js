@@ -9,13 +9,14 @@ const DefaultLayout = () => {
 
   const isAdminLocation = location.pathname.startsWith('/admin');
   const isAdminDashboard = ['/admin', '/admin/'].includes(location.pathname);
+  const isFlaggedGamesPage = location.pathname === '/admin/flagged-games';
 
   return (
     <div>
       <AppSidebar />
       <div className="wrapper d-flex flex-column min-vh-100">
         <AppHeader />
-        {isAdmin && isAdminLocation && !isAdminDashboard && <AdminHeader />}
+        {isAdmin && isAdminLocation && !isAdminDashboard && !isFlaggedGamesPage && <AdminHeader />}
         <div className="body flex-grow-1">
           <AppContent />
         </div>

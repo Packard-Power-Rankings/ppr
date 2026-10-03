@@ -34,6 +34,12 @@ const statusMapping = {
     not_found: "Not Found",
 };
 
+const triggerMapping = {
+    automatic: 'Automatic',
+    manual: 'Manual',
+    weekly: 'Weekly',
+};
+
 
 const formatDate = (dateString) => {
     if (!dateString || dateString === "N/A") return "N/A";
@@ -169,6 +175,7 @@ const CalculateValues = ({ view = 'ranking' }) => {
                     enqueueTime: formatDate(record.queued_at),
                     process: datasetName,
                     runs: record.iterations,
+                    trigger: triggerMapping[record.trigger] || 'Manual',
                     startTime: formatDate(record.started_at),
                     finishTime: formatDate(record.finished_at),
                     elapsedTime: formatElapsedTime(record.started_at, record.finished_at),
@@ -282,6 +289,7 @@ const CalculateValues = ({ view = 'ranking' }) => {
                             <CTableHeaderCell scope="col">Enqueue Time</CTableHeaderCell>
                             <CTableHeaderCell scope="col">Name</CTableHeaderCell>
                             <CTableHeaderCell scope="col">Runs</CTableHeaderCell>
+                            <CTableHeaderCell scope="col">Source</CTableHeaderCell>
                             <CTableHeaderCell scope="col">Start Time</CTableHeaderCell>
                             <CTableHeaderCell scope="col">Finish Time</CTableHeaderCell>
                             <CTableHeaderCell scope="col">Elapsed Time</CTableHeaderCell>
@@ -294,6 +302,7 @@ const CalculateValues = ({ view = 'ranking' }) => {
                                 <CTableDataCell>{task.enqueueTime}</CTableDataCell>
                                 <CTableDataCell>{task.process}</CTableDataCell>
                                 <CTableDataCell>{task.runs}</CTableDataCell>
+                                <CTableDataCell>{task.trigger}</CTableDataCell>
                                 <CTableDataCell>{task.startTime}</CTableDataCell>
                                 <CTableDataCell>{task.finishTime}</CTableDataCell>
                                 <CTableDataCell>{task.elapsedTime}</CTableDataCell>

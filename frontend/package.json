@@ -69,8 +69,8 @@
     "web-vitals": "^4.2.4"
   },
   "engines": {
-    "node": ">=10",
-    "npm": ">=6"
+    "node": ">=20",
+    "npm": ">=10"
   },
   "jest": {
     "testMatch": [

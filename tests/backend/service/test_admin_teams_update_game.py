@@ -18,6 +18,8 @@ class FakeCollection:
             return SimpleNamespace(matched_count=0, modified_count=0)
         for key, value in update.get("$set", {}).items():
             self.document[key] = value
+        for key, value in update.get("$inc", {}).items():
+            self.document[key] = self.document.get(key, 0) + value
         return SimpleNamespace(matched_count=1, modified_count=1)
 
 
@@ -131,6 +133,9 @@ async def test_update_game_updates_canonical_and_materialized_records():
 
     assert service.games_collection.document["home_score"] == 60
     assert service.games_collection.document["away_score"] == 70
+    assert service.sports_collection.document["rankings_stale"] is True
+    assert service.sports_collection.document["ranking_status"] == "stale"
+    assert service.sports_collection.document["games_revision"] == 1
     assert response["updated"] == {
         "game_id": game_id,
         "canonical_games": 1,

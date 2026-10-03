@@ -1,5 +1,6 @@
 import React from 'react'
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import api from 'src/api'
 import Team from 'src/views/team/Team'
@@ -195,6 +196,44 @@ test('shows short name and long name in the card title when both are present', a
   })).toBeInTheDocument()
 })
 
+test('shows only the short name in the card title when names are identical', async () => {
+  api.get.mockResolvedValue({
+    data: {
+      data: {
+        teams: {
+          team_id: 1,
+          team_name: 'CMU',
+          short_name: 'CMU',
+          long_name: 'CMU',
+          overall_rank: 1,
+          division_rank: 1,
+          power_ranking: [],
+          wins: 0,
+          losses: 0,
+          season_opp: [],
+        },
+      },
+    },
+  })
+
+  render(
+    <MemoryRouter initialEntries={['/team/CMU/basketball/mens/college']}>
+      <Routes>
+        <Route path="/team/:team_name/:sport/:gender/:level" element={<Team />} />
+      </Routes>
+    </MemoryRouter>,
+  )
+
+  expect(await screen.findByRole('heading', {
+    name: 'CMU',
+    level: 3,
+  })).toBeInTheDocument()
+  expect(screen.queryByRole('heading', {
+    name: 'CMU - CMU',
+    level: 3,
+  })).not.toBeInTheDocument()
+})
+
 test('falls back to the team name when short and long names are unavailable', async () => {
   api.get.mockResolvedValue({
     data: {
@@ -224,4 +263,77 @@ test('falls back to the team name when short and long names are unavailable', as
     name: 'Northstar Academy',
     level: 3,
   })).toBeInTheDocument()
+})
+
+test('collects an issue description before reporting a game', async () => {
+  const user = userEvent.setup()
+  api.get
+    .mockResolvedValueOnce({
+      data: {
+        data: {
+          teams: {
+            team_id: 12,
+            team_name: 'Northstar Academy',
+            overall_rank: 2,
+            division_rank: 1,
+            power_ranking: [],
+            wins: 1,
+            losses: 0,
+            season_opp: [{
+              game_id: 'game-12-30',
+              opponent_id: 30,
+              opponent_name: 'Ridgeview',
+              game_date: '2026-09-12',
+              home_team: 1,
+              home_score: 67,
+              away_score: 62,
+              home_z_score: 1.2,
+              away_z_score: -1.2,
+            }],
+          },
+        },
+      },
+    })
+    .mockResolvedValueOnce({ data: { game_flagged: 0, message: 'Adding game' } })
+  api.post.mockResolvedValue({
+    data: { game_flagged: 1, message: 'Game issue submitted for review' },
+  })
+
+  render(
+    <MemoryRouter initialEntries={['/team/Northstar%20Academy/basketball/mens/high_school']}>
+      <Routes>
+        <Route path="/team/:team_name/:sport/:gender/:level" element={<Team />} />
+      </Routes>
+    </MemoryRouter>,
+  )
+
+  await user.click(await screen.findByRole('button', {
+    name: 'Report issue for game against Ridgeview',
+  }))
+
+  const dialog = await screen.findByRole('dialog')
+  const submit = within(dialog).getByRole('button', { name: 'Report Issue' })
+  expect(submit).toBeDisabled()
+
+  fireEvent.change(within(dialog).getByLabelText(
+    'Describe the issue and include a source link for verification, if available',
+  ), {
+    target: { value: 'The home and away scores are reversed.' },
+  })
+  expect(submit).toBeEnabled()
+  await user.click(submit)
+
+  await waitFor(() => expect(api.post).toHaveBeenCalledWith(
+    '/flagged-game/?sport_type=basketball&gender=mens&level=high_school',
+    {
+      game_id: 'game-12-30',
+      team1_id: 12,
+      team1_name: 'Northstar Academy',
+      team2_id: 30,
+      team2_name: 'Ridgeview',
+      description: 'The home and away scores are reversed.',
+    },
+    { headers: { 'Content-Type': 'application/json' } },
+  ))
+  expect(await screen.findByText('Game issue submitted for review')).toBeInTheDocument()
 })

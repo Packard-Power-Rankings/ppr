@@ -195,11 +195,15 @@ const flaggedDocuments = fixtureSpec.datasets.map((dataset) => {
     gender: dataset.gender,
     level: dataset.level,
     flagged_games: [{
+      issue_id: `fixture-${dataset.sport_type}-${dataset.gender}-${dataset.level}`,
       game_id: `${homeId}_${awayId}_${date}`,
       team1_id: homeId,
       team1_name: dataset.team_names[homeId - 1],
       team2_id: awayId,
-      team2_name: dataset.team_names[awayId - 1]
+      team2_name: dataset.team_names[awayId - 1],
+      description: "Fixture report for testing the admin issue review workflow.",
+      reported_at: new Date(`${fixtureSpec.season_year}-01-02T00:00:00Z`),
+      status: "open"
     }]
   };
 });

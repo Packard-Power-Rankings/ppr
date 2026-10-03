@@ -13,6 +13,8 @@ TEAM_DATA_COLUMNS = (
     "conference",
     "ranked",
 )
+MAX_TEAM_FILE_BYTES = 2 * 1024 * 1024
+MAX_TEAM_ROWS = 10_000
 
 
 class TeamFileValidationError(ValueError):
@@ -25,6 +27,8 @@ class TeamFileValidationError(ValueError):
 
 def parse_team_csv(content: bytes) -> list[dict[str, Any]]:
     """Parse team rows by header name, independent of column order."""
+    if len(content) > MAX_TEAM_FILE_BYTES:
+        raise TeamFileValidationError(["Team file must be 2 MB or smaller."])
     try:
         text = content.decode("utf-8-sig")
     except UnicodeDecodeError as exc:
@@ -66,6 +70,10 @@ def parse_team_csv(content: bytes) -> list[dict[str, Any]]:
     for row_number, row in enumerate(reader, start=2):
         if not row or not any(value.strip() for value in row):
             continue
+        if len(teams) >= MAX_TEAM_ROWS:
+            raise TeamFileValidationError([
+                f"Team file cannot contain more than {MAX_TEAM_ROWS} teams."
+            ])
         if len(row) != len(headers):
             errors.append(
                 f"Row {row_number}: expected {len(headers)} columns, found {len(row)}."

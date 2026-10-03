@@ -2,22 +2,13 @@
 
     Raises:
         HTTPException: 500_INTERNAL_SERVER_ERROR
-        HTTPException: 500_INTERNAL_SERVER_ERROR
-        HTTPException: 500_INTERNAL_SERVER_ERROR
-        HTTPException: 500_INTERNAL_SERVER_ERROR
-        HTTPException: 500_INTERNAL_SERVER_ERROR
-        HTTPException: 500_INTERNAL_SERVER_ERROR
 """
-
 
 from __future__ import annotations
 import os
-import traceback
+import secrets
 from uuid import uuid4
 from typing import Tuple, List, Dict
-# from celery.result import AsyncResult
-# from celery import states
-from arq.connections import create_pool
 from arq.jobs import Job, JobStatus
 from bson import ObjectId
 from fastapi import (
@@ -27,13 +18,13 @@ from fastapi import (
     UploadFile,
     HTTPException,
     Query,
+    Path,
     status,
     Response,
     Request
 )
 from fastapi.encoders import jsonable_encoder
 from fastapi.security import OAuth2PasswordRequestForm
-from api.service.tasks import run_main_algorithm, calc_z_score
 from api.schemas.items import (
     InputMethod,
     NewGameData,
@@ -49,15 +40,15 @@ from api.service.admin_teams import AdminTeamsService
 from api.service.archive_service import ArchiveService
 from api.service.admin_service import AdminServices
 from api.service.execution_history import (
-    ALGORITHM_PROCESS,
     Z_SCORE_PROCESS,
     execution_error_detail,
     recent_execution_history,
     record_execution,
     update_execution_status,
 )
-from api.service.team_ingestion import TeamFileValidationError
-# from api.service.celery import celery
+from api.service.flagged_game_service import FlaggedGameService
+from api.service.team_ingestion import MAX_TEAM_FILE_BYTES, TeamFileValidationError
+from api.service.ranking_scheduler import enqueue_ranking_job, MANUAL_TRIGGER
 from api.config.constants import (
     DIVISION_FOOTBALL,
     DIVISION_BASKETBALL,
@@ -65,11 +56,11 @@ from api.config.constants import (
     CONFERENCE_CB,
     STATES
 )
-from api.config.redis import get_redis_settings
 
 router = APIRouter()
 admin_service = AdminServices()
 archive_service = ArchiveService()
+flagged_game_service = FlaggedGameService()
 _instance_cache: Dict[Tuple, "AdminTeamsService"] = {}
 
 
@@ -83,13 +74,16 @@ def admin_team_class(level_key: Tuple) -> "AdminTeamsService":
     Returns:
         AdminTeamsService: The cached object
     """
-    if level_key not in _instance_cache:
-        _instance_cache[level_key] = AdminTeamsService(level_key)
-    return _instance_cache[level_key]
+    canonical_key = tuple(getattr(value, "value", value)
+                          for value in level_key)
+    if canonical_key not in _instance_cache:
+        _instance_cache[canonical_key] = AdminTeamsService(canonical_key)
+    return _instance_cache[canonical_key]
 
 
 @router.post("/token/", response_model=Token)
 async def login_generate_token(
+    response: Response,
     form_data: OAuth2PasswordRequestForm = Depends(),
     admin_service: AdminServices = Depends()
 ):
@@ -104,7 +98,7 @@ async def login_generate_token(
     Returns:
         TokenData: Login token
     """
-    return await admin_service.login(form_data)
+    return await admin_service.login(form_data, response)
 
 
 @router.post("/logout/", response_model=LogoutResponse)
@@ -139,7 +133,10 @@ async def setup_admin_account(
             detail="Setup token is not configured"
         )
 
-    if provided_token != expected_token:
+    if not provided_token or not secrets.compare_digest(
+        provided_token,
+        expected_token,
+    ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Invalid setup token"
@@ -272,6 +269,13 @@ async def _store_uploaded_games(
         sports_input.gender,
         sports_input.level,
     )
+    team_services = admin_team_class(level_key)
+    return await team_services.store_csv(
+        sports_input.sport_type,
+        sports_input.gender,
+        sports_input.level,
+        csv_file,
+    )
 
 
 @router.post(
@@ -283,6 +287,12 @@ async def upload_teams(
     csv_file: UploadFile = File(),
     sports_input: InputMethod = Depends(),
 ):
+    file_name = csv_file.filename or "teams.csv"
+    if not file_name.lower().endswith(".csv"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Team file must be a CSV file",
+        )
     level_key = (
         sports_input.sport_type,
         sports_input.gender,
@@ -291,8 +301,8 @@ async def upload_teams(
     team_services = admin_team_class(level_key)
     try:
         return await team_services.import_team_csv(
-            csv_file.filename or "teams.csv",
-            await csv_file.read(),
+            file_name,
+            await csv_file.read(MAX_TEAM_FILE_BYTES + 1),
         )
     except TeamFileValidationError as exc:
         raise HTTPException(
@@ -302,13 +312,6 @@ async def upload_teams(
                 "errors": exc.errors,
             },
         ) from exc
-    team_services = admin_team_class(level_key)
-    return await team_services.store_csv(
-        sports_input.sport_type,
-        sports_input.gender,
-        sports_input.level,
-        csv_file,
-    )
 
 
 @router.post(
@@ -382,25 +385,20 @@ async def add_missing_teams(
     Returns:
         dict: Success message
     """
-    try:
-        level_key = (
-            sports_input.sport_type,
-            sports_input.gender,
-            sports_input.level
-        )
-        team_services = admin_team_class(level_key)
-        results = await team_services.add_teams_to_db([
-            team.model_dump() for team in new_team
-        ])
-        return results
-    except HTTPException:
-        raise
-    except Exception as exc:
-        traceback.print_exc()
+    if len(new_team) > 10_000:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal Error"
-        ) from exc
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="A request cannot contain more than 10000 teams",
+        )
+    level_key = (
+        sports_input.sport_type,
+        sports_input.gender,
+        sports_input.level
+    )
+    team_services = admin_team_class(level_key)
+    return await team_services.add_teams_to_db([
+        team.model_dump() for team in new_team
+    ])
 
 
 @router.get(
@@ -444,6 +442,7 @@ async def check_for_missing_teams(
 )
 async def main_algorithm_exc(
     iterations: int,
+    request: Request,
     sport_input: InputMethod = Depends()
 ):
     if iterations < 1 or iterations > 100:
@@ -451,35 +450,35 @@ async def main_algorithm_exc(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="Iterations must be between 1 and 100",
         )
-    task_id = uuid4().hex
     level_key = (
         sport_input.sport_type.value,
         sport_input.gender.value,
         sport_input.level.value,
     )
-    await record_execution(
-        task_id,
-        ALGORITHM_PROCESS,
-        *level_key,
-        iterations=iterations,
-    )
     try:
-        redis = await create_pool(get_redis_settings())
-        job = await redis.enqueue_job(
-            "run_main_algorithm",
+        result = await enqueue_ranking_job(
+            request.app.state.redis,
             level_key,
-            iterations,
-            _job_id=task_id,
+            iterations=iterations,
+            trigger=MANUAL_TRIGGER,
         )
-        if job is None:
-            raise RuntimeError("The algorithm job could not be queued")
-        return {"task_id": task_id, "message": "Task has been started."}
+        if result.reason == "already_active":
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="A ranking job is already active for this dataset",
+            )
+        if result.reason == "no_games":
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="No games are available for the selected dataset",
+            )
+        return {
+            "task_id": result.task_id,
+            "message": "Task has been started.",
+        }
+    except HTTPException:
+        raise
     except Exception as exc:
-        await update_execution_status(
-            task_id,
-            "failed",
-            error=execution_error_detail(exc),
-        )
         raise HTTPException(
             status_code=500, detail="Internal Server Error") from exc
 
@@ -490,6 +489,7 @@ async def main_algorithm_exc(
     description="Calculates z Scores"
 )
 async def calc_z_scores(
+    request: Request,
     sport_input: InputMethod = Depends()
 ):
     task_id = uuid4().hex
@@ -504,7 +504,7 @@ async def calc_z_scores(
         *level_key,
     )
     try:
-        redis = await create_pool(get_redis_settings())
+        redis = request.app.state.redis
         job = await redis.enqueue_job(
             "calc_z_score",
             level_key,
@@ -528,10 +528,10 @@ async def calc_z_scores(
     dependencies=[require_admin()],
     description="Returns the five most recent algorithm and z-score executions",
 )
-async def get_execution_history():
+async def get_execution_history(request: Request):
     try:
         history = await recent_execution_history()
-        redis = await create_pool(get_redis_settings())
+        redis = request.app.state.redis
         history_changed = False
         for records in history.values():
             for record in records:
@@ -613,9 +613,9 @@ async def get_execution_history():
     dependencies=[require_admin()],
     description="Checks Status of Task"
 )
-async def task_checker(task_id: str):
+async def task_checker(task_id: str, request: Request):
     try:
-        redis = await create_pool(get_redis_settings())
+        redis = request.app.state.redis
         job_info = Job(job_id=task_id, redis=redis)
         return {
             "info": await job_info.info(),
@@ -670,6 +670,7 @@ async def update_game(
 
 @router.get(
     '/teams-ids/',
+    dependencies=[require_admin()],
     description='Get team names and ids'
 )
 async def get_team_names_ids(
@@ -847,9 +848,8 @@ async def store_flagged_games(
     return await team_service.store_flagged_games(
         game.game_id,
         game.team1_id,
-        game.team1_name,
         game.team2_id,
-        game.team2_name
+        game.description,
     )
 
 
@@ -891,11 +891,43 @@ async def retrieve_flagged_games(
 
 
 @router.get(
+    "/flagged-games/count",
+    dependencies=[require_admin()],
+    description="Count unresolved game reports across all datasets",
+)
+async def count_flagged_game_issues():
+    return {"count": await flagged_game_service.count_open_issues()}
+
+
+@router.get(
+    "/flagged-games/",
+    dependencies=[require_admin()],
+    description="List unresolved game reports oldest first",
+)
+async def list_flagged_game_issues(
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=50, ge=1, le=200),
+):
+    return await flagged_game_service.list_open_issues(skip=skip, limit=limit)
+
+
+@router.patch(
+    "/flagged-games/{issue_id}/resolve",
+    dependencies=[require_admin()],
+    description="Resolve one reported game issue",
+)
+async def resolve_flagged_game_issue(
+    issue_id: str = Path(..., min_length=1, max_length=64),
+):
+    return await flagged_game_service.resolve_issue(issue_id)
+
+
+@router.get(
     '/check-flagged/{game_id:path}',
     description="Checks if game is already flagged"
 )
 async def check_flagged_game(
-    game_id: str,
+    game_id: str = Path(..., min_length=1, max_length=200),
     sport_input: InputMethod = Depends()
 ):
     team_service = admin_team_class(

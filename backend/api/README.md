@@ -43,7 +43,7 @@ level=high_school|college
 
 Together they form the dataset key `(sport_type, gender, level)`. `config/constants.py` maps supported keys to a MongoDB document ID and the algorithm's `k_value`, home advantage, average game score, and game-set length.
 
-Routes have no source-code prefix. With the default development Compose configuration, the API root is `http://localhost:8000` and interactive documentation is available at `http://localhost:8000/docs`. The Lightsail deployment sets `ROOT_PATH=/api`, and Caddy exposes the same routes at `https://<domain>/api` with documentation under `/api/docs`.
+Routes have no source-code prefix. With the default development Compose configuration, the API root is `http://localhost:8000` and interactive documentation is available at `http://localhost:8000/docs`. The Lightsail deployment sets `ROOT_PATH=/api` and Caddy exposes the same routes at `https://<domain>/api`. Interactive API documentation is disabled in production by default; set `ENABLE_API_DOCS=true` only when it is deliberately needed.
 
 ## Public Routes
 
@@ -60,7 +60,7 @@ Public queries are implemented in `service/users_teams.py` and read from `sports
 
 ## Admin Routes
 
-Authentication routes are `/setup/admin/`, `/token/`, `/validate-token/`, and `/logout/`. Protected routes require a Bearer JWT signed with `SECRET_KEY`.
+Authentication routes are `/setup/admin/`, `/token/`, `/validate-token/`, and `/logout/`. A successful browser login receives a signed JWT in an `HttpOnly`, `SameSite=Strict` cookie, so JavaScript cannot read the credential. Bearer JWTs remain supported for the smoke runner and other command-line clients. Each protected request also verifies that the referenced admin account still exists.
 
 Admin operations include:
 
@@ -77,7 +77,7 @@ Admin operations include:
 - Reviewing and clearing flagged games
 - Archiving seasons and resetting selected or all datasets without modifying existing archives
 
-The current model permits one admin account. `/setup/admin/` requires the `X-Setup-Token` header and refuses to create another account when one already exists.
+The current model permits one admin account. `/setup/admin/` requires the `X-Setup-Token` header and refuses to create another account when one already exists. Login failures use one generic `401` response so callers cannot determine whether a username exists.
 
 ## CSV Ingestion
 
@@ -87,11 +87,11 @@ Game files are headerless and contain six columns:
 date,home_team,away_team,home_score,away_score,neutral_site
 ```
 
-`neutral_site=999` disables home-field advantage; normal home games use `0`. Dates may use `YYYY-MM-DD` or `MM/DD/YYYY`, and scores must be nonnegative integers. The ingestion service rejects headers, malformed rows, same-team games, duplicate games within a file, and games already present in uploaded or processed data.
+`neutral_site=999` disables home-field advantage; normal home games use `0`. Dates may use `YYYY-MM-DD` or `MM/DD/YYYY`, and scores must be nonnegative integers. The ingestion service rejects headers, malformed rows, same-team games, duplicate games within a file, and games already present in uploaded or processed data. Game uploads are limited to 5 MB and 5,000 rows.
 
 Both the CSV endpoint and individual-game endpoint use the same validator. Team metadata must be imported first. A game containing an unknown team is rejected with `422` and an `unknown_teams` list; the endpoint never invents a team identifier. Valid games are normalized into documents in `sports_data.games`. The validated source file is stored under `UPLOAD_DIR` for reference; `sports_data.csv_files` contains only upload metadata such as its filename, relative storage path, game count, and upload date. CSV bytes are never retained in MongoDB.
 
-Team metadata CSV files require the headers `state`, `short_name`, `team_id`, `long_name`, `division`, `conference`, and `ranked`. Header order is flexible and extra columns are ignored. `team_id` is the canonical application identifier: every row must contain a positive whole number, IDs must be unique within the file and selected dataset, and the importer stores the supplied value directly without generating another ID. The importer maps `short_name` to the canonical `team_name` field and rejects files with missing headers, invalid rows, or duplicate IDs inside the file. IDs or names that already exist in the selected dataset are listed in `teams_failed`; successfully added team names are not listed. `ranked` accepts `yes`/`no` (also `true`/`false` or `1`/`0`).
+Team metadata CSV files require the headers `state`, `short_name`, `team_id`, `long_name`, `division`, `conference`, and `ranked`. Header order is flexible and extra columns are ignored. `team_id` is the canonical application identifier: every row must contain a positive whole number, IDs must be unique within the file and selected dataset, and the importer stores the supplied value directly without generating another ID. The importer maps `short_name` to the canonical `team_name` field and rejects files with missing headers, invalid rows, or duplicate IDs inside the file. IDs or names that already exist in the selected dataset are listed in `teams_failed`; successfully added team names are not listed. `ranked` accepts `yes`/`no` (also `true`/`false` or `1`/`0`). Team uploads are limited to 2 MB and 10,000 rows.
 
 ### Legacy Team ID Migration
 
@@ -115,8 +115,12 @@ The migration rewrites current and previous-season teams, canonical games, oppon
 
 The ranking job reads only `sports_data.games`, fully rebuilds derived team season data from initial rankings, and calculates z-scores before completing. The separate z-score job remains available for refreshing z-scores without rerunning rankings.
 
-The frontend and smoke-test script poll `GET /task-status/{task_id}` until the job completes or fails.
-`GET /execution-history/` returns the five most recent ranking and z-score executions, including their dataset, queue time, iteration count when applicable, and persisted status. MongoDB retains at most five records per calculation type in `admin_details.execution_history`; new records prune older entries, and backend startup trims any excess records left by earlier versions.
+Adding, changing, or deleting a game increments `games_revision`, records `ranking_requested_at`, and marks only that sport/gender/level stale. A dispatcher runs every minute and queues the full ranking pipeline after the dataset has been quiet for `RANKING_DEBOUNCE_SECONDS` (600 by default). A second ARQ cron job queues all remaining stale datasets every Sunday at 1:00 AM in `RANKING_TIMEZONE` (`America/Denver` by default). Automatic and weekly runs use `AUTO_RANKING_ITERATIONS` (1 by default).
+
+A Redis guard prevents overlapping manual and automatic runs for the same dataset. The worker captures the dataset revision before calculation and marks it current only if that revision is unchanged when the write completes. A mid-run game change therefore remains stale and is recalculated after its own quiet period. Season resets contain no current games, so they preserve ranking information and set the scheduling state to `no_games` instead of queueing a job that cannot run.
+
+The frontend polls `GET /execution-history/` while a job is active. The smoke-test script can poll `GET /task-status/{task_id}` directly until the job completes or fails.
+`GET /execution-history/` returns the five most recent ranking and z-score executions, including their dataset, queue time, iteration count, trigger (`manual`, `automatic`, or `weekly`), and persisted status. MongoDB retains at most five records per calculation type in `admin_details.execution_history`; new records prune older entries, and backend startup trims any excess records left by earlier versions.
 
 ## Data Storage
 

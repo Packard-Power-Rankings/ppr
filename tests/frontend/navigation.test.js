@@ -30,6 +30,13 @@ test('uses Add Games and Add Teams as separate admin ingestion routes', () => {
   })
 })
 
+test('protects the flagged game issue review route', () => {
+  expect(routes.find((route) => route.path === '/admin/flagged-games')).toMatchObject({
+    name: 'Flagged Game Issues',
+    admin: true,
+  })
+})
+
 test('separates the protected Ranking and Z-Score admin routes', () => {
   const rankingRoute = routes.find((route) => route.path === '/admin/ranking')
   const zScoreRoute = routes.find((route) => route.path === '/admin/z_scores')

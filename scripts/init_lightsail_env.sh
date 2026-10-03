@@ -41,6 +41,10 @@ SECRET_KEY="$(openssl rand -hex 32)"
   printf 'REDIS_PASSWORD=%s\n' "$REDIS_PASSWORD"
   printf 'SETUP_TOKEN=%s\n' "$SETUP_TOKEN"
   printf 'SECRET_KEY=%s\n' "$SECRET_KEY"
+  printf 'RANKING_DEBOUNCE_SECONDS=600\n'
+  printf 'AUTO_RANKING_ITERATIONS=1\n'
+  printf 'RANKING_TIMEZONE=America/Denver\n'
+  printf 'RANKING_JOB_GUARD_SECONDS=3600\n'
   printf 'CORS_ORIGINS=https://%s\n' "$DOMAIN"
   printf 'ALLOWED_HOSTS=%s\n' "$DOMAIN"
 } >"$OUTPUT_FILE"

@@ -3,6 +3,7 @@ export const US_STATES = [
   'Alaska',
   'Arizona',
   'Arkansas',
+  'British Columbia',
   'California',
   'Colorado',
   'Connecticut',

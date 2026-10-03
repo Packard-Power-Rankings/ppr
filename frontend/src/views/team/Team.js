@@ -1,5 +1,7 @@
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 import {
+    CAlert,
+    CButton,
     CSpinner,
     CContainer,
     CRow,
@@ -13,13 +15,16 @@ import {
     CTableHeaderCell,
     CTableDataCell,
     CTableBody,
-    CFormCheck,
+    CFormLabel,
+    CFormTextarea,
     CModal,
     CModalTitle,
     CModalBody,
     CModalHeader,
     CModalFooter
 } from "@coreui/react";
+import CIcon from '@coreui/icons-react';
+import { cilFlagAlt } from '@coreui/icons';
 import { Link, useParams } from "react-router-dom";
 import { useState } from "react";
 import api from "src/api";
@@ -30,8 +35,11 @@ const Team = () => {
     const [ seasonOpp, setOpp ] = useState([])
     const [ loading, setLoading ] = useState(false);
     const [ error, setError ] = useState(null);
-    const [ gameFlagged, setGameFlagged ] = useState(false);
-    const [ message, setMessage ] = useState('');
+    const [ reportGame, setReportGame ] = useState(null);
+    const [ issueDescription, setIssueDescription ] = useState('');
+    const [ reportError, setReportError ] = useState('');
+    const [ reporting, setReporting ] = useState(false);
+    const [ notification, setNotification ] = useState('');
 
     const getLatestPowerRanking = (powerRanking) => {
         if (!powerRanking || powerRanking.length === 0) return '-';
@@ -44,13 +52,14 @@ const Team = () => {
         return rankingObj[latestDate].toFixed(2);
     };
 
-    const fetchTeamInfo = async () => {
+    const fetchTeamInfo = useCallback(async () => {
         try {
             setLoading(true);
             setError(null);
 
-            const teamInfo = await api.get(`teams/${team_name}/?sport_type=${sport}&gender=${gender}&level=${level}`);
-            // console.log(teamInfo.data.data.teams.season_opp);
+            const teamInfo = await api.get(`teams/${encodeURIComponent(team_name)}/`, {
+                params: { sport_type: sport, gender, level },
+            });
             setTeam(teamInfo.data.data.teams);
             setOpp([...teamInfo.data.data.teams.season_opp].sort((firstGame, secondGame) =>
                 (secondGame.game_date || '').localeCompare(firstGame.game_date || '')
@@ -61,53 +70,67 @@ const Team = () => {
             setLoading(false);
         }
 
-    }
+    }, [gender, level, sport, team_name])
 
-    const flagGame = async (index) => {
-        console.log(team.team_id);
-        console.log(seasonOpp[index].opponent_id);
+    const openFlagDialog = async (game) => {
         try {
             const checkIfFlagged = await api.get(
-                `/check-flagged/${encodeURIComponent(seasonOpp[index].game_id)}?sport_type=${sport}&gender=${gender}&level=${level}`,
+                `/check-flagged/${encodeURIComponent(game.game_id)}?sport_type=${sport}&gender=${gender}&level=${level}`,
                 {
                     headers: {"Content-Type": "application/json"}
                 }
             )
-            console.log(checkIfFlagged);
             if (checkIfFlagged.data.game_flagged) {
-                setGameFlagged(true);
-                setMessage(checkIfFlagged.data.message);
+                setNotification(checkIfFlagged.data.message);
                 return;
-            } else {
-                console.log(checkIfFlagged.data.message);
             }
+            setIssueDescription('');
+            setReportError('');
+            setReportGame(game);
+        } catch (error) {
+            setNotification(
+                error.response?.data?.detail || 'The game could not be checked for an existing report.'
+            );
+        }
+    }
+
+    const submitFlaggedGame = async () => {
+        if (!reportGame || issueDescription.trim().length < 5) return;
+        setReporting(true);
+        setReportError('');
+        try {
             const storeFlaggedGame = await api.post(
                 `/flagged-game/?sport_type=${sport}&gender=${gender}&level=${level}`,
                 {
-                    game_id: seasonOpp[index].game_id,
+                    game_id: reportGame.game_id,
                     team1_id: team.team_id,
                     team1_name: team_name,
-                    team2_id: seasonOpp[index].opponent_id,
-                    team2_name: seasonOpp[index].opponent_name
+                    team2_id: reportGame.opponent_id,
+                    team2_name: reportGame.opponent_name,
+                    description: issueDescription.trim(),
                 },
                 {
                     headers: {"Content-Type": "application/json"}
                 }
             )
             if (storeFlaggedGame.data.game_flagged) {
-                setGameFlagged(true);
-                setMessage(storeFlaggedGame.data.message);
-            } else {
-                console.log(storeFlaggedGame.data.message);
+                setReportGame(null);
+                setNotification(storeFlaggedGame.data.message);
+                window.dispatchEvent(new Event('flagged-issues-changed'));
             }
         } catch (error) {
-            console.log("Failed storing flagged game", error);
+            const detail = error.response?.data?.detail;
+            setReportError(
+                typeof detail === 'string' ? detail : 'The game issue could not be reported.'
+            );
+        } finally {
+            setReporting(false);
         }
     }
 
     useEffect(() => {
         fetchTeamInfo();
-    }, [team_name, sport, gender, level])
+    }, [fetchTeamInfo])
 
     if (loading) {
         return (
@@ -214,24 +237,85 @@ const Team = () => {
                                 {result}
                             </CTableDataCell>
                             <CTableDataCell className="text-center py-3">
-                                <CFormCheck id="checkboxNoLabel" disabled={gameFlagged} value="" aria-label="..." onClick={() => flagGame(index)}/>
+                                <CButton
+                                    type="button"
+                                    color="warning"
+                                    variant="ghost"
+                                    size="sm"
+                                    title="Report a problem with this game"
+                                    aria-label={`Report issue for game against ${game.opponent_name}`}
+                                    onClick={() => openFlagDialog(game)}
+                                >
+                                    <CIcon icon={cilFlagAlt} />
+                                </CButton>
                             </CTableDataCell>
                         </CTableRow>
                         )
                     })}
                 </CTableBody>
             </CTable>
-            <CModal visible={gameFlagged} onClose={() => setGameFlagged(false)}>
+            <CModal
+                visible={Boolean(reportGame)}
+                onClose={() => !reporting && setReportGame(null)}
+            >
+                <CModalHeader>
+                    <CModalTitle>Report Game Issue</CModalTitle>
+                </CModalHeader>
+                <CModalBody>
+                    {reportGame && (
+                        <p className="mb-3">
+                            {team.team_name || team_name} vs {reportGame.opponent_name} on{' '}
+                            {reportGame.game_date}
+                        </p>
+                    )}
+                    {reportError && <CAlert color="danger">{reportError}</CAlert>}
+                    <CFormLabel htmlFor="game-issue-description">
+                        Describe the issue and include a source link for verification, if available
+                    </CFormLabel>
+                    <CFormTextarea
+                        id="game-issue-description"
+                        rows={5}
+                        maxLength={1000}
+                        value={issueDescription}
+                        disabled={reporting}
+                        onChange={(event) => setIssueDescription(event.target.value)}
+                    />
+                    <div className="small text-body-secondary mt-1 text-end">
+                        {issueDescription.length}/1000
+                    </div>
+                </CModalBody>
+                <CModalFooter>
+                    <CButton
+                        type="button"
+                        color="secondary"
+                        variant="outline"
+                        disabled={reporting}
+                        onClick={() => setReportGame(null)}
+                    >
+                        Cancel
+                    </CButton>
+                    <CButton
+                        type="button"
+                        color="warning"
+                        disabled={reporting || issueDescription.trim().length < 5}
+                        onClick={submitFlaggedGame}
+                    >
+                        {reporting && <CSpinner className="me-2" size="sm" />}
+                        Report Issue
+                    </CButton>
+                </CModalFooter>
+            </CModal>
+            <CModal visible={Boolean(notification)} onClose={() => setNotification('')}>
                 <CModalHeader>
                     <CModalTitle>Notification</CModalTitle>
                 </CModalHeader>
                 <CModalBody>
-                    {message}
+                    {notification}
                 </CModalBody>
                 <CModalFooter>
-                    <button className="btn btn-primary" onClick={() => setGameFlagged(false)}>
+                    <CButton color="primary" onClick={() => setNotification('')}>
                         OK
-                    </button>
+                    </CButton>
                 </CModalFooter>
             </CModal>
         </div>

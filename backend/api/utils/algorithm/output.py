@@ -113,10 +113,6 @@ async def update_teams(df, teams_data, mongo_collection, team_level, date):
         ))
     if operations:
         await mongo_collection.bulk_write(operations, ordered=False)
-        await mongo_collection.update_one(
-            {"_id": team_level["_id"]},
-            {"$set": {"rankings_stale": False}},
-        )
 
 
 async def set_z_scores(

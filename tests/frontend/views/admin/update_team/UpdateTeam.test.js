@@ -63,7 +63,8 @@ test('loads a searchable team and saves edited team information', async () => {
 
   await user.clear(screen.getByLabelText('Division'))
   await user.type(screen.getByLabelText('Division'), '4A')
-  await user.selectOptions(screen.getByLabelText('State'), 'Washington')
+  expect(screen.getByRole('option', { name: 'British Columbia' })).toBeInTheDocument()
+  await user.selectOptions(screen.getByLabelText('State'), 'British Columbia')
   await user.selectOptions(screen.getByLabelText('Ranked'), 'false')
   await user.click(screen.getByRole('button', { name: 'Save Team Information' }))
   await user.click(await screen.findByRole('button', { name: 'Confirm Update' }))
@@ -73,7 +74,7 @@ test('loads a searchable team and saves edited team information', async () => {
     {
       short_name: 'Northstar Academy',
       long_name: 'Northstar Academy',
-      state: 'Washington',
+      state: 'British Columbia',
       division: '4A',
       conference: 'West',
       ranked: false,

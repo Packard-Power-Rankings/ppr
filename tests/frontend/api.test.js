@@ -3,7 +3,7 @@ import { AxiosError } from 'axios'
 import { Provider } from 'react-redux'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { render, screen } from '@testing-library/react'
-import api, { setAuthHeader } from 'src/api'
+import api from 'src/api'
 import RequireAdmin from 'src/components/RequireAdmin'
 import { store } from 'src/store'
 
@@ -32,7 +32,6 @@ const ExpiredSessionPage = () => {
 }
 
 beforeEach(() => {
-  localStorage.clear()
   store.dispatch({ type: 'logout' })
   api.defaults.adapter = rejectUnauthorized
 })
@@ -42,7 +41,6 @@ afterEach(() => {
 })
 
 test('redirects an admin to login when an authenticated request returns 401', async () => {
-  setAuthHeader('expired-token')
   store.dispatch({ type: 'login' })
 
   render(
@@ -60,18 +58,19 @@ test('redirects an admin to login when an authenticated request returns 401', as
   )
 
   expect(await screen.findByRole('heading', { name: 'Admin Login' })).toBeInTheDocument()
-  expect(localStorage.getItem('access_token')).toBeNull()
   expect(store.getState().isAdmin).toBe(false)
 })
 
 test('does not clear an existing session after a login request returns 401', async () => {
-  setAuthHeader('current-token')
   store.dispatch({ type: 'login' })
 
   await expect(api.post('/token/')).rejects.toMatchObject({
     response: { status: 401 },
   })
 
-  expect(localStorage.getItem('access_token')).toBe('current-token')
   expect(store.getState().isAdmin).toBe(true)
+})
+
+test('sends credentials so the browser can use the HttpOnly admin cookie', () => {
+  expect(api.defaults.withCredentials).toBe(true)
 })

@@ -107,6 +107,7 @@ async def test_execution_records_track_status_and_return_five_recent_per_process
     ]
     completed = history[execution_history.ALGORITHM_PROCESS][0]
     assert completed["status"] == "complete"
+    assert completed["trigger"] == "manual"
     assert completed["started_at"] is not None
     assert completed["finished_at"] is not None
     assert completed["finished_at"].endswith("Z")
@@ -223,6 +224,7 @@ async def test_history_keeps_five_recent_records_per_dataset_and_process(monkeyp
 @pytest.mark.asyncio
 async def test_worker_records_successful_algorithm_and_z_score_runs(monkeypatch):
     status_updates = []
+    ranking_updates = []
 
     class FakeAdminTeamsService:
         def __init__(self, _level_key):
@@ -237,8 +239,18 @@ async def test_worker_records_successful_algorithm_and_z_score_runs(monkeypatch)
     async def record_status(task_id, status, **_details):
         status_updates.append((task_id, status))
 
+    async def mark_started(level_key, task_id, trigger):
+        ranking_updates.append(("started", level_key, task_id, trigger))
+        return 7
+
+    async def mark_complete(level_key, task_id, revision):
+        ranking_updates.append(("complete", level_key, task_id, revision))
+        return True
+
     monkeypatch.setattr(tasks, "AdminTeamsService", FakeAdminTeamsService)
     monkeypatch.setattr(tasks, "update_execution_status", record_status)
+    monkeypatch.setattr(tasks, "mark_ranking_started", mark_started)
+    monkeypatch.setattr(tasks, "mark_ranking_complete", mark_complete)
 
     await tasks.run_main_algorithm(
         {"job_id": "algo-id"},
@@ -256,6 +268,15 @@ async def test_worker_records_successful_algorithm_and_z_score_runs(monkeypatch)
         ("z-id", "in_progress"),
         ("z-id", "complete"),
     ]
+    assert ranking_updates == [
+        (
+            "started",
+            ("football", "mens", "college"),
+            "algo-id",
+            "manual",
+        ),
+        ("complete", ("football", "mens", "college"), "algo-id", 7),
+    ]
 
 
 @pytest.mark.asyncio
@@ -265,6 +286,7 @@ async def test_worker_records_successful_algorithm_and_z_score_runs(monkeypatch)
 ])
 async def test_worker_records_failed_runs(monkeypatch, process):
     status_updates = []
+    ranking_failures = []
 
     class FakeAdminTeamsService:
         def __init__(self, _level_key):
@@ -279,8 +301,16 @@ async def test_worker_records_failed_runs(monkeypatch, process):
     async def record_status(task_id, status, **details):
         status_updates.append((task_id, status, details))
 
+    async def mark_started(_level_key, _task_id, _trigger):
+        return 7
+
+    async def mark_failed(level_key, task_id, error):
+        ranking_failures.append((level_key, task_id, error))
+
     monkeypatch.setattr(tasks, "AdminTeamsService", FakeAdminTeamsService)
     monkeypatch.setattr(tasks, "update_execution_status", record_status)
+    monkeypatch.setattr(tasks, "mark_ranking_started", mark_started)
+    monkeypatch.setattr(tasks, "mark_ranking_failed", mark_failed)
 
     with pytest.raises(RuntimeError):
         if process == execution_history.ALGORITHM_PROCESS:
@@ -301,6 +331,11 @@ async def test_worker_records_failed_runs(monkeypatch, process):
     assert details["error"]["type"] == "RuntimeError"
     assert process.split("_")[0] in details["error"]["message"]
     assert "test_execution_history.py" in details["error"]["location"]
+    if process == execution_history.ALGORITHM_PROCESS:
+        assert ranking_failures[0][0:2] == (
+            ("football", "mens", "college"),
+            "failed-task",
+        )
 
 
 @pytest.mark.asyncio
@@ -329,12 +364,11 @@ async def test_enqueue_records_and_forwards_the_same_task_id(
     async def fake_record_execution(*args, **kwargs):
         recorded.append((args, kwargs))
 
-    async def fake_create_pool(_settings):
-        return redis
-
     monkeypatch.setattr(admin_routes, "record_execution",
                         fake_record_execution)
-    monkeypatch.setattr(admin_routes, "create_pool", fake_create_pool)
+    request = SimpleNamespace(
+        app=SimpleNamespace(state=SimpleNamespace(redis=redis)),
+    )
     sport_input = InputMethod(
         sport_type="football",
         gender="mens",
@@ -342,25 +376,41 @@ async def test_enqueue_records_and_forwards_the_same_task_id(
     )
 
     if process == execution_history.ALGORITHM_PROCESS:
-        response = await admin_routes.main_algorithm_exc(3, sport_input)
-        assert redis.job.function == "run_main_algorithm"
-        assert redis.job.args == (("football", "mens", "college"), 3)
+        async def fake_enqueue(_redis, level_key, **kwargs):
+            recorded.append((("algorithm-task", *level_key), kwargs))
+            return SimpleNamespace(
+                queued=True,
+                task_id="algorithm-task",
+                reason=None,
+            )
+
+        monkeypatch.setattr(
+            admin_routes,
+            "enqueue_ranking_job",
+            fake_enqueue,
+        )
+        response = await admin_routes.main_algorithm_exc(3, request, sport_input)
+        assert recorded[0] == (
+            ("algorithm-task", "football", "mens", "college"),
+            {"iterations": 3, "trigger": "manual"},
+        )
     else:
-        response = await admin_routes.calc_z_scores(sport_input)
+        response = await admin_routes.calc_z_scores(request, sport_input)
         assert redis.job.function == "calc_z_score"
         assert redis.job.args == (("football", "mens", "college"),)
 
     task_id = response["task_id"]
-    assert recorded[0][0][:5] == (
-        task_id,
-        process,
-        "football",
-        "mens",
-        "college",
-    )
-    assert recorded[0][1] == ({"iterations": iterations} if iterations else {})
-    assert redis.job.kwargs["_job_id"] == task_id
-    assert "task_id" not in redis.job.kwargs
+    if process == execution_history.Z_SCORE_PROCESS:
+        assert recorded[0][0][:5] == (
+            task_id,
+            process,
+            "football",
+            "mens",
+            "college",
+        )
+        assert recorded[0][1] == {}
+        assert redis.job.kwargs["_job_id"] == task_id
+        assert "task_id" not in redis.job.kwargs
 
 
 @pytest.mark.asyncio
@@ -427,16 +477,15 @@ async def test_history_repairs_completed_and_orphaned_worker_jobs(monkeypatch):
                     record["status"] = status
                     record.update(timestamps)
 
-    async def fake_create_pool(_settings):
-        return object()
-
     monkeypatch.setattr(admin_routes, "Job", FakeJob)
     monkeypatch.setattr(
         admin_routes, "recent_execution_history", recent_history)
     monkeypatch.setattr(admin_routes, "update_execution_status", update_status)
-    monkeypatch.setattr(admin_routes, "create_pool", fake_create_pool)
+    request = SimpleNamespace(
+        app=SimpleNamespace(state=SimpleNamespace(redis=object())),
+    )
 
-    response = await admin_routes.get_execution_history()
+    response = await admin_routes.get_execution_history(request)
 
     completed = response[execution_history.ALGORITHM_PROCESS][0]
     orphaned = response[execution_history.Z_SCORE_PROCESS][0]

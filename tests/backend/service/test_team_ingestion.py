@@ -2,6 +2,7 @@ import pytest
 
 from api.service.admin_teams import AdminTeamsService
 from api.service.team_ingestion import TeamFileValidationError, parse_team_csv
+from api.service import team_ingestion
 
 
 def test_parse_team_csv_uses_required_headers_and_normalizes_values():
@@ -76,6 +77,25 @@ def test_parse_team_csv_uses_required_headers_and_normalizes_values():
 )
 def test_parse_team_csv_rejects_invalid_headers_or_rows(content, error):
     with pytest.raises(TeamFileValidationError, match=error):
+        parse_team_csv(content)
+
+
+def test_parse_team_csv_rejects_oversized_files(monkeypatch):
+    monkeypatch.setattr(team_ingestion, "MAX_TEAM_FILE_BYTES", 10)
+
+    with pytest.raises(TeamFileValidationError, match="2 MB or smaller"):
+        parse_team_csv(b"state,short_name")
+
+
+def test_parse_team_csv_rejects_too_many_rows(monkeypatch):
+    monkeypatch.setattr(team_ingestion, "MAX_TEAM_ROWS", 1)
+    content = (
+        b"state,short_name,team_id,long_name,division,conference,ranked\n"
+        b"Alaska,Anchorage,1,,NCAA 2,GNAC,yes\n"
+        b"Alaska,Fairbanks,2,,NCAA 2,GNAC,no\n"
+    )
+
+    with pytest.raises(TeamFileValidationError, match="more than 1 teams"):
         parse_team_csv(content)
 
 

@@ -124,7 +124,7 @@ Routers define the HTTP contract. Services own application behavior. Algorithm m
 1. MongoDB starts and stores its files under `data/db/`.
 2. Redis starts and passes its health check.
 3. FastAPI starts from `api.main:app` and registers both route modules.
-4. The ARQ worker starts and registers the algorithm and z-score tasks.
+4. The ARQ worker starts and registers the algorithm, z-score, quiet-period dispatcher, and weekly catch-up tasks.
 5. React starts and sends API requests to `http://localhost:8000`.
 
 In production, React is compiled with `/api` as its API base URL. Caddy strips that external prefix before proxying to FastAPI, while `ROOT_PATH=/api` keeps generated documentation URLs correct.
@@ -177,14 +177,14 @@ There is one admin account in the current model.
 
 1. `/setup/admin/` creates the initial account when the `X-Setup-Token` header matches `SETUP_TOKEN`.
 2. `/token/` verifies the username and bcrypt password hash.
-3. The backend returns a JWT signed with `SECRET_KEY`.
-4. The frontend stores it under `access_token` in browser local storage.
-5. The shared Axios client sends `Authorization: Bearer <token>` on protected requests.
-6. Admin routes call `require_admin()` to validate the token.
+3. The backend signs a JWT with `SECRET_KEY` and sets it in an `HttpOnly`, `SameSite=Strict` cookie.
+4. The shared Axios client sends the cookie with API requests without exposing it to frontend JavaScript.
+5. Admin routes call `require_admin()` to validate the token and confirm that the admin still exists.
+6. Bearer JWTs remain available for command-line and automated clients.
 
-The browser validates a stored token when the application starts. Public routes remain available without authentication, `/admin/login` is the dedicated sign-in page, and every `/admin` application route is wrapped by `RequireAdmin`. A signed-out visitor is returned to the admin page they originally requested after a successful login. Caddy and the React development server both fall back to `index.html`, so clean browser URLs continue to work when opened directly or refreshed.
+The browser validates its cookie-backed session when the application starts. Public routes remain available without authentication, `/admin/login` is the dedicated sign-in page, and every `/admin` application route is wrapped by `RequireAdmin`. A signed-out visitor is returned to the admin page they originally requested after a successful login. Caddy and the React development server both fall back to `index.html`, so clean browser URLs continue to work when opened directly or refreshed.
 
-Logging out removes the token from the browser. The backend does not currently maintain a token revocation list.
+Logging out expires the cookie. Deleting the admin account immediately invalidates its tokens; the backend does not maintain a separate per-token revocation list.
 
 ## Admin Data-Ingestion Workflow
 
@@ -227,19 +227,26 @@ Automatically created teams initialize all fields the algorithm expects, includi
 Ranking and z-score calculations use Redis because they can outlive a normal request.
 
 ```text
-Admin Calculate Values page
-  -> POST /run_algorithm/{iterations}
-  -> FastAPI enqueues run_main_algorithm in Redis
-  -> API immediately returns task_id
+Game add/update/delete
+  -> increment the selected dataset's games_revision
+  -> mark that dataset stale and record ranking_requested_at
+  -> minute dispatcher waits for 10 quiet minutes
+  -> enqueue run_main_algorithm in Redis
+Manual alternative
+  -> POST /run_algorithm/{iterations} enqueues immediately and returns task_id
   -> ARQ worker claims the job
+  -> worker captures games_revision and a per-dataset Redis guard
   -> AdminTeamsService starts MainAlgorithm
   -> algorithm reads canonical games and team seeds from MongoDB
   -> algorithm replaces derived rankings and season records
   -> algorithm calculates and persists z-scores
-  -> frontend polls GET /task-status/{task_id}
+  -> worker marks rankings current only if games_revision is unchanged
+  -> frontend polls GET /execution-history/ while the job is active
 ```
 
-The frontend polls every three seconds while a job is queued or in progress. A ranking run now completes the whole pipeline, including z-scores. `/calc_z_scores/` remains available to refresh only z-scores.
+The automatic dispatcher runs every minute, but only datasets whose last game change is at least `RANKING_DEBOUNCE_SECONDS` old are eligible. The default is 600 seconds. A weekly catch-up runs Sunday at 1:00 AM in `RANKING_TIMEZONE` and queues any stale datasets without waiting for the quiet period. Both use `AUTO_RANKING_ITERATIONS`; the defaults are `America/Denver` and one iteration.
+
+The same Redis guard prevents overlapping manual, automatic, and weekly runs for a dataset. The admin Run Algorithm button remains available for immediate corrections and troubleshooting, and execution history identifies each run's source. A ranking run completes the whole pipeline, including z-scores. `/calc_z_scores/` remains available as an advanced action to refresh only z-scores.
 
 ## Ranking Pipeline
 

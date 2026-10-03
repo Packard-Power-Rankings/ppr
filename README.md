@@ -130,6 +130,14 @@ make test-check
 
 Focused targets are available for backend service tests, backend algorithm tests, frontend app/routing tests, admin workflows, and public team views. Run `make help` for the complete list.
 
+Audit the pinned Python runtime dependencies and production frontend dependencies with:
+
+```bash
+make test-security
+```
+
+This target uses `pip-audit` and `npm audit --omit=dev`. It requires network access to retrieve current vulnerability advisories.
+
 ## Application Test Workflow
 
 The end-to-end smoke test uses the fixture data under `tests/application/` and targets Basketball/Men's/High School. On an empty fixture dataset, run:
@@ -241,9 +249,10 @@ MONGO_PASS=ppr-dev-password
 MONGO_PORT=27017
 SETUP_TOKEN=change-this-local-setup-token
 SECRET_KEY=change-this-local-secret-key
+REDIS_PASSWORD=change-this-local-redis-password
 ```
 
-These values are used by the MongoDB container, the FastAPI backend, and the admin setup/auth flow.
+These values are used by the MongoDB and Redis containers, the FastAPI backend, and the admin setup/auth flow. Development service ports bind to `127.0.0.1` only. Production startup rejects missing, placeholder, shared, or shorter-than-32-character auth secrets, wildcard hosts, and non-HTTPS CORS origins.
 
 ## AWS Lightsail Deployment
 
@@ -269,7 +278,7 @@ The backend lives in `backend/api` and starts from `api.main:app`.
 - `routers/admin_routes.py` handles protected admin operations such as login, setup, CSV upload, adding/updating/deleting teams and games, and queueing algorithm work.
 - `routers/user_routes.py` exposes public team lists, team detail, prediction team names, and game predictions.
 - `service/admin_service.py`, `service/admin_teams.py`, and `service/users_teams.py` contain the main application logic. `service/upload_storage.py` owns source-file persistence.
-- `service/tasks.py` defines ARQ worker jobs for running the algorithm and calculating z-scores.
+- `service/tasks.py` defines ARQ worker jobs for running the algorithm, calculating z-scores, and dispatching automatic rankings. `service/ranking_scheduler.py` owns quiet-period scheduling, weekly catch-up, dataset revisions, and overlap prevention.
 - `utils/algorithm/` contains the backend version of the ranking pipeline.
 
 See [`backend/api/README.md`](backend/api/README.md) and [`backend/api/utils/algorithm/README.md`](backend/api/utils/algorithm/README.md) for more focused backend and algorithm notes.
@@ -282,7 +291,7 @@ The frontend lives in `frontend/` and is a Create React App/CoreUI application.
 - `src/components/` and `src/layout/` define the shared application chrome.
 - `src/api.js` and `src/services/authService.js` centralize frontend API calls and authentication helpers.
 - `src/_nav.js` defines sidebar navigation.
-- `src/routes.js` defines public and protected admin routes; `src/components/RequireAdmin.js` enforces the admin boundary after validating the stored token.
+- `src/routes.js` defines public and protected admin routes; `src/components/RequireAdmin.js` enforces the admin boundary after validating the HttpOnly cookie session.
 
 Useful local commands from `frontend/`:
 
@@ -305,10 +314,15 @@ The production flow is:
 
 1. Add Games validates CSV input once and writes normalized records to `sports_data.games`.
 2. The validated source file is retained under `uploads/`; Mongo stores only its metadata and path.
-3. `run.py` reads canonical games from Mongo and starts from each team's initial ranking.
-4. `data_cleaning.py`, `data_enrichment.py`, and `main.py` calculate rankings.
-5. `output.py` replaces derived team records, ranking order, and z-scores.
-6. Repeating a run with the same games and iteration count produces the same result.
+3. The affected sport/gender/level is marked stale and its game revision is incremented.
+4. After ten minutes without another game change, the ARQ dispatcher queues one full ranking run for that dataset.
+5. `run.py` reads canonical games from Mongo and starts from each team's initial ranking.
+6. `data_cleaning.py`, `data_enrichment.py`, and `main.py` calculate rankings.
+7. `output.py` replaces derived team records, ranking order, and z-scores.
+8. The worker marks the result current only when the game revision did not change during calculation.
+9. A Sunday 1:00 AM catch-up queues any datasets that are still stale; the admin Run Algorithm button remains available for immediate manual runs.
+
+The weekly schedule uses `RANKING_TIMEZONE` (`America/Denver` by default). `RANKING_DEBOUNCE_SECONDS` defaults to `600`, and automatic runs use `AUTO_RANKING_ITERATIONS` (`1` by default). A Redis guard allows only one active ranking job per dataset. Repeating a run with the same games and iteration count produces the same result.
 
 The standalone `tests/isolation/algorithm/` workspace continues to use local CSV files for experiments. It is not the production application's data path.
 

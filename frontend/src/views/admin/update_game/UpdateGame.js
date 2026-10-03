@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import {
   CAlert,
   CButton,
@@ -12,12 +12,16 @@ import {
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilSave, cilSearch } from '@coreui/icons'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
+import { useLocation } from 'react-router-dom'
 import Select from 'react-select'
 import api from 'src/api'
 import { formatDatasetName } from 'src/utils/displayNames'
 
 const UpdateGame = () => {
+  const dispatch = useDispatch()
+  const location = useLocation()
+  const flaggedIssue = location.state?.flaggedIssue
   const sport = useSelector((state) => state.sport)
   const gender = useSelector((state) => state.gender)
   const level = useSelector((state) => state.level)
@@ -45,6 +49,52 @@ const UpdateGame = () => {
     Number(homeScore) >= 0 &&
     Number(awayScore) >= 0
 
+  const fetchGames = useCallback(async (firstTeam, secondTeam, targetGameId = null) => {
+    setLoadingGames(true)
+    setGamesLoaded(false)
+    setGameOptions([])
+    setSelectedGame(null)
+    setHomeScore('')
+    setAwayScore('')
+    setResultMessage('')
+
+    try {
+      const response = await api.get(`/season-dates/${firstTeam.value}/${secondTeam.value}`, {
+        params: {
+          sport_type: sport,
+          gender,
+          level,
+        },
+      })
+      const games = Array.isArray(response.data) ? response.data : []
+      const options = games.map((item) => ({
+        value: item.game_id,
+        label: `${item.game_date}: ${item.home_team_name} ${item.home_score} - ${item.away_score} ${item.away_team_name}`,
+        game: item,
+      }))
+      setGameOptions(options)
+      setGamesLoaded(true)
+
+      if (targetGameId !== null) {
+        const targetGame = options.find((option) => String(option.value) === String(targetGameId))
+        if (targetGame) {
+          setSelectedGame(targetGame)
+          setHomeScore(String(targetGame.game.home_score))
+          setAwayScore(String(targetGame.game.away_score))
+        } else {
+          setResultColor('danger')
+          setResultMessage('The flagged game could not be found between the selected teams.')
+        }
+      }
+    } catch (error) {
+      console.error('Failed to retrieve games', error)
+      setResultColor('danger')
+      setResultMessage(error.response?.data?.detail || 'Failed to load games')
+    } finally {
+      setLoadingGames(false)
+    }
+  }, [sport, gender, level])
+
   useEffect(() => {
     let isCurrentRequest = true
 
@@ -58,6 +108,22 @@ const UpdateGame = () => {
       setSelectedGame(null)
       setGamesLoaded(false)
       setResultMessage('')
+
+      if (flaggedIssue && (
+        sport !== flaggedIssue.sport_type ||
+        gender !== flaggedIssue.gender ||
+        level !== flaggedIssue.level
+      )) {
+        dispatch({
+          type: 'updateAdminState',
+          payload: {
+            sport: flaggedIssue.sport_type,
+            gender: flaggedIssue.gender,
+            level: flaggedIssue.level,
+          },
+        })
+        return
+      }
 
       try {
         const response = await api.get('/teams-ids/', {
@@ -75,12 +141,28 @@ const UpdateGame = () => {
         if (!Array.isArray(teams)) {
           throw new Error('Teams response did not contain a teams array')
         }
-        setTeamsOptions(
-          teams.map((team) => ({
-            value: team.team_id,
-            label: team.team_name,
-          })),
-        )
+        const options = teams.map((team) => ({
+          value: team.team_id,
+          label: team.team_name,
+        }))
+        setTeamsOptions(options)
+
+        if (flaggedIssue) {
+          const selectedTeamOne = options.find(
+            (team) => String(team.value) === String(flaggedIssue.team1_id),
+          )
+          const selectedTeamTwo = options.find(
+            (team) => String(team.value) === String(flaggedIssue.team2_id),
+          )
+          if (selectedTeamOne && selectedTeamTwo) {
+            setTeamOne(selectedTeamOne)
+            setTeamTwo(selectedTeamTwo)
+            await fetchGames(selectedTeamOne, selectedTeamTwo, flaggedIssue.game_id)
+          } else {
+            setResultColor('danger')
+            setResultMessage('The flagged game teams could not be found in this dataset.')
+          }
+        }
       } catch (error) {
         if (!isCurrentRequest) return
         console.error('Failed to retrieve teams for game update', error)
@@ -94,7 +176,7 @@ const UpdateGame = () => {
     return () => {
       isCurrentRequest = false
     }
-  }, [sport, gender, level])
+  }, [dispatch, fetchGames, flaggedIssue, sport, gender, level])
 
   const resetGameSelection = () => {
     setGameOptions([])
@@ -105,41 +187,9 @@ const UpdateGame = () => {
     setResultMessage('')
   }
 
-  const handleFindGames = async () => {
+  const handleFindGames = () => {
     if (!teamOne || !teamTwo) return
-
-    setLoadingGames(true)
-    setGamesLoaded(false)
-    setGameOptions([])
-    setSelectedGame(null)
-    setHomeScore('')
-    setAwayScore('')
-    setResultMessage('')
-
-    try {
-      const response = await api.get(`/season-dates/${teamOne.value}/${teamTwo.value}`, {
-        params: {
-          sport_type: sport,
-          gender,
-          level,
-        },
-      })
-      const games = Array.isArray(response.data) ? response.data : []
-      setGameOptions(
-        games.map((item) => ({
-          value: item.game_id,
-          label: `${item.game_date}: ${item.home_team_name} ${item.home_score} - ${item.away_score} ${item.away_team_name}`,
-          game: item,
-        })),
-      )
-      setGamesLoaded(true)
-    } catch (error) {
-      console.error('Failed to retrieve games', error)
-      setResultColor('danger')
-      setResultMessage(error.response?.data?.detail || 'Failed to load games')
-    } finally {
-      setLoadingGames(false)
-    }
+    fetchGames(teamOne, teamTwo)
   }
 
   const handleGameChange = (option) => {

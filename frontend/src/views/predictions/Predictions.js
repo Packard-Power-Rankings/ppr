@@ -29,7 +29,7 @@ const Predictions = () => {
     const [ teamsOptions, setTeamsOptions ] = useState([]);
     const [ teamOne, setTeamOne ] = useState(null);
     const [ teamTwo, setTeamTwo ] = useState(null);
-    const [ homeFieldAdv, setFieldAdv ] = useState(false);
+    const [ homeFieldAdv, setFieldAdv ] = useState(true);
     const [ predValues, setValues ] = useState([]);
 
     useEffect(() => {
