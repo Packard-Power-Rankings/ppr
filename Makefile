@@ -4,7 +4,13 @@ SHELL := /bin/bash
 APP_ENV ?= .env/development
 APP_COMPOSE = docker compose --env-file $(APP_ENV)
 LIGHTSAIL_ENV ?= .env/production
-LIGHTSAIL_COMPOSE = docker compose --env-file $(LIGHTSAIL_ENV) -f docker-compose.lightsail.yml
+LIGHTSAIL_CONFIG_VARS = DOMAIN ENABLE_API_DOCS MONGO_DB_NAME MONGO_USER \
+	MONGO_MAX_POOL_SIZE MONGO_PASS REDIS_PASSWORD SETUP_TOKEN SECRET_KEY \
+	RANKING_DEBOUNCE_SECONDS AUTO_RANKING_ITERATIONS RANKING_TIMEZONE \
+	RANKING_JOB_GUARD_SECONDS CORS_ORIGINS ALLOWED_HOSTS
+LIGHTSAIL_CLEAN_ENV = env $(foreach variable,$(LIGHTSAIL_CONFIG_VARS),-u $(variable))
+LIGHTSAIL_COMPOSE = $(LIGHTSAIL_CLEAN_ENV) docker compose \
+	--env-file $(LIGHTSAIL_ENV) -f docker-compose.lightsail.yml
 
 .PHONY: help app-up app-down app-logs test test-check test-backend \
 	test-backend-service test-backend-algorithm test-frontend test-frontend-app \

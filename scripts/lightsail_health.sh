@@ -12,6 +12,15 @@ set -a
 source "$ENV_FILE"
 set +a
 
+CONNECT_TIMEOUT_SECONDS="${LIGHTSAIL_HEALTH_CONNECT_TIMEOUT_SECONDS:-10}"
+MAX_TIME_SECONDS="${LIGHTSAIL_HEALTH_MAX_TIME_SECONDS:-30}"
+
 printf '[lightsail] Checking https://%s/api/health\n' "$DOMAIN"
-curl --fail --silent --show-error "https://$DOMAIN/api/health"
+curl \
+  --connect-timeout "$CONNECT_TIMEOUT_SECONDS" \
+  --max-time "$MAX_TIME_SECONDS" \
+  --fail \
+  --silent \
+  --show-error \
+  "https://$DOMAIN/api/health"
 printf '\n[lightsail] Deployment is healthy\n'

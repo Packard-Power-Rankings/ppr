@@ -72,6 +72,8 @@ Validate the file and rendered Compose configuration without starting anything:
 make lightsail-check
 ```
 
+The Lightsail Make targets deliberately clear any deployment values exported by an earlier `source .env/...` command before rendering Compose. This ensures `LIGHTSAIL_ENV=.env/staging` uses the staging file even when the current shell still contains production variables.
+
 ## 4. Deploy
 
 Build and start the stack:
@@ -92,6 +94,8 @@ After Caddy obtains the certificate, verify the public endpoint:
 ```bash
 make lightsail-health
 ```
+
+The health check normally completes within a few seconds and now stops after 30 seconds instead of waiting indefinitely. Override its limits with `LIGHTSAIL_HEALTH_CONNECT_TIMEOUT_SECONDS` and `LIGHTSAIL_HEALTH_MAX_TIME_SECONDS` when diagnosing an unusually slow network.
 
 The application and API documentation are available at:
 
@@ -199,10 +203,14 @@ Mongo upload metadata and the `upload_data` backup belong to the same snapshot. 
 
 **Caddy cannot obtain a certificate:** confirm the DNS `A` record points to the attached static IP and the Lightsail firewall allows inbound TCP 80 and 443.
 
+**`make lightsail-health` times out:** verify `getent ahostsv4 "$DOMAIN"` returns the staging instance's static IP, confirm ports 80 and 443 are open in the Lightsail firewall, and inspect `docker compose --env-file .env/production -f docker-compose.lightsail.yml logs --tail=200 frontend` for Caddy certificate errors.
+
 **The backend reports `Operation not permitted` while changing archive or upload ownership:** update to the current Compose file and rebuild with `make lightsail-up`. The backend and worker drop all Linux capabilities except the three needed by their entrypoint to prepare persistent directories and switch to the non-root application user.
 
 **A container remains unhealthy:** run `make lightsail-status`, then inspect bounded logs with `docker compose --env-file .env/production -f docker-compose.lightsail.yml logs --tail=200 backend db redis`. Backend startup waits for authenticated MongoDB and Redis health checks.
 
 **The site loads but API requests fail:** confirm `DOMAIN`, `CORS_ORIGINS`, and `ALLOWED_HOSTS` use the same public hostname, then rebuild with `make lightsail-up`.
+
+**The shell prints a different domain than the selected environment file:** reconnect the SSH session or run `unset DOMAIN CORS_ORIGINS ALLOWED_HOSTS` before manual `curl` commands. Current Make targets isolate Compose from stale exported deployment values, but `$DOMAIN` used directly at the prompt still comes from the shell.
 
 **The build runs out of memory:** use the 4 GB Lightsail plan, or add temporary swap for the image build. The running stack should still be monitored before attempting a smaller plan.
