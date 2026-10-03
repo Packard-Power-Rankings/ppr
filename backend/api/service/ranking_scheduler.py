@@ -148,6 +148,59 @@ async def initialize_ranking_state() -> None:
     )
 
 
+def weekly_snapshot_key(now: datetime | None = None) -> str:
+    """Return the local ISO week used to make Sunday snapshots idempotent."""
+    captured_at = now or datetime.now(timezone.utc)
+    if captured_at.tzinfo is None:
+        captured_at = captured_at.replace(tzinfo=timezone.utc)
+    iso_year, iso_week, _ = captured_at.astimezone(
+        ranking_timezone()
+    ).isocalendar()
+    return f"{iso_year}-W{iso_week:02d}"
+
+
+async def snapshot_weekly_last_ranks(
+    *,
+    now: datetime | None = None,
+) -> int:
+    """Copy current ranks into last_rank at most once per local week."""
+    captured_at = now or datetime.now(timezone.utc)
+    if captured_at.tzinfo is None:
+        captured_at = captured_at.replace(tzinfo=timezone.utc)
+    captured_at = captured_at.astimezone(timezone.utc)
+    week_key = weekly_snapshot_key(captured_at)
+    collection = sports_database.get_collection("temp2")
+    result = await collection.update_many(
+        {
+            "teams.0": {"$exists": True},
+            "last_rank_snapshot_week": {"$ne": week_key},
+        },
+        [{
+            "$set": {
+                "teams": {
+                    "$map": {
+                        "input": "$teams",
+                        "as": "team",
+                        "in": {
+                            "$mergeObjects": [
+                                "$$team",
+                                {
+                                    "last_rank": {
+                                        "$ifNull": ["$$team.overall_rank", 0]
+                                    }
+                                },
+                            ]
+                        },
+                    }
+                },
+                "last_rank_snapshot_week": week_key,
+                "last_rank_snapshot_at": captured_at,
+            }
+        }],
+    )
+    return int(result.modified_count)
+
+
 def _guard_key(level_key: Iterable[Any]) -> str:
     return f"{_RANKING_GUARD_PREFIX}:{':'.join(normalize_level_key(level_key))}"
 
@@ -418,8 +471,10 @@ async def dispatch_due_rankings(ctx: dict[str, Any]) -> dict[str, int]:
 
 
 async def weekly_ranking_catchup(ctx: dict[str, Any]) -> dict[str, int]:
-    return await _dispatch_stale_rankings(
+    snapshots = await snapshot_weekly_last_ranks()
+    result = await _dispatch_stale_rankings(
         ctx["redis"],
         trigger=WEEKLY_TRIGGER,
         quiet_before=None,
     )
+    return {**result, "last_rank_snapshots": snapshots}

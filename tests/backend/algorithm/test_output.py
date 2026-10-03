@@ -70,7 +70,7 @@ async def test_update_teams_persists_ranks_within_conferences(monkeypatch):
     assert ranks_by_team[2]["teams.$.conference_rank"] == 1
     assert ranks_by_team[3]["teams.$.conference_rank"] == 2
     assert ranks_by_team[4]["teams.$.conference_rank"] == 2
-    assert ranks_by_team[1]["teams.$.last_rank"] == 4
-    assert ranks_by_team[2]["teams.$.last_rank"] == 3
-    assert ranks_by_team[3]["teams.$.last_rank"] == 2
-    assert ranks_by_team[4]["teams.$.last_rank"] == 1
+    assert all(
+        "teams.$.last_rank" not in persisted_values
+        for persisted_values in ranks_by_team.values()
+    )

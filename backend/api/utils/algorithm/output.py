@@ -65,10 +65,6 @@ async def update_teams(df, teams_data, mongo_collection, team_level, date):
         team["team_id"]: rank
         for rank, team in enumerate(ordered_teams, start=1)
     }
-    last_ranks = {
-        team["team_id"]: team.get("overall_rank") or 0
-        for team in teams_data
-    }
     division_ranks = {}
     conference_ranks = {}
     divisions = defaultdict(list)
@@ -105,7 +101,6 @@ async def update_teams(df, teams_data, mongo_collection, team_level, date):
                 "teams.$.season_opp": season_games[team_id],
                 "teams.$.power_ranking": power_history,
                 "teams.$.overall_rank": overall_ranks[team_id],
-                "teams.$.last_rank": last_ranks[team_id],
                 "teams.$.division_rank": division_ranks[team_id],
                 "teams.$.conference_rank": conference_ranks[team_id],
                 "teams.$.date": date,

@@ -21,10 +21,12 @@ class FakeCursor:
 
 
 class FakeCollection:
-    def __init__(self, document=None, find_documents=None):
+    def __init__(self, document=None, find_documents=None, update_many_count=0):
         self.document = deepcopy(document)
         self.find_documents = find_documents or []
+        self.update_many_count = update_many_count
         self.updates = []
+        self.update_many_calls = []
         self.find_query = None
 
     async def find_one(self, _query, _projection=None):
@@ -54,6 +56,10 @@ class FakeCollection:
     def find(self, query, _projection=None):
         self.find_query = deepcopy(query)
         return FakeCursor(self.find_documents)
+
+    async def update_many(self, query, update):
+        self.update_many_calls.append((deepcopy(query), deepcopy(update)))
+        return SimpleNamespace(modified_count=self.update_many_count)
 
 
 class FakeDatabase:
@@ -248,6 +254,70 @@ async def test_due_dispatch_uses_ten_minute_quiet_period(monkeypatch):
     assert before <= cutoff <= after
     assert queued == [(LEVEL_KEY, {"trigger": "automatic"})]
     assert result["queued"] == 1
+
+
+@pytest.mark.asyncio
+async def test_weekly_snapshot_copies_current_rank_once_per_local_week(monkeypatch):
+    datasets = FakeCollection(update_many_count=6)
+    monkeypatch.setattr(
+        ranking_scheduler,
+        "sports_database",
+        FakeDatabase(FakeCollection(), datasets),
+    )
+    captured_at = datetime(2026, 10, 4, 7, 0, tzinfo=timezone.utc)
+
+    updated = await ranking_scheduler.snapshot_weekly_last_ranks(now=captured_at)
+
+    assert updated == 6
+    query, pipeline = datasets.update_many_calls[0]
+    week_key = ranking_scheduler.weekly_snapshot_key(captured_at)
+    assert query == {
+        "teams.0": {"$exists": True},
+        "last_rank_snapshot_week": {"$ne": week_key},
+    }
+    fields = pipeline[0]["$set"]
+    assert fields["last_rank_snapshot_week"] == week_key
+    assert fields["last_rank_snapshot_at"] == captured_at
+    rank_expression = fields["teams"]["$map"]["in"]["$mergeObjects"][1]
+    assert rank_expression == {
+        "last_rank": {"$ifNull": ["$$team.overall_rank", 0]}
+    }
+
+
+@pytest.mark.asyncio
+async def test_weekly_scheduler_snapshots_before_dispatching_stale_jobs(monkeypatch):
+    calls = []
+
+    async def snapshot():
+        calls.append("snapshot")
+        return 6
+
+    async def dispatch(redis, *, trigger, quiet_before):
+        calls.append(("dispatch", redis, trigger, quiet_before))
+        return {
+            "queued": 2,
+            "already_active": 0,
+            "no_games": 0,
+            "failed": 0,
+        }
+
+    monkeypatch.setattr(ranking_scheduler, "snapshot_weekly_last_ranks", snapshot)
+    monkeypatch.setattr(ranking_scheduler, "_dispatch_stale_rankings", dispatch)
+    redis = object()
+
+    result = await ranking_scheduler.weekly_ranking_catchup({"redis": redis})
+
+    assert calls == [
+        "snapshot",
+        ("dispatch", redis, ranking_scheduler.WEEKLY_TRIGGER, None),
+    ]
+    assert result == {
+        "queued": 2,
+        "already_active": 0,
+        "no_games": 0,
+        "failed": 0,
+        "last_rank_snapshots": 6,
+    }
 
 
 def test_worker_cron_runs_weekly_sunday_at_one_am():

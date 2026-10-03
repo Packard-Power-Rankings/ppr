@@ -96,6 +96,8 @@ Generated archives are runtime data stored in Docker's named `archive_data` volu
 
 The `/admin` dashboard also provides guarded season reset actions. **Reset Selected Sport** opens a dataset picker and verifies that exact dataset is archived before resetting it. **Reset All Sports** has a separate confirmation and checks for a complete all-sports archive. A reset sets wins, losses, and win ratio to zero; removes canonical current-season games and source uploads; and preserves overall rank, division rank, power history, ranking date, recent opponents, and each team's five most recent game records. If the required archive is missing, the administrator must explicitly confirm that they want to proceed without archiving. Resetting does not copy data to `previous_season` or modify an existing public archive.
 
+Each game row on a public team page has a flag icon. Reporting a game opens a dialog that requires a 5- to 1,000-character description; the backend verifies that the game and supplied team IDs belong to the selected dataset and stores canonical team names. Only one unresolved report may exist for a game at a time. Authenticated admins see the unresolved count on the header shield and can open **Resolve Flagged Issues** under the dashboard's **Other** group. The review page lists reports oldest first, expands long descriptions, and resolves individual reports with a confirmation checkmark. Resolved reports remain stored as history but disappear from the queue and badge; the same game may be reported again later.
+
 Follow backend and worker logs while debugging:
 
 ```bash
@@ -154,7 +156,7 @@ This command:
 4. Creates or authenticates the test admin.
 5. Adds seven teams and uploads four weeks containing 13 games.
 6. Queues the ranking and z-score jobs and waits for ARQ to finish them.
-7. Verifies records, ranking updates, team details, predictions, and the flagged-game lifecycle.
+7. Verifies records, ranking updates, team details, predictions, and the flagged-game report, review, count, and resolution lifecycle.
 
 A successful run ends with:
 
@@ -318,11 +320,11 @@ The production flow is:
 4. After ten minutes without another game change, the ARQ dispatcher queues one full ranking run for that dataset.
 5. `run.py` reads canonical games from Mongo and starts from each team's initial ranking.
 6. `data_cleaning.py`, `data_enrichment.py`, and `main.py` calculate rankings.
-7. `output.py` replaces derived team records, ranking order, and z-scores.
+7. `output.py` replaces derived team records, current ranking order, and z-scores without changing the weekly `last_rank` baseline.
 8. The worker marks the result current only when the game revision did not change during calculation.
-9. A Sunday 1:00 AM catch-up queues any datasets that are still stale; the admin Run Algorithm button remains available for immediate manual runs.
+9. Every Sunday at 1:00 AM, the scheduler snapshots each team's current rank into `last_rank` once for that local calendar week, then queues any datasets that are still stale. The admin Run Algorithm button remains available for immediate manual runs without moving `last_rank`.
 
-The weekly schedule uses `RANKING_TIMEZONE` (`America/Denver` by default). `RANKING_DEBOUNCE_SECONDS` defaults to `600`, and automatic runs use `AUTO_RANKING_ITERATIONS` (`1` by default). A Redis guard allows only one active ranking job per dataset. Repeating a run with the same games and iteration count produces the same result.
+The weekly schedule uses `RANKING_TIMEZONE` (`America/Denver` by default). Each dataset stores `last_rank_snapshot_week` and `last_rank_snapshot_at`, making Sunday retries idempotent. `RANKING_DEBOUNCE_SECONDS` defaults to `600`, and automatic runs use `AUTO_RANKING_ITERATIONS` (`1` by default). A Redis guard allows only one active ranking job per dataset. Repeating a run with the same games and iteration count produces the same result.
 
 The standalone `tests/isolation/algorithm/` workspace continues to use local CSV files for experiments. It is not the production application's data path.
 

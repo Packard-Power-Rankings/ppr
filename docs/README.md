@@ -186,6 +186,14 @@ The browser validates its cookie-backed session when the application starts. Pub
 
 Logging out expires the cookie. Deleting the admin account immediately invalidates its tokens; the backend does not maintain a separate per-token revocation list.
 
+## Flagged-Game Review Workflow
+
+Public team pages use the canonical `game_id` and team IDs already returned with each game. Selecting the flag icon first checks for an existing unresolved report, then opens a dialog requiring a description. `POST /flagged-game/` revalidates the game against `sports_data.games`, replaces client-supplied names with canonical names, and atomically refuses a second unresolved report for the same game.
+
+Each stored issue has an `issue_id`, description, `reported_at`, and status. The authenticated header polls `GET /flagged-games/count` and displays a reminder badge on the admin shield. The dashboard links to `/admin/flagged-games`, where `GET /flagged-games/` returns unresolved issues oldest first. Long descriptions open in a detail dialog. Confirming the checkmark calls `PATCH /flagged-games/{issue_id}/resolve`, sets the issue status and `resolved_at`, refreshes the queue, and updates the shield badge.
+
+Resolution preserves the report as review history instead of deleting it. Because duplicate detection considers only unresolved reports, a corrected game may be reported again if another problem is later discovered. Backend startup upgrades legacy reports with the metadata required by this workflow.
+
 ## Admin Data-Ingestion Workflow
 
 The admin selects a sport, gender, and level from the shared dropdowns before adding games. The selected values form the dataset key used by every request. Games can be entered individually or uploaded as a CSV.
@@ -244,9 +252,9 @@ Manual alternative
   -> frontend polls GET /execution-history/ while the job is active
 ```
 
-The automatic dispatcher runs every minute, but only datasets whose last game change is at least `RANKING_DEBOUNCE_SECONDS` old are eligible. The default is 600 seconds. A weekly catch-up runs Sunday at 1:00 AM in `RANKING_TIMEZONE` and queues any stale datasets without waiting for the quiet period. Both use `AUTO_RANKING_ITERATIONS`; the defaults are `America/Denver` and one iteration.
+The automatic dispatcher runs every minute, but only datasets whose last game change is at least `RANKING_DEBOUNCE_SECONDS` old are eligible. The default is 600 seconds. A weekly catch-up runs Sunday at 1:00 AM in `RANKING_TIMEZONE`. Before queueing stale datasets, it copies every team's current `overall_rank` into `last_rank`. The dataset's `last_rank_snapshot_week` prevents retries from moving that baseline more than once in the same local ISO week. Both automatic and weekly ranking runs use `AUTO_RANKING_ITERATIONS`; the defaults are `America/Denver` and one iteration.
 
-The same Redis guard prevents overlapping manual, automatic, and weekly runs for a dataset. The admin Run Algorithm button remains available for immediate corrections and troubleshooting, and execution history identifies each run's source. A ranking run completes the whole pipeline, including z-scores. `/calc_z_scores/` remains available as an advanced action to refresh only z-scores.
+The same Redis guard prevents overlapping manual, automatic, and weekly runs for a dataset. The admin Run Algorithm button remains available for immediate corrections and troubleshooting, and execution history identifies each run's source. Manual and automatic calculations can change `overall_rank` throughout the week but leave `last_rank` intact, so ranking movement remains relative to the Sunday baseline. A ranking run completes the whole pipeline, including z-scores. `/calc_z_scores/` remains available as an advanced action to refresh only z-scores.
 
 ## Ranking Pipeline
 
@@ -260,7 +268,7 @@ The production pipeline is orchestrated by [`backend/api/utils/algorithm/run.py`
 6. `main.py` normalizes score margins, calculates expected and actual performance, and derives ranking changes.
 7. Ranking changes propagate through the recent-opponent graph with decreasing influence at greater depth.
 8. Steps 3 through 7 repeat for the requested number of iterations, entirely in memory.
-9. `output.py` replaces wins, losses, rankings, recent opponents, and reciprocal `season_opp` views in MongoDB.
+9. `output.py` replaces wins, losses, current rankings, recent opponents, and reciprocal `season_opp` views in MongoDB without changing `last_rank`.
 10. The same canonical games are used to calculate z-scores, which are written to both `games` and the team-facing records.
 
 Iterations let results settle across connected opponents. Every invocation starts from the stored initial ranking, so the same games and iteration count produce the same result instead of compounding a previous run.
@@ -274,7 +282,7 @@ The code currently selects database names directly, even though the connection U
 | `sports_data` | `temp2` | Teams plus derived rankings and reciprocal season-game views |
 | `sports_data` | `games` | Canonical normalized current-season game documents |
 | `sports_data` | `csv_files` | Source-upload metadata and filesystem paths; no CSV bytes |
-| `sports_data` | `flagged_games` | User-reported games that need review |
+| `sports_data` | `flagged_games` | Open and resolved game reports with descriptions and review metadata |
 | `sports_data` | `previous_season` | Previous-season reference data |
 | `admin_details` | `admin` | The admin username and password hash |
 

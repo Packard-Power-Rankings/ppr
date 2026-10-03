@@ -15,6 +15,7 @@ Run Rankings
   -> load each team's initial ranking seed
   -> calculate the requested iterations in memory
   -> replace derived team rankings and season_opp records
+  -> preserve the Sunday last_rank comparison baseline
   -> calculate z-scores from the same canonical game set
   -> write z-scores to games and both reciprocal team views
 ```
@@ -29,12 +30,14 @@ The original source upload is an immutable reference. The algorithm never opens 
 | `data_cleaning.py` | Normalize score and team values for calculations |
 | `data_enrichment.py` | Add constants and current in-memory team rankings |
 | `main.py` | Calculate score adjustments, expected performance, power changes, propagation, and z-scores |
-| `output.py` | Replace derived team records, ranks, histories, and z-scores in MongoDB |
+| `output.py` | Replace derived team records, current ranks, histories, and z-scores in MongoDB while preserving `last_rank` |
 | `upload.py` | Legacy/isolated file adapter; not used by the production runner |
 
 ## Repeatability
 
 Every ranking invocation starts from the first value in each team's `power_ranking` history. The worker then processes all canonical games for each requested iteration and writes one final snapshot. Running the same dataset with the same iteration count therefore produces the same rankings rather than adding the changes again.
+
+`last_rank` is not an algorithm output. The Sunday 1:00 AM scheduler copies each team's current `overall_rank` into `last_rank` once per local ISO week. Manual and automatic runs preserve that value, allowing the frontend movement arrows to compare the current ranking with one stable weekly baseline.
 
 `POST /run_algorithm/{iterations}` accepts 1 through 100 iterations and runs rankings plus z-scores. `POST /calc_z_scores/` only refreshes z-scores using current rankings.
 

@@ -74,8 +74,18 @@ Admin operations include:
 - Retrieving the five most recent executions for each calculation type
 - Updating team names and game scores
 - Deleting games or teams
-- Reviewing and clearing flagged games
+- Counting, reviewing, and individually resolving flagged-game issues
 - Archiving seasons and resetting selected or all datasets without modifying existing archives
+
+Flagged-game review uses these protected routes:
+
+| Method and path                              | Purpose                                      |
+| -------------------------------------------- | -------------------------------------------- |
+| `GET /flagged-games/count`                   | Count unresolved reports for the admin badge |
+| `GET /flagged-games/?skip=0&limit=50`        | List unresolved reports oldest first         |
+| `PATCH /flagged-games/{issue_id}/resolve`    | Resolve one report                           |
+
+The public report endpoint accepts only a canonical game and its two team IDs, plus a required 5- to 1,000-character description. One unresolved issue is allowed per game. Resolution records `resolved_at` and retains the issue for history while excluding it from pending counts and lists. On startup, legacy reports receive an issue ID, description placeholder, timestamp, and open status.
 
 The current model permits one admin account. `/setup/admin/` requires the `X-Setup-Token` header and refuses to create another account when one already exists. Login failures use one generic `401` response so callers cannot determine whether a username exists.
 
@@ -115,7 +125,7 @@ The migration rewrites current and previous-season teams, canonical games, oppon
 
 The ranking job reads only `sports_data.games`, fully rebuilds derived team season data from initial rankings, and calculates z-scores before completing. The separate z-score job remains available for refreshing z-scores without rerunning rankings.
 
-Adding, changing, or deleting a game increments `games_revision`, records `ranking_requested_at`, and marks only that sport/gender/level stale. A dispatcher runs every minute and queues the full ranking pipeline after the dataset has been quiet for `RANKING_DEBOUNCE_SECONDS` (600 by default). A second ARQ cron job queues all remaining stale datasets every Sunday at 1:00 AM in `RANKING_TIMEZONE` (`America/Denver` by default). Automatic and weekly runs use `AUTO_RANKING_ITERATIONS` (1 by default).
+Adding, changing, or deleting a game increments `games_revision`, records `ranking_requested_at`, and marks only that sport/gender/level stale. A dispatcher runs every minute and queues the full ranking pipeline after the dataset has been quiet for `RANKING_DEBOUNCE_SECONDS` (600 by default). Ranking runs update `overall_rank` but never change `last_rank`. Every Sunday at 1:00 AM in `RANKING_TIMEZONE` (`America/Denver` by default), the weekly task first copies each team's current `overall_rank` into `last_rank`, then queues all remaining stale datasets. `last_rank_snapshot_week` makes the copy idempotent if the Sunday task is retried. Automatic and weekly runs use `AUTO_RANKING_ITERATIONS` (1 by default).
 
 A Redis guard prevents overlapping manual and automatic runs for the same dataset. The worker captures the dataset revision before calculation and marks it current only if that revision is unchanged when the write completes. A mid-run game change therefore remains stale and is recalculated after its own quiet period. Season resets contain no current games, so they preserve ranking information and set the scheduling state to `no_games` instead of queueing a job that cannot run.
 
@@ -129,7 +139,7 @@ The frontend polls `GET /execution-history/` while a job is active. The smoke-te
 | `sports_data`   | `temp2`             | Teams plus derived rankings and reciprocal season-game views |
 | `sports_data`   | `games`             | Canonical normalized current-season games                    |
 | `sports_data`   | `csv_files`         | Source-upload metadata and filesystem paths; no file bytes   |
-| `sports_data`   | `flagged_games`     | Games reported for review                                    |
+| `sports_data`   | `flagged_games`     | Open and resolved game reports with review metadata           |
 | `sports_data`   | `previous_season`   | Archived season data                                         |
 | `admin_details` | `admin`             | Admin username and bcrypt password hash                      |
 | `admin_details` | `execution_history` | Persisted ranking and z-score job history                    |

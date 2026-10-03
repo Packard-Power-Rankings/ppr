@@ -49,7 +49,7 @@ The full fixture covers these dataset combinations:
 | Basketball | Women's | High School |
 | Basketball | Women's | College |
 
-For each combination, the loader creates 10 current teams, 10 canonical games plus reciprocal derived team records, one source CSV under `uploads/`, one upload-metadata record, one flagged game, and a 10-team previous-season dataset. In total, the fixture contains 60 current teams and 60 unique current-season games.
+For each combination, the loader creates 10 current teams, 10 canonical games plus reciprocal derived team records, one source CSV under `uploads/`, one upload-metadata record, one resolvable open game issue with review metadata, and a 10-team previous-season dataset. In total, the fixture contains 60 current teams and 60 unique current-season games.
 
 ## Full Database Reset
 
@@ -86,7 +86,7 @@ On an empty Basketball/Men's/High School fixture dataset, run:
 make test-app
 ```
 
-This path creates missing dataset documents, authenticates the test admin, adds seven teams through the API, uploads four CSV files containing 13 games, runs the ranking and z-score jobs, and verifies team records, details, predictions, and the flagged-game lifecycle. It intentionally refuses to overwrite populated data.
+This path creates missing dataset documents, authenticates the test admin, adds seven teams through the API, uploads four CSV files containing 13 games, runs the ranking and z-score jobs, and verifies team records, details, predictions, and the flagged-game report, list, count, and resolution lifecycle. It intentionally refuses to overwrite populated data.
 
 The test reads `SETUP_TOKEN`, `MONGO_USER`, and `MONGO_PASS` from `.env/development`. Optional settings are `BASE_URL`, `JOB_TIMEOUT_SECONDS`, and `POLL_INTERVAL_SECONDS`.
 

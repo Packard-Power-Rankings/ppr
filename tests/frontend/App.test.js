@@ -2,7 +2,13 @@ import React from 'react'
 import { render, screen } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import App from 'src/App'
+import api from 'src/api'
 import { store } from 'src/store'
+
+jest.mock('src/api', () => ({
+  __esModule: true,
+  default: { get: jest.fn() },
+}))
 
 jest.mock('src/services/authService', () => ({
   initializeAuth: jest.fn(),
@@ -16,6 +22,8 @@ const renderApp = () =>
   )
 
 beforeEach(() => {
+  api.get.mockReset()
+  api.get.mockResolvedValue({ data: { count: 0 } })
   localStorage.clear()
   store.dispatch({ type: 'logout' })
 })
