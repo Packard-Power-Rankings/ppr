@@ -1,20 +1,24 @@
-name: Python application
+name: Security checks
 
 on:
   push:
     branches: ["main"]
   pull_request:
     branches: ["main"]
+  schedule:
+    # Weekly, so newly published dependency vulnerabilities are caught without a code change.
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  group: security-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build:
+  security:
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -27,16 +31,8 @@ jobs:
           mkdir -p .env
           cp .env/development.example .env/development
 
-      - name: Validate Compose configuration
-        run: |
-          docker compose version
-          docker compose --env-file .env/development config --quiet
-
-      - name: Run application checks
-        run: make test-check
-
-      - name: Test deployment security policy
-        run: make test-deployment-security
+      - name: Run Python and JavaScript security checks
+        run: make test-security
 
       - name: Show service logs on failure
         if: failure()

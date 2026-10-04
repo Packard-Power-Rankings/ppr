@@ -22,7 +22,7 @@ const Teams = ({ fixedSport }) => {
     const [searchTerm, setSearchTerm] = useState("");
     const [divisionFilter, setDivisionFilter] = useState('all');
     const [conferenceFilter, setConferenceFilter] = useState('all');
-    const [sortColumn, setSortColumn] = useState(null);
+    const [sortColumn, setSortColumn] = useState("overall_rank");
     const [sortDirection, setSortDirection] = useState("asc");
     const selectionName = formatDatasetName({ sport, gender, level });
     const pageHeading = (
@@ -120,6 +120,17 @@ const Teams = ({ fixedSport }) => {
         }
     };
 
+    const getAriaSort = (column) => {
+        if (sortColumn !== column) return undefined;
+        return sortDirection === "asc" ? "ascending" : "descending";
+    };
+
+    const renderSortArrow = (column) => (
+        sortColumn === column
+            ? <span aria-hidden="true">{sortDirection === "asc" ? "↑" : "↓"}</span>
+            : null
+    );
+
     const filteredTeams = teams.filter(team =>
         team.team_name.toLowerCase().includes(searchTerm.toLowerCase()) &&
         (divisionFilter === 'all' || team.division === divisionFilter) &&
@@ -133,7 +144,6 @@ const Teams = ({ fixedSport }) => {
     const hasConference = teams.some((team) =>
         typeof team.conference === 'string' && team.conference.trim().length > 0
     );
-    const hasConferenceRank = teams.some((team) => Number(team.conference_rank) > 0);
 
     const sortedTeams = [...filteredTeams].sort((a, b) => {
         if (!sortColumn) return 0;
@@ -144,9 +154,9 @@ const Teams = ({ fixedSport }) => {
         if (sortColumn === "power") {
             valA = parseFloat(getLatestPowerRanking(a.power_ranking)) || 0;
             valB = parseFloat(getLatestPowerRanking(b.power_ranking)) || 0;
-        } else if (sortColumn === "overall_rank") {
-            valA = getDisplayRank(a.overall_rank);
-            valB = getDisplayRank(b.overall_rank);
+        } else if (["overall_rank", "last_rank", "conference_rank"].includes(sortColumn)) {
+            valA = getDisplayRank(a[sortColumn]);
+            valB = getDisplayRank(b[sortColumn]);
         }
 
         if (valA < valB) return sortDirection === "asc" ? -1 : 1;
@@ -225,31 +235,33 @@ const Teams = ({ fixedSport }) => {
             <CTable striped className="team-list-table">
                 <CTableHead color="light" style={{ position: 'sticky', top: 114, zIndex: 1 }}>
                     <CTableRow>
-                        <CTableHeaderCell scope="col" className="py-3" onClick={() => handleSort("overall_rank")} style={{ cursor: "pointer" }}>
-                            Rank {sortColumn === "overall_rank" ? (sortDirection === "asc" ? "↑" : "↓") : ""}
+                        <CTableHeaderCell scope="col" className="py-3" onClick={() => handleSort("overall_rank")} aria-sort={getAriaSort("overall_rank")} style={{ cursor: "pointer" }}>
+                            Rank {renderSortArrow("overall_rank")}
                         </CTableHeaderCell>
-                        <CTableHeaderCell scope="col" className="py-3">Last Rank</CTableHeaderCell>
+                        <CTableHeaderCell scope="col" className="py-3" onClick={() => handleSort("last_rank")} aria-sort={getAriaSort("last_rank")} style={{ cursor: "pointer" }}>
+                            <abbr title="Last Week Rank">LW Rank</abbr> {renderSortArrow("last_rank")}
+                        </CTableHeaderCell>
                         <CTableHeaderCell scope="col" className="py-3">Team</CTableHeaderCell>
-                        <CTableHeaderCell scope="col" className="py-3" onClick={() => handleSort("power")} style={{ cursor: "pointer" }}>
-                            Power {sortColumn === "power" ? (sortDirection === "asc" ? "↑" : "↓") : ""}
+                        <CTableHeaderCell scope="col" className="py-3" onClick={() => handleSort("power")} aria-sort={getAriaSort("power")} style={{ cursor: "pointer" }}>
+                            Power {renderSortArrow("power")}
                         </CTableHeaderCell>
-                        <CTableHeaderCell scope="col" className="py-3" onClick={() => handleSort("division_rank")} style={{ cursor: "pointer" }}>
-                            Div. Rank {sortColumn === "division_rank" ? (sortDirection === "asc" ? "↑" : "↓") : ""}
+                        <CTableHeaderCell scope="col" className="py-3" onClick={() => handleSort("division_rank")} aria-sort={getAriaSort("division_rank")} style={{ cursor: "pointer" }}>
+                            Div. Rank {renderSortArrow("division_rank")}
                         </CTableHeaderCell>
                         <CTableHeaderCell scope="col" className="py-3">Div.</CTableHeaderCell>
                         {hasConference && (
                             <CTableHeaderCell scope="col" className="py-3">Conference</CTableHeaderCell>
                         )}
-                        {hasConferenceRank && (
-                            <CTableHeaderCell scope="col" className="py-3" onClick={() => handleSort("conference_rank")} style={{ cursor: "pointer" }}>
-                                Cnf. Rank {sortColumn === "conference_rank" ? (sortDirection === "asc" ? "↑" : "↓") : ""}
+                        {hasConference && (
+                            <CTableHeaderCell scope="col" className="py-3" onClick={() => handleSort("conference_rank")} aria-sort={getAriaSort("conference_rank")} style={{ cursor: "pointer" }}>
+                                <abbr title="Conference Rank">Conf. Rank</abbr> {renderSortArrow("conference_rank")}
                             </CTableHeaderCell>
                         )}
-                        <CTableHeaderCell scope="col" className="py-3" onClick={() => handleSort("wins")} style={{ cursor: "pointer" }}>
-                            W {sortColumn === "wins" ? (sortDirection === "asc" ? "↑" : "↓") : ""}
+                        <CTableHeaderCell scope="col" className="py-3" onClick={() => handleSort("wins")} aria-sort={getAriaSort("wins")} style={{ cursor: "pointer" }}>
+                            W {renderSortArrow("wins")}
                         </CTableHeaderCell>
-                        <CTableHeaderCell scope="col" className="py-3" onClick={() => handleSort("losses")} style={{ cursor: "pointer" }}>
-                            L {sortColumn === "losses" ? (sortDirection === "asc" ? "↑" : "↓") : ""}
+                        <CTableHeaderCell scope="col" className="py-3" onClick={() => handleSort("losses")} aria-sort={getAriaSort("losses")} style={{ cursor: "pointer" }}>
+                            L {renderSortArrow("losses")}
                         </CTableHeaderCell>
                     </CTableRow>
                 </CTableHead>
@@ -281,7 +293,11 @@ const Teams = ({ fixedSport }) => {
                             <CTableDataCell className="py-3">{team.division_rank}</CTableDataCell>
                             <CTableDataCell className="py-3">{team.division}</CTableDataCell>
                             {hasConference && <CTableDataCell className="py-3">{team.conference}</CTableDataCell>}
-                            {hasConferenceRank && <CTableDataCell className="py-3">{team.conference_rank ?? '-'}</CTableDataCell>}
+                            {hasConference && (
+                                <CTableDataCell className="py-3">
+                                    {Number(team.conference_rank) > 0 ? team.conference_rank : '-'}
+                                </CTableDataCell>
+                            )}
                             <CTableDataCell className="py-3">{team.wins}</CTableDataCell>
                             <CTableDataCell className="py-3">{team.losses}</CTableDataCell>
                             </CTableRow>

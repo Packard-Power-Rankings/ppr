@@ -99,8 +99,10 @@ class ArchiveService:
             return 1, 0, -power, team["team_name"].casefold()
 
         normalized.sort(key=ranking_key)
-        for position, team in enumerate(normalized, start=1):
-            team["rank"] = team["stored_rank"] or position
+        for team in normalized:
+            team["rank"] = (
+                team["stored_rank"] if team["stored_rank"] > 0 else 9999
+            )
         return normalized
 
     @staticmethod

@@ -79,11 +79,11 @@ Admin operations include:
 
 Flagged-game review uses these protected routes:
 
-| Method and path                              | Purpose                                      |
-| -------------------------------------------- | -------------------------------------------- |
-| `GET /flagged-games/count`                   | Count unresolved reports for the admin badge |
-| `GET /flagged-games/?skip=0&limit=50`        | List unresolved reports oldest first         |
-| `PATCH /flagged-games/{issue_id}/resolve`    | Resolve one report                           |
+| Method and path                           | Purpose                                      |
+| ----------------------------------------- | -------------------------------------------- |
+| `GET /flagged-games/count`                | Count unresolved reports for the admin badge |
+| `GET /flagged-games/?skip=0&limit=50`     | List unresolved reports oldest first         |
+| `PATCH /flagged-games/{issue_id}/resolve` | Resolve one report                           |
 
 The public report endpoint accepts only a canonical game and its two team IDs, plus a required 5- to 1,000-character description. One unresolved issue is allowed per game. Resolution records `resolved_at` and retains the issue for history while excluding it from pending counts and lists. On startup, legacy reports receive an issue ID, description placeholder, timestamp, and open status.
 
@@ -139,7 +139,7 @@ The frontend polls `GET /execution-history/` while a job is active. The smoke-te
 | `sports_data`   | `temp2`             | Teams plus derived rankings and reciprocal season-game views |
 | `sports_data`   | `games`             | Canonical normalized current-season games                    |
 | `sports_data`   | `csv_files`         | Source-upload metadata and filesystem paths; no file bytes   |
-| `sports_data`   | `flagged_games`     | Open and resolved game reports with review metadata           |
+| `sports_data`   | `flagged_games`     | Open and resolved game reports with review metadata          |
 | `sports_data`   | `previous_season`   | Archived season data                                         |
 | `admin_details` | `admin`             | Admin username and bcrypt password hash                      |
 | `admin_details` | `execution_history` | Persisted ranking and z-score job history                    |

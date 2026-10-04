@@ -26,28 +26,28 @@ make test-admin-reset CONFIRM_ADMIN_RESET=1
 
 ## Fixture Inventory
 
-| File | Purpose |
-| --- | --- |
-| `full-database-fixture.json` | Compact specification for all six supported datasets, with 10 teams and 10 games per dataset |
-| `load_full_fixture.mongodb.js` | Builds complete MongoDB documents from the specification and replaces the application collections |
-| `seed-empty-datasets.json` | Empty documents for manually preparing the six supported dataset keys |
-| `seed-flagged-games.json` | Empty flagged-game documents for manual setup |
-| `teams.json` | Seven Basketball/Men's/High School teams used by the ingestion smoke test |
-| `week-01.csv` through `week-04.csv` | Thirteen connected games used by the ingestion and ranking smoke test |
-| `expected-records.json` | Expected records after the ingestion smoke test runs the algorithm |
-| `api-smoke-test.http` | Reusable API requests for manually stepping through the workflow |
-| `negative-cases/` | Intentionally invalid upload files for error-path checks |
+| File                                | Purpose                                                                                           |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `full-database-fixture.json`        | Compact specification for all six supported datasets, with 10 teams and 10 games per dataset      |
+| `load_full_fixture.mongodb.js`      | Builds complete MongoDB documents from the specification and replaces the application collections |
+| `seed-empty-datasets.json`          | Empty documents for manually preparing the six supported dataset keys                             |
+| `seed-flagged-games.json`           | Empty flagged-game documents for manual setup                                                     |
+| `teams.json`                        | Seven Basketball/Men's/High School teams used by the ingestion smoke test                         |
+| `week-01.csv` through `week-04.csv` | Thirteen connected games used by the ingestion and ranking smoke test                             |
+| `expected-records.json`             | Expected records after the ingestion smoke test runs the algorithm                                |
+| `api-smoke-test.http`               | Reusable API requests for manually stepping through the workflow                                  |
+| `negative-cases/`                   | Intentionally invalid upload files for error-path checks                                          |
 
 The full fixture covers these dataset combinations:
 
-| Sport | Gender | Level |
-| --- | --- | --- |
-| Football | Men's | High School |
-| Football | Men's | College |
-| Basketball | Men's | High School |
-| Basketball | Men's | College |
+| Sport      | Gender  | Level       |
+| ---------- | ------- | ----------- |
+| Football   | Men's   | High School |
+| Football   | Men's   | College     |
+| Basketball | Men's   | High School |
+| Basketball | Men's   | College     |
 | Basketball | Women's | High School |
-| Basketball | Women's | College |
+| Basketball | Women's | College     |
 
 For each combination, the loader creates 10 current teams, 10 canonical games plus reciprocal derived team records, one source CSV under `uploads/`, one upload-metadata record, one resolvable open game issue with review metadata, and a 10-team previous-season dataset. In total, the fixture contains 60 current teams and 60 unique current-season games.
 

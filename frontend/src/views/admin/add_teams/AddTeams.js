@@ -26,6 +26,21 @@ const TEAM_DATA_HEADERS = [
   'ranked',
 ]
 
+const filenameMatchesDataset = (fileName, sport, gender, level) => {
+  const normalizedName = fileName
+    .replace(/\.[^.]+$/, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+  const matchesGender = gender === 'womens'
+    ? normalizedName.includes('womens') || normalizedName.includes('women')
+    : !normalizedName.includes('women') &&
+      (normalizedName.includes('mens') || normalizedName.includes('men'))
+
+  return normalizedName.includes(sport) &&
+    normalizedName.includes(level.replace(/_/g, '')) &&
+    matchesGender
+}
+
 const emptyTeam = {
   team_id: '',
   state: '',
@@ -101,6 +116,13 @@ const AddTeams = () => {
   const handleSubmit = async (event) => {
     event.preventDefault()
     if (!file) return
+    if (!filenameMatchesDataset(file.name, sport, gender, level)) {
+      setFeedback({
+        color: 'danger',
+        messages: [`Filename must identify the selected dataset: ${gender}, ${level}, ${sport}.`],
+      })
+      return
+    }
 
     const formData = new FormData()
     formData.append('csv_file', file)

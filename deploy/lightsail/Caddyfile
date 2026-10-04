@@ -2,14 +2,39 @@
 	encode zstd gzip
 	log
 
-	handle_path /api/* {
-		reverse_proxy backend:8000
-	}
+	route {
+		# Keep infrastructure health checks available while rejecting obvious
+		# automated clients before they reach the application or static files.
+		@missing_user_agent {
+			not path /api/health
+			not header User-Agent *
+		}
+		log_append @missing_user_agent bot_block_reason missing_user_agent
+		respond @missing_user_agent "Forbidden" 403
 
-	handle {
-		root * /srv
-		try_files {path} /index.html
-		file_server
+		@automated_client {
+			not path /api/health
+			header_regexp automated_user_agent User-Agent (?i)(?:bot|crawler|spider|scraper|headlesschrome|phantomjs|selenium|playwright|puppeteer|python-requests|python-urllib|go-http-client|java/|libwww-perl|wget|curl|httpclient|aiohttp|scrapy|sqlmap|nikto|nuclei|masscan|zgrab|gobuster|dirbuster|ffuf|wpscan)
+			not header_regexp permitted_crawler User-Agent (?i)(?:googlebot|google-inspectiontool|bingbot|duckduckbot|applebot|facebookexternalhit|twitterbot|linkedinbot|slackbot|discordbot)
+		}
+		log_append @automated_client bot_block_reason automated_user_agent
+		respond @automated_client "Forbidden" 403
+
+		# Block common vulnerability-probe targets. Without this matcher, the SPA
+		# fallback would return index.html with a misleading 200 response.
+		@probe_path path /.env* /.git* /.svn* /.hg* /.DS_Store /wp-* /xmlrpc.php /phpmyadmin* /vendor/phpunit* /server-status /actuator* /cgi-bin* /*.php /*.sql /*.bak /*.ini
+		log_append @probe_path bot_block_reason probe_path
+		respond @probe_path "Forbidden" 403
+
+		handle_path /api/* {
+			reverse_proxy backend:8000
+		}
+
+		handle {
+			root * /srv
+			try_files {path} /index.html
+			file_server
+		}
 	}
 
 	header {

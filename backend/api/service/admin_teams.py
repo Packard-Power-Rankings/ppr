@@ -28,6 +28,9 @@ from api.service.game_ingestion import (
     validate_game_values,
 )
 from api.service.team_ingestion import parse_team_csv
+from api.service.previous_season_ingestion import (
+    parse_previous_season_csv,
+)
 from api.service.upload_storage import delete_game_file, store_game_file
 from api.service.ranking_scheduler import (
     mark_dataset_stale,
@@ -391,7 +394,8 @@ class AdminTeamsService():
                     seen.add(normalized_name)
             return missing_teams
         except Exception as exc:
-            logger.exception("Failed to find missing teams for %s", self.level_key)
+            logger.exception(
+                "Failed to find missing teams for %s", self.level_key)
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An internal error has occurred."
@@ -573,6 +577,190 @@ class AdminTeamsService():
             ),
             "teams_added_count": len(added),
             "teams_failed": failed,
+        }
+
+    async def current_season_year(self) -> int:
+        """Return the dataset's explicit season year or the current year."""
+        document = await self.sports_collection.find_one(
+            {"_id": self.level_constant.get("_id")},
+            {"season_year": 1},
+        )
+        season_year = document.get("season_year") if document else None
+        if isinstance(season_year, int) and 2000 <= season_year <= 9999:
+            return season_year
+        return datetime.now(timezone.utc).year
+
+    async def import_previous_season_csv(
+        self,
+        file_name: str,
+        file_content: bytes,
+    ) -> Dict[str, Any]:
+        """Overlay a legacy final ranking snapshot onto imported teams."""
+        if not file_name.lower().endswith(".csv"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Previous-season ranking file must be a CSV file",
+            )
+
+        season_file = parse_previous_season_csv(file_content)
+        base_filter = {"_id": self.level_constant.get("_id")}
+
+        async with self._ingest_lock:
+            document = await self.sports_collection.find_one(base_filter)
+            teams = document.get("teams", []) if document else []
+            if not teams:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=(
+                        "No teams exist for the selected dataset. Import the "
+                        "team data before importing previous-season rankings."
+                    ),
+                )
+
+            obsolete_team_fields = (
+                "week_id",
+                "actual_change",
+                "total_score",
+                "num_games",
+            )
+            for team in teams:
+                for field in obsolete_team_fields:
+                    team.pop(field, None)
+
+            short_name_indexes: dict[str, list[int]] = {}
+            existing_team_ids = set()
+            for index, team in enumerate(teams):
+                short_name = normalize_team_name(team.get("short_name") or "")
+                if short_name:
+                    short_name_indexes.setdefault(
+                        short_name.casefold(), []
+                    ).append(index)
+                team_id = team.get("team_id")
+                if isinstance(team_id, int) and not isinstance(team_id, bool):
+                    existing_team_ids.add(team_id)
+
+            imported: list[dict[str, Any]] = []
+            flagged: list[dict[str, Any]] = []
+            warnings: list[dict[str, Any]] = []
+            matched_indexes = set()
+            imported_at = datetime.now(timezone.utc)
+            snapshot_key = imported_at.isoformat(timespec="seconds")
+
+            for row in season_file.rows:
+                matches = short_name_indexes.get(
+                    normalize_team_name(row["team_id"]).casefold(), []
+                )
+                if not matches:
+                    flagged.append({
+                        "row": row["row_number"],
+                        "team_id": row["team_id"],
+                        "reason": "No existing team has this short_name",
+                    })
+                    continue
+                if len(matches) > 1:
+                    flagged.append({
+                        "row": row["row_number"],
+                        "team_id": row["team_id"],
+                        "reason": "Multiple existing teams have this short_name",
+                    })
+                    continue
+
+                team_index = matches[0]
+                matched_indexes.add(team_index)
+                invalid_opponents = sorted({
+                    opponent_id
+                    for opponent_id in row["recent_opp"]
+                    if opponent_id and opponent_id not in existing_team_ids
+                })
+                recent_opponents = [
+                    opponent_id
+                    if opponent_id == 0 or opponent_id in existing_team_ids
+                    else 0
+                    for opponent_id in row["recent_opp"]
+                ]
+                if invalid_opponents:
+                    warnings.append({
+                        "row": row["row_number"],
+                        "team_id": row["team_id"],
+                        "reason": (
+                            "Unknown recent opponent IDs were replaced with 0: "
+                            + ", ".join(map(str, invalid_opponents))
+                        ),
+                    })
+
+                team = teams[team_index]
+                team.update({
+                    "wins": row["wins"],
+                    "losses": row["losses"],
+                    "ties": row["ties"],
+                    "power_ranking": [{snapshot_key: row["power"]}],
+                    "overall_rank": row["overall_rank"],
+                    "division_rank": row["division_rank"],
+                    "recent_opp": recent_opponents,
+                })
+                imported.append({
+                    "row": row["row_number"],
+                    "team_id": team.get("team_id"),
+                    "short_name": team.get("short_name"),
+                })
+
+            import_metadata = {
+                "source_filename": file_name,
+                "snapshot_key": snapshot_key,
+                "imported_at": imported_at,
+                "rows_total": len(season_file.rows),
+                "teams_updated": len(imported),
+                "teams_flagged": len(flagged),
+            }
+            dataset_update = {
+                "teams": teams,
+                "previous_season_import": import_metadata,
+                "rankings_stale": False,
+                "ranking_status": "current",
+                "ranking_requested_at": None,
+                "ranking_error": None,
+                "ranking_completed_at": imported_at,
+                "ranked_revision": document.get("games_revision", 0),
+            }
+            if imported:
+                result = await self.sports_collection.update_one(
+                    base_filter,
+                    {
+                        "$set": dataset_update,
+                        "$unset": {
+                            "week_id": "",
+                            "source_week_id": "",
+                            "source_year": "",
+                        },
+                    },
+                )
+                if not result.matched_count:
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail="Selected sports dataset was not found",
+                    )
+
+        database_teams_not_in_file = [
+            {
+                "team_id": team.get("team_id"),
+                "short_name": team.get("short_name") or team.get("team_name"),
+            }
+            for index, team in enumerate(teams)
+            if index not in matched_indexes
+        ]
+        return {
+            "message": (
+                f"Imported previous-season rankings for {len(imported)} of "
+                f"{len(season_file.rows)} rows; flagged {len(flagged)}."
+            ),
+            "source_filename": file_name,
+            "snapshot_key": snapshot_key,
+            "rows_total": len(season_file.rows),
+            "teams_updated_count": len(imported),
+            "teams_flagged_count": len(flagged),
+            "flagged_teams": flagged,
+            "warnings": warnings,
+            "database_teams_not_in_file": database_teams_not_in_file,
         }
 
     async def run_main_algorithm(self, iterations: int):
@@ -856,9 +1044,11 @@ class AdminTeamsService():
                     }},
                 )
                 if not game_result.matched_count:
-                    raise RuntimeError("Canonical game disappeared during update")
+                    raise RuntimeError(
+                        "Canonical game disappeared during update")
                 ranking_update = stale_ranking_update(
-                    extra_fields={"teams": teams} if materialized_records else None
+                    extra_fields={
+                        "teams": teams} if materialized_records else None
                 )
                 sports_result = await self.sports_collection.update_one(
                     dataset_query,
@@ -1315,8 +1505,17 @@ class AdminTeamsService():
         if match_query is not None:
             pipeline.append({"$match": match_query})
 
+        current_year = datetime.now(timezone.utc).year
+
         pipeline.extend([
             {"$addFields": {
+                "season_year": {
+                    "$cond": [
+                        {"$isNumber": "$season_year"},
+                        {"$add": ["$season_year", 1]},
+                        current_year,
+                    ]
+                },
                 "games_revision": {
                     "$add": [{"$ifNull": ["$games_revision", 0]}, 1]
                 },
@@ -1335,9 +1534,13 @@ class AdminTeamsService():
                             "$mergeObjects": [
                                 "$$team",
                                 {
+                                    "actual_change": 0.0,
+                                    "total_score": 0.0,
+                                    "num_games": 0.0,
                                     "win_ratio": 0.0,
                                     "wins": 0,
                                     "losses": 0,
+                                    "ties": 0,
                                     "season_initial_power": {
                                         "$cond": [
                                             {"$isArray": "$$team.power_ranking"},

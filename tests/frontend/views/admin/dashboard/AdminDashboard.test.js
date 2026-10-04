@@ -66,6 +66,7 @@ test('renders the dashboard links and season group', () => {
   const expectedLinks = [
     ['Add Games', '/admin/add_games'],
     ['Add Teams', '/admin/add_teams'],
+    ['Import Previous Season', '/admin/import_previous_season'],
     ['Export Teams', '/admin/export_teams'],
     ['Ranking', '/admin/ranking'],
     ['Z-Score', '/admin/z_scores'],
@@ -151,6 +152,7 @@ test('archives only the selected sport dataset', async () => {
   await user.click(screen.getByRole('button', { name: 'Archive Selected Sport' }))
 
   const dialog = await screen.findByRole('dialog')
+  expect(within(dialog).getByLabelText('Archive Year')).toHaveValue(year)
   await user.selectOptions(within(dialog).getByLabelText('Gender'), 'womens')
   await user.selectOptions(within(dialog).getByLabelText('Level'), 'college')
   expect(within(dialog).getByRole('heading', {
@@ -163,6 +165,7 @@ test('archives only the selected sport dataset', async () => {
     '/archive-season/status/selected',
     {
       params: {
+        year,
         sport_type: 'basketball',
         gender: 'womens',
         level: 'college',

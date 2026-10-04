@@ -47,7 +47,15 @@ from api.service.execution_history import (
     update_execution_status,
 )
 from api.service.flagged_game_service import FlaggedGameService
-from api.service.team_ingestion import MAX_TEAM_FILE_BYTES, TeamFileValidationError
+from api.service.team_ingestion import (
+    MAX_TEAM_FILE_BYTES,
+    TeamFileValidationError,
+    filename_matches_dataset,
+)
+from api.service.previous_season_ingestion import (
+    MAX_PREVIOUS_SEASON_FILE_BYTES,
+    PreviousSeasonFileValidationError,
+)
 from api.service.ranking_scheduler import enqueue_ranking_job, MANUAL_TRIGGER
 from api.config.constants import (
     DIVISION_FOOTBALL,
@@ -184,9 +192,12 @@ async def selected_archive_season_status(
     year: int | None = Query(default=None, ge=2000, le=9999),
     sports_input: InputMethod = Depends(),
 ):
+    dataset_key = _archive_dataset_key(sports_input)
+    if year is None:
+        year = await admin_team_class(dataset_key).current_season_year()
     return archive_service.archive_status(
         year,
-        _archive_dataset_key(sports_input),
+        dataset_key,
     )
 
 
@@ -212,10 +223,13 @@ async def archive_selected_sport(
     overwrite: bool = Query(default=False),
     sports_input: InputMethod = Depends(),
 ):
+    dataset_key = _archive_dataset_key(sports_input)
+    if year is None:
+        year = await admin_team_class(dataset_key).current_season_year()
     return await archive_service.archive_current_season(
         year,
         overwrite,
-        _archive_dataset_key(sports_input),
+        dataset_key,
     )
 
 
@@ -293,6 +307,19 @@ async def upload_teams(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Team file must be a CSV file",
         )
+    dataset = (
+        sports_input.sport_type.value,
+        sports_input.gender.value,
+        sports_input.level.value,
+    )
+    if not filename_matches_dataset(file_name, *dataset):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=(
+                "Team filename must identify the selected dataset: "
+                f"{dataset[1]}, {dataset[2]}, {dataset[0]}."
+            ),
+        )
     level_key = (
         sports_input.sport_type,
         sports_input.gender,
@@ -309,6 +336,55 @@ async def upload_teams(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail={
                 "message": "Team data file format is not correct",
+                "errors": exc.errors,
+            },
+        ) from exc
+
+
+@router.post(
+    "/previous-season/import/",
+    dependencies=[require_admin()],
+    description="Import a legacy final ranking snapshot onto existing teams",
+)
+async def import_previous_season(
+    csv_file: UploadFile = File(),
+    sports_input: InputMethod = Depends(),
+):
+    file_name = csv_file.filename or "previous-season.csv"
+    if not file_name.lower().endswith(".csv"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Previous-season ranking file must be a CSV file",
+        )
+    dataset = (
+        sports_input.sport_type.value,
+        sports_input.gender.value,
+        sports_input.level.value,
+    )
+    if not filename_matches_dataset(file_name, *dataset):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=(
+                "Previous-season filename must identify the selected dataset: "
+                f"{dataset[1]}, {dataset[2]}, {dataset[0]}."
+            ),
+        )
+    level_key = (
+        sports_input.sport_type,
+        sports_input.gender,
+        sports_input.level,
+    )
+    team_services = admin_team_class(level_key)
+    try:
+        return await team_services.import_previous_season_csv(
+            file_name,
+            await csv_file.read(MAX_PREVIOUS_SEASON_FILE_BYTES + 1),
+        )
+    except PreviousSeasonFileValidationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={
+                "message": "Previous-season file format is not correct",
                 "errors": exc.errors,
             },
         ) from exc

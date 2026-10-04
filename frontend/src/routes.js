@@ -9,6 +9,7 @@ const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 // Admin
 const AdminDashboard = React.lazy(() => import('./views/admin/dashboard/AdminDashboard'))
 const AddTeams = React.lazy(() => import('./views/admin/add_teams/AddTeams'))
+const ImportPreviousSeason = React.lazy(() => import('./views/admin/import_previous_season/ImportPreviousSeason'))
 const ExportTeams = React.lazy(() => import('./views/admin/export_teams/ExportTeams'))
 const AddGames = React.lazy(() => import('./views/admin/add_games/AddGames'))
 const CalculateValues = React.lazy(() => import('./views/admin/calc_values/CalculateValues'))
@@ -136,6 +137,12 @@ const routes = [
   { path: '/admin', name: 'Admin Dashboard', element: AdminDashboard, admin: true },
   { path: '/admin/add_games', name: 'Add Games', element: AddGames, admin: true },
   { path: '/admin/add_teams', name: 'Add Teams', element: AddTeams, admin: true },
+  {
+    path: '/admin/import_previous_season',
+    name: 'Import Previous Season',
+    element: ImportPreviousSeason,
+    admin: true,
+  },
   { path: '/admin/export_teams', name: 'Export Teams', element: ExportTeams, admin: true },
   { path: '/admin/ranking', name: `${CURRENT_RANKING_YEAR} Ranking`, element: RankingPage, admin: true },
   { path: '/admin/z_scores', name: 'Z-Score', element: ZScorePage, admin: true },

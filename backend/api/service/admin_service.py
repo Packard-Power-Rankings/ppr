@@ -98,7 +98,8 @@ class AdminServices:
             samesite="strict",
             path=_auth_cookie_path(),
         )
-        return Token(access_token=access_token, token_type="bearer")
+        # OAuth2 token type, not a credential.
+        return Token(access_token=access_token, token_type="bearer")  # nosec B106
 
     async def logout(
         self,

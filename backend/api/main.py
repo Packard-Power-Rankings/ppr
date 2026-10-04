@@ -99,4 +99,5 @@ async def health_check():
 
 
 if __name__ == "__main__":
-    uvicorn.run("api.main:app", host="0.0.0.0", port=8000)
+    # Containers must listen on all interfaces; Compose publishes on loopback.
+    uvicorn.run("api.main:app", host="0.0.0.0", port=8000)  # nosec B104

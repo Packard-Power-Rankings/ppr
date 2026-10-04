@@ -56,6 +56,15 @@ const escapeCsvValue = (value) => {
   return `"${text.replace(/"/g, '""')}"`
 }
 
+const getSortableRank = (rank) => {
+  const numericRank = Number(rank)
+  return Number.isFinite(numericRank) && numericRank > 0 ? numericRank : Infinity
+}
+
+const sortTeamsByRank = (teams) => [...teams].sort((teamA, teamB) =>
+  getSortableRank(teamA.overall_rank) - getSortableRank(teamB.overall_rank) ||
+  String(teamA.team_name ?? '').localeCompare(String(teamB.team_name ?? '')))
+
 const createTeamsCsv = (teams) => {
   const availableKeys = new Set(teams.flatMap((team) => Object.keys(team)))
   const extraColumns = [...availableKeys]
@@ -66,7 +75,7 @@ const createTeamsCsv = (teams) => {
   const columns = [...TEAM_EXPORT_COLUMNS, ...extraColumns]
   return [
     columns.map(([, label]) => escapeCsvValue(label)).join(','),
-    ...teams.map((team) => columns
+    ...sortTeamsByRank(teams).map((team) => columns
       .map(([key]) => escapeCsvValue(getExportValue(team, key)))
       .join(',')),
   ].join('\r\n')

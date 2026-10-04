@@ -119,3 +119,54 @@ test('exports all selected team fields and additional database fields with heade
   expect(revokeObjectURL).toHaveBeenCalledWith('blob:team-export')
   expect(await screen.findByRole('status')).toHaveTextContent('Exported 1 teams to CSV.')
 })
+test('exports teams in ascending rank order with unranked teams last', async () => {
+  const user = userEvent.setup()
+  const store = createStore((state = {
+    sport: 'basketball',
+    gender: 'womens',
+    level: 'college',
+  }) => state)
+  const createObjectURL = jest.fn(() => 'blob:team-export')
+  Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: createObjectURL })
+  Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: jest.fn() })
+  clickLink = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+  const team = (teamId, teamName, overallRank) => ({
+    team_id: teamId,
+    team_name: teamName,
+    short_name: teamName,
+    overall_rank: overallRank,
+  })
+  api.get.mockResolvedValue({
+    data: {
+      teams: [
+        team(1, 'Unranked Academy', 0),
+        team(2, 'Third Academy', 3),
+        team(3, 'First Academy', 1),
+        team(4, 'Missing Rank Academy', undefined),
+        team(5, 'Second Academy', 2),
+      ],
+    },
+  })
+
+  render(
+    <Provider store={store}>
+      <ExportTeams />
+    </Provider>,
+  )
+  await user.click(screen.getByRole('button', { name: 'Selected Teams only as CSV' }))
+
+  await waitFor(() => expect(createObjectURL).toHaveBeenCalled())
+  const csv = await new Promise((resolve) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result)
+    reader.readAsText(createObjectURL.mock.calls[0][0])
+  })
+  const exportedNames = csv.split('\r\n').slice(1).map((row) => row.split(',')[3])
+  expect(exportedNames).toEqual([
+    '"First Academy"',
+    '"Second Academy"',
+    '"Third Academy"',
+    '"Missing Rank Academy"',
+    '"Unranked Academy"',
+  ])
+})

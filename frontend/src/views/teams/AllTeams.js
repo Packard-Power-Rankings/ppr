@@ -231,7 +231,7 @@ const AllTeams = ({ fixedSport }) => {
                 <CTableHeaderCell>Rank</CTableHeaderCell>
                 <CTableHeaderCell>Power</CTableHeaderCell>
                 <CTableHeaderCell>Div Rank</CTableHeaderCell>
-                <CTableHeaderCell>Last Rank</CTableHeaderCell>
+                <CTableHeaderCell><abbr title="Last Week Rank">LW Rank</abbr></CTableHeaderCell>
               </CTableRow>
             </CTableHead>
             <CTableBody>

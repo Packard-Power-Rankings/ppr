@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 LC_ALL=C
 
-#current_branch=$(git symbolic-ref --short head)
+# Prevent direct commits to main
 current_branch=$(git rev-parse --abbrev-ref HEAD)
 echo "Running pre-commit hook on branch: $current_branch"
 if [[ "$current_branch" == "main" ]]; then
@@ -9,10 +9,10 @@ if [[ "$current_branch" == "main" ]]; then
     exit 1
 fi
 
-valid_branch_regex="^(lab|project|assignment|homework|issue|dev|feature|bugfix|improvement|library|prerelease|release|hotfix)\/[a-z0-9._-]+$"
+# Validate branch name against the regex pattern
+valid_branch_regex="^(issue|dev|feature|bugfix|improvement|library|prerelease|release|hotfix)\/[a-z0-9._-]+$"
 
 message="ERROR on Commit. Branch name must adhere to this contract: $valid_branch_regex. Rename your branch to a valid name and try again."
-
 if [[ ! $current_branch =~ $valid_branch_regex ]]
 then
     echo "$message"

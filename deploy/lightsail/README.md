@@ -119,6 +119,7 @@ jq -n --arg username "$ADMIN_USERNAME" --arg password "$ADMIN_PASSWORD" \
   '{username: $username, password: $password}' |
   curl --fail --show-error --silent \
     -X POST "https://$DOMAIN/api/setup/admin/" \
+    -H 'User-Agent: PPR-Deployment/1.0' \
     -H "X-Setup-Token: $SETUP_TOKEN" \
     -H 'Content-Type: application/json' \
     --data-binary @-
@@ -192,6 +193,10 @@ Mongo upload metadata and the `upload_data` backup belong to the same snapshot. 
 ## Security Notes
 
 - Only Caddy publishes host ports. Never add public MongoDB or Redis ports.
+- Caddy rejects requests with a missing user agent, known automation or scanner user agents, and common vulnerability-probe paths before they reach React or FastAPI. Mainstream search crawlers and link-preview services remain allowed so public rankings can still be indexed and shared.
+- Bot-policy rejections return `403 Forbidden` and add `bot_block_reason` to the structured Caddy access log. Inspect recent detections with `docker compose --env-file .env/production -f docker-compose.lightsail.yml logs --since=24h frontend | grep bot_block_reason`.
+- Run `make test-deployment-security` before deployment to validate the policy against the production Caddy image in a disposable container.
+- User-agent detection is a first filter, not proof that a request is human. Clients can impersonate a browser. Add a managed WAF or a behavior-based IP blocking service if the site later needs volumetric abuse protection or enforceable request-rate limits.
 - Keep `.env/production` out of Git and readable only by the deployment user (`chmod 600 .env/production`).
 - Enable Lightsail automatic snapshots and AWS billing alerts.
 - Apply Ubuntu security updates regularly and rebuild images after dependency updates.

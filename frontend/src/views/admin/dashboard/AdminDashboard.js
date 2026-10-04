@@ -5,6 +5,7 @@ import {
   CAlert,
   CButton,
   CCol,
+  CFormInput,
   CFormLabel,
   CFormSelect,
   CModal,
@@ -23,6 +24,11 @@ import { formatDisplayName } from 'src/utils/displayNames'
 const ADMIN_TOOLS = [
   { group: 'Game', label: 'Add Games', to: '/admin/add_games' },
   { group: 'Team', label: 'Add Teams', to: '/admin/add_teams' },
+  {
+    group: 'Team',
+    label: 'Import Previous Season',
+    to: '/admin/import_previous_season',
+  },
   { group: 'Team', label: 'Export Teams', to: '/admin/export_teams' },
   { group: 'Other', label: 'Ranking', to: '/admin/ranking' },
   { group: 'Other', label: 'Z-Score', to: '/admin/z_scores' },
@@ -44,6 +50,7 @@ const AdminDashboard = () => {
   const [archiveSport, setArchiveSport] = useState(sport)
   const [archiveGender, setArchiveGender] = useState(gender)
   const [archiveLevel, setArchiveLevel] = useState(level)
+  const [archiveYear, setArchiveYear] = useState(new Date().getFullYear())
   const [unarchivedResetDialog, setUnarchivedResetDialog] = useState(null)
   const [clearDialogVisible, setClearDialogVisible] = useState(false)
   const [resetAllDialogVisible, setResetAllDialogVisible] = useState(false)
@@ -106,12 +113,35 @@ const AdminDashboard = () => {
     }
   }
 
-  const handleArchiveSelectedPrompt = () => {
-    setArchiveSport(sport)
-    setArchiveGender(sport === 'football' ? 'mens' : gender)
-    setArchiveLevel(level)
+  const handleArchiveSelectedPrompt = async () => {
+    const selection = {
+      sport,
+      gender: sport === 'football' ? 'mens' : gender,
+      level,
+    }
+    setArchiveSport(selection.sport)
+    setArchiveGender(selection.gender)
+    setArchiveLevel(selection.level)
     setFeedback(null)
-    setArchiveSelectedDialogVisible(true)
+    setCheckingArchive('selected')
+    try {
+      const { data } = await api.get('/archive-season/status/selected', {
+        params: {
+          sport_type: selection.sport,
+          gender: selection.gender,
+          level: selection.level,
+        },
+      })
+      setArchiveYear(data.year || new Date().getFullYear())
+      setArchiveSelectedDialogVisible(true)
+    } catch (error) {
+      setFeedback({
+        color: 'danger',
+        message: error.response?.data?.detail || 'Failed to determine the selected season year.',
+      })
+    } finally {
+      setCheckingArchive(null)
+    }
   }
 
   const handleArchiveAllPrompt = async () => {
@@ -176,6 +206,7 @@ const AdminDashboard = () => {
     try {
       const { data } = await api.get('/archive-season/status/selected', {
         params: {
+          year: Number(archiveYear),
           sport_type: selection.sport,
           gender: selection.gender,
           level: selection.level,
@@ -320,7 +351,11 @@ const AdminDashboard = () => {
             onClick={handleArchiveSelectedPrompt}
             disabled={seasonActionBusy}
           >
-            <CIcon icon={cilHistory} className="me-2" />
+            {checkingArchive === 'selected' ? (
+              <CSpinner className="me-2" size="sm" />
+            ) : (
+              <CIcon icon={cilHistory} className="me-2" />
+            )}
             Archive Selected Sport
           </CButton>
           <CButton
@@ -394,7 +429,7 @@ const AdminDashboard = () => {
         </CModalHeader>
         <CModalBody>
           <CRow className="g-3 mb-3">
-            <CCol md={4}>
+            <CCol md={3}>
               <CFormLabel htmlFor="archive-season-sport">Sport</CFormLabel>
               <CFormSelect
                 id="archive-season-sport"
@@ -409,7 +444,7 @@ const AdminDashboard = () => {
                 <option value="basketball">Basketball</option>
               </CFormSelect>
             </CCol>
-            <CCol md={4}>
+            <CCol md={3}>
               <CFormLabel htmlFor="archive-season-gender">Gender</CFormLabel>
               <CFormSelect
                 id="archive-season-gender"
@@ -420,7 +455,7 @@ const AdminDashboard = () => {
                 <option value="womens" disabled={archiveSport === 'football'}>Womens</option>
               </CFormSelect>
             </CCol>
-            <CCol md={4}>
+            <CCol md={3}>
               <CFormLabel htmlFor="archive-season-level">Level</CFormLabel>
               <CFormSelect
                 id="archive-season-level"
@@ -430,6 +465,18 @@ const AdminDashboard = () => {
                 <option value="high_school">High School</option>
                 <option value="college">College</option>
               </CFormSelect>
+            </CCol>
+            <CCol md={3}>
+              <CFormInput
+                id="archive-season-year"
+                type="number"
+                min={2000}
+                max={9999}
+                step={1}
+                label="Archive Year"
+                value={archiveYear}
+                onChange={(event) => setArchiveYear(event.target.value)}
+              />
             </CCol>
           </CRow>
           <p className="mb-0">
@@ -449,7 +496,12 @@ const AdminDashboard = () => {
           <CButton
             color="primary"
             onClick={handleArchiveSelected}
-            disabled={archiving || checkingArchive === 'selected'}
+            disabled={
+              archiving ||
+              checkingArchive === 'selected' ||
+              Number(archiveYear) < 2000 ||
+              Number(archiveYear) > 9999
+            }
           >
             {(archiving || checkingArchive === 'selected') && (
               <CSpinner className="me-2" size="sm" />

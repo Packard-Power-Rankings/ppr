@@ -12,10 +12,10 @@ LIGHTSAIL_CLEAN_ENV = env $(foreach variable,$(LIGHTSAIL_CONFIG_VARS),-u $(varia
 LIGHTSAIL_COMPOSE = $(LIGHTSAIL_CLEAN_ENV) docker compose \
 	--env-file $(LIGHTSAIL_ENV) -f docker-compose.lightsail.yml
 
-.PHONY: help app-up app-down app-logs test test-check test-backend \
-	test-backend-service test-backend-algorithm test-frontend test-frontend-app \
+.PHONY: help app-up app-down app-logs ci ci-config test test-check test-backend \
+	test-backend-service test-backend-algorithm test-backend-lint test-frontend test-frontend-app \
 	test-frontend-admin test-frontend-archive test-frontend-teams test-lint test-build test-app \
-	test-security \
+	test-security test-security-python test-security-frontend test-deployment-security \
 	test-app-reset test-app-maintenance test-admin-reset \
 	team-id-migration-check team-id-migration-apply \
 	lightsail-init lightsail-check lightsail-up lightsail-down lightsail-restart \
@@ -29,9 +29,11 @@ help:
 	@echo "  make app-logs                Follow backend and worker logs"
 	@echo "  make test                    Run backend and frontend unit tests"
 	@echo "  make test-check              Run unit tests, lint, and production build"
+	@echo "  make ci                      Run the same checks as GitHub CI/CD before pushing"
 	@echo "  make test-backend            Run all backend tests"
 	@echo "  make test-backend-service    Run backend service tests"
 	@echo "  make test-backend-algorithm  Run backend algorithm tests"
+	@echo "  make test-backend-lint       Check backend syntax and undefined names"
 	@echo "  make test-frontend           Run all frontend tests"
 	@echo "  make test-frontend-app       Run app routing and breadcrumb tests"
 	@echo "  make test-frontend-admin     Run admin workflow tests"
@@ -39,7 +41,10 @@ help:
 	@echo "  make test-frontend-teams     Run public team page tests"
 	@echo "  make test-lint               Run frontend lint checks"
 	@echo "  make test-build              Create the frontend production build"
-	@echo "  make test-security           Audit runtime dependencies"
+	@echo "  make test-security           Run Python and JavaScript security checks"
+	@echo "  make test-security-python    Scan backend code (Bandit) and audit dependencies"
+	@echo "  make test-security-frontend  Scan frontend code (ESLint security) and audit dependencies"
+	@echo "  make test-deployment-security Test the Caddy bot-blocking policy"
 	@echo "  make test-app                Run the happy-path application smoke test"
 	@echo "  make test-app-reset          Replace all local app data with full fixtures"
 	@echo "  make test-app-maintenance    Run destructive maintenance endpoint checks"
@@ -70,9 +75,24 @@ app-down:
 app-logs:
 	$(APP_COMPOSE) logs -f backend arq_worker
 
+ci: ci-config
+	@$(MAKE) --no-print-directory test-check test-security test-deployment-security || { \
+		echo; echo "==> CI checks failed; recent service logs:"; \
+		$(APP_COMPOSE) logs --no-color --tail=200; \
+		exit 1; \
+	}
+	@echo; echo "==> All CI checks passed"
+
+ci-config:
+	@test -f "$(APP_ENV)" || \
+		(echo "Missing $(APP_ENV). Create it with: cp .env/development.example $(APP_ENV)"; exit 1)
+	docker compose version
+	docker compose --env-file .env/development.example config --quiet
+	$(APP_COMPOSE) config --quiet
+
 test: test-backend test-frontend
 
-test-check: test test-lint test-build
+test-check: test test-backend-lint test-lint test-build
 
 test-backend: app-up
 	$(APP_COMPOSE) exec -T backend pytest -q tests
@@ -82,6 +102,10 @@ test-backend-service: app-up
 
 test-backend-algorithm: app-up
 	$(APP_COMPOSE) exec -T backend pytest -q tests/algorithm
+
+test-backend-lint: app-up
+	$(APP_COMPOSE) exec -T backend flake8 api tests \
+		--count --select=E9,F63,F7,F82 --show-source --statistics
 
 test-frontend: app-up
 	$(APP_COMPOSE) exec -T frontend npm test -- --watchAll=false --runInBand
@@ -107,9 +131,18 @@ test-lint: app-up
 test-build: app-up
 	$(APP_COMPOSE) exec -T frontend npm run build
 
-test-security: app-up
+test-security: test-security-python test-security-frontend
+
+test-security-python: app-up
+	$(APP_COMPOSE) exec -T backend bandit -r api -q
 	$(APP_COMPOSE) exec -T backend pip-audit -r requirements.txt
+
+test-security-frontend: app-up
+	$(APP_COMPOSE) exec -T frontend npm run lint:security
 	$(APP_COMPOSE) exec -T frontend npm audit --omit=dev --audit-level=high
+
+test-deployment-security:
+	./tests/deployment/test_caddy_bot_policy.sh
 
 test-app: app-up
 	APP_ENV="$(APP_ENV)" ./tests/application/application_smoke_test.sh

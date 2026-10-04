@@ -94,7 +94,9 @@ Published season rankings are available through `/archives`. The `/admin` dashbo
 
 Generated archives are runtime data stored in Docker's named `archive_data` volume, not files copied into the Git working tree. Therefore, `frontend/public/archive/` normally shows only its documentation in the IDE even when an archive such as `2026/` exists. Inside the running containers, the backend writes the volume at `/var/lib/ppr-archives`, and the development frontend reads it at `/app/public/archive`. View a year through the React page at `http://localhost:3000/archives/<year>` or its standalone snapshot at `http://localhost:3000/archive/<year>/index.html`. See the [archive mental model](frontend/public/archive/README.md) for the runtime layout and persistence rules.
 
-The `/admin` dashboard also provides guarded season reset actions. **Reset Selected Sport** opens a dataset picker and verifies that exact dataset is archived before resetting it. **Reset All Sports** has a separate confirmation and checks for a complete all-sports archive. A reset sets wins, losses, and win ratio to zero; removes canonical current-season games and source uploads; and preserves overall rank, division rank, power history, ranking date, recent opponents, and each team's five most recent game records. If the required archive is missing, the administrator must explicitly confirm that they want to proceed without archiving. Resetting does not copy data to `previous_season` or modify an existing public archive.
+The `/admin` dashboard also provides guarded season reset actions. **Reset Selected Sport** opens a dataset picker and verifies that exact dataset is archived before resetting it. **Reset All Sports** has a separate confirmation and checks for a complete all-sports archive. A reset sets wins, losses, ties, win ratio, and imported legacy calculation counters to zero; removes canonical current-season games and source uploads; and preserves overall rank, division rank, power history, ranking date, recent opponents, and each team's five most recent game records. If the required archive is missing, the administrator must explicitly confirm that they want to proceed without archiving. Resetting does not copy data to `previous_season` or modify an existing public archive.
+
+Legacy final rankings can be staged before that archive/reset cycle. Import team metadata first with **Add Teams**, then use **Import Previous Season** to match the legacy CSV `team_id` values against existing team `short_name` values. Unmatched rows are flagged and skipped while valid rows continue. The imported `week_id` supplies the source season year used by **Archive Selected Sport**. See the [previous-season migration guide](docs/previous-season-migration.md) for the complete field mapping and workflow.
 
 Each game row on a public team page has a flag icon. Reporting a game opens a dialog that requires a 5- to 1,000-character description; the backend verifies that the game and supplied team IDs belong to the selected dataset and stores canonical team names. Only one unresolved report may exist for a game at a time. Authenticated admins see the unresolved count on the header shield and can open **Resolve Flagged Issues** under the dashboard's **Other** group. The review page lists reports oldest first, expands long descriptions, and resolves individual reports with a confirmation checkmark. Resolved reports remain stored as history but disappear from the queue and badge; the same game may be reported again later.
 
@@ -130,6 +132,12 @@ Run unit tests, frontend lint, and a production frontend build together with:
 make test-check
 ```
 
+Before pushing, run the same checks as the GitHub CI/CD workflow: Compose configuration validation for both `.env/development.example` and your `.env/development`, `make test-check`, `make test-security`, and the deployment security policy test. Recent service logs are printed if any step fails. Unlike CI, it reuses your running stack and does not delete volumes:
+
+```bash
+make ci
+```
+
 Focused targets are available for backend service tests, backend algorithm tests, frontend app/routing tests, admin workflows, and public team views. Run `make help` for the complete list.
 
 Audit the pinned Python runtime dependencies and production frontend dependencies with:
@@ -138,7 +146,14 @@ Audit the pinned Python runtime dependencies and production frontend dependencie
 make test-security
 ```
 
-This target uses `pip-audit` and `npm audit --omit=dev`. It requires network access to retrieve current vulnerability advisories.
+This target runs static security analysis and dependency audits for both stacks, and fails on any finding:
+
+- Python: Bandit scans `backend/api`, and `pip-audit` checks the pinned runtime requirements.
+- JavaScript: `npm run lint:security` runs `eslint-plugin-security` over `frontend/src` using `frontend/.eslintrc.security.json`, and `npm audit --omit=dev` checks production packages.
+
+Run one side with `make test-security-python` or `make test-security-frontend`. The audits need network access to fetch current advisories. The same checks run in `make ci` and in the `ci-security.yml` workflow on pushes, pull requests, and a weekly schedule.
+
+Suppress a reviewed false positive narrowly: use `# nosec BXXX` with a reason comment in Python, or an `eslint-disable-next-line security/<rule>` comment in JavaScript. The noisy `security/detect-object-injection` rule is disabled, because it flags every bracket lookup and this frontend only indexes its own constants and API data.
 
 ## Application Test Workflow
 

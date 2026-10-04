@@ -49,6 +49,16 @@ async def test_archive_writes_ranked_public_pages_and_catalog(tmp_path):
                     "losses": 2,
                 },
                 {
+                    "team_id": 3,
+                    "overall_rank": -1,
+                    "team_name": "Unranked College",
+                    "power_ranking": [{"2026-02-01": 30.0}],
+                    "division_rank": -1,
+                    "division": "Other",
+                    "wins": 0,
+                    "losses": 0,
+                },
+                {
                     "team_id": 1,
                     "overall_rank": 1,
                     "team_name": "Northstar <script>",
@@ -67,7 +77,7 @@ async def test_archive_writes_ranked_public_pages_and_catalog(tmp_path):
 
     assert result["year"] == 2026
     assert result["dataset_count"] == 1
-    assert result["team_count"] == 2
+    assert result["team_count"] == 3
     assert result["overwritten"] is False
 
     data = json.loads((tmp_path / "2026" / "data.json").read_text())
@@ -75,8 +85,9 @@ async def test_archive_writes_ranked_public_pages_and_catalog(tmp_path):
     assert [team["team_name"] for team in teams] == [
         "Northstar <script>",
         "Cedar Valley",
+        "Unranked College",
     ]
-    assert [team["rank"] for team in teams] == [1, 2]
+    assert [team["rank"] for team in teams] == [1, 2, 9999]
 
     static_page = (
         tmp_path / "2026" / "basketball-mens-high-school.html"
@@ -91,8 +102,8 @@ async def test_archive_writes_ranked_public_pages_and_catalog(tmp_path):
 
     catalog = service.list_archives()
     assert catalog["archives"][0]["year"] == 2026
-    assert catalog["archives"][0]["datasets"][0]["team_count"] == 2
-    assert service.get_archive(2026)["team_count"] == 2
+    assert catalog["archives"][0]["datasets"][0]["team_count"] == 3
+    assert service.get_archive(2026)["team_count"] == 3
 
 
 @pytest.mark.asyncio

@@ -2,6 +2,7 @@
 
 import csv
 import io
+from pathlib import Path
 from typing import Any
 
 TEAM_DATA_COLUMNS = (
@@ -15,6 +16,39 @@ TEAM_DATA_COLUMNS = (
 )
 MAX_TEAM_FILE_BYTES = 2 * 1024 * 1024
 MAX_TEAM_ROWS = 10_000
+
+
+def filename_matches_dataset(
+    file_name: str,
+    sport_type: str,
+    gender: str,
+    level: str,
+) -> bool:
+    """Check that a team CSV filename identifies its selected dataset."""
+    normalized_name = "".join(
+        character for character in Path(file_name).stem.casefold()
+        if character.isalnum()
+    )
+    normalized_sport = "".join(
+        character for character in sport_type.casefold() if character.isalnum()
+    )
+    normalized_level = "".join(
+        character for character in level.casefold() if character.isalnum()
+    )
+
+    if gender == "womens":
+        matches_gender = "womens" in normalized_name or "women" in normalized_name
+    else:
+        matches_gender = (
+            "women" not in normalized_name
+            and ("mens" in normalized_name or "men" in normalized_name)
+        )
+
+    return (
+        normalized_sport in normalized_name
+        and normalized_level in normalized_name
+        and matches_gender
+    )
 
 
 class TeamFileValidationError(ValueError):
@@ -50,8 +84,7 @@ def parse_team_csv(content: bytes) -> list[dict[str, Any]]:
             ["File contains duplicate column headers."])
 
     missing_headers = [
-        column for column in TEAM_DATA_COLUMNS if column not in normalized_headers
-    ]
+        column for column in TEAM_DATA_COLUMNS if column not in normalized_headers]
     if missing_headers:
         raise TeamFileValidationError([
             "File format is not correct. Missing required headers: "

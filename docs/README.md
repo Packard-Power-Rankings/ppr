@@ -2,6 +2,8 @@
 
 This document explains how Packard Power Rankings fits together at runtime. It is intended as an onboarding map: start here to understand where data enters the system, where calculations happen, and which code owns each responsibility.
 
+For a field-by-field reference to the two MongoDB databases, seven active collections, nested documents, relationships, and indexes, see the [MongoDB data model](mongodb-data-model.md). For moving final rankings from the legacy application into the archive/reset workflow, see [Previous-season CSV migration](previous-season-migration.md).
+
 ## System at a Glance
 
 ```text

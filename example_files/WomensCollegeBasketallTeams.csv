@@ -1,0 +1,1531 @@
+state,short_name,team_id,long_name,division,conference   ,ranked
+Kansas,Kansas,1,Kansas,NCAA 1,Big 12,yes
+Montana,Northwest Indian,11111,Northwest Indian,,,no
+Texas,Texas,2,Texas,NCAA 1,Big 12,yes
+Texas,Baylor,3,Baylor,NCAA 1,Big 12,yes
+Kansas,Kansas St,4,Kansas St,NCAA 1,Big 12,yes
+Texas,TCU,5,TCU,NCAA 1,Big 12,yes
+Iowa,Iowa St,6,Iowa St,NCAA 1,Big 12,yes
+West Virginia,West Virginia,7,West Virginia,NCAA 1,Big 12,yes
+Oklahoma,Oklahoma St,8,Oklahoma St,NCAA 1,Big 12,yes
+Texas,Texas Tech,9,Texas Tech,NCAA 1,Big 12,yes
+Oklahoma,Oklahoma,10,Oklahoma,NCAA 1,Big 12,yes
+Indiana,Purdue,11,Purdue,NCAA 1,Big 10,yes
+Michigan,Michigan St,12,Michigan St,NCAA 1,Big 10,yes
+Indiana,Indiana,13,Indiana,NCAA 1,Big 10,yes
+Pennsylvania,Penn St,14,Penn St,NCAA 1,Big 10,yes
+Maryland,Maryland,15,Maryland,NCAA 1,Big 10,yes
+Illinois,Illinois,16,Illinois,NCAA 1,Big 10,yes
+Illinois,Northwestern,17,Northwestern,NCAA 1,Big 10,yes
+Wisconsin,Wisconsin,18,Wisconsin,NCAA 1,Big 10,yes
+Ohio,Ohio St,19,Ohio St,NCAA 1,Big 10,yes
+Michigan,Michigan,20,Michigan,NCAA 1,Big 10,yes
+New Jersey,Rutgers,21,Rutgers,NCAA 1,Big 10,yes
+Nebraska,Nebraska,22,Nebraska,NCAA 1,Big 10,yes
+Minnesota,Minnesota,23,Minnesota,NCAA 1,Big 10,yes
+Iowa,Iowa,24,Iowa,NCAA 1,Big 10,yes
+Connecticut,Connecticut,25,Connecticut,NCAA 1,Big East,yes
+Wisconsin,Marquette,26,Marquette,NCAA 1,Big East,yes
+Ohio,Xavier,27,Xavier,NCAA 1,Big East,yes
+Illinois,Creighton,28,Creighton,NCAA 1,Big East,yes
+Rhode Island,Providence,29,Providence,NCAA 1,Big East,yes
+Pennsylvania,Villanova,30,Villanova,NCAA 1,Big East,yes
+New Jersey,Seton Hall,31,Seton Hall,NCAA 1,Big East,yes
+New York,St John's,32,St John's,NCAA 1,Big East,yes
+Indiana,Butler,33,Butler,NCAA 1,Big East,yes
+Illinois,Depaul,34,Depaul,NCAA 1,Big East,yes
+District of Columbia,Georgetown,35,Georgetown,NCAA 1,Big East,yes
+Alabama,Alabama,36,Alabama,NCAA 1,SEC,yes
+Tennessee,Tennessee,37,Tennessee,NCAA 1,SEC,yes
+Arkansas,Arkansas,38,Arkansas,NCAA 1,SEC,yes
+Texas,Texas A&M,39,Texas A&M,NCAA 1,SEC,yes
+Kentucky,Kentucky,40,Kentucky,NCAA 1,SEC,yes
+Alabama,Auburn,41,Auburn,NCAA 1,SEC,yes
+Missouri,Missouri,42,Missouri,NCAA 1,SEC,yes
+Mississippi,Mississippi St,43,Mississippi St,NCAA 1,SEC,yes
+Tennessee,Vanderbilt,44,Vanderbilt,NCAA 1,SEC,yes
+Florida,Florida,45,Florida,NCAA 1,SEC,yes
+Louisiana,LSU,46,LSU,NCAA 1,SEC,yes
+Mississippi,Mississippi,47,Mississippi,NCAA 1,SEC,yes
+Georgia,Georgia,48,Georgia,NCAA 1,SEC,yes
+South Carolina,South Carolina,49,South Carolina,NCAA 1,Big East,yes
+California,UCLA,50,UCLA,NCAA 1,Pac 12,yes
+Arizona,Arizona,51,Arizona,NCAA 1,Pac 12,yes
+California,USC,52,USC,NCAA 1,Pac 12,yes
+Arizona,Arizona St,53,Arizona St,NCAA 1,Pac 12,yes
+Oregon,Oregon,54,Oregon,NCAA 1,Pac 12,yes
+Colorado,Colorado,55,Colorado,NCAA 1,Pac 12,yes
+Washington,Washington St,56,Washington St,NCAA 1,Pac 12,yes
+Utah,Utah,57,Utah,NCAA 1,Pac 12,yes
+California,Stanford,58,Stanford,NCAA 1,Pac 12,yes
+Washington,Washington,59,Washington,NCAA 1,Pac 12,yes
+Oregon,Oregon St,60,Oregon St,NCAA 1,Pac 12,yes
+California,California,61,California,NCAA 1,Pac 12,yes
+North Carolina,Duke,62,Duke,NCAA 1,ACC,yes
+Florida,Miami FL,63,Miami FL,NCAA 1,ACC,yes
+Vermont,Virginia,64,Virginia,NCAA 1,ACC,yes
+North Carolina,North Carolina,65,North Carolina,NCAA 1,ACC,yes
+North Carolina,NC State,67,NC State,NCAA 1,ACC,yes
+Pennsylvania,Pittsburgh,68,Pittsburgh,NCAA 1,ACC,yes
+South Carolina,Clemson,69,Clemson,NCAA 1,ACC,yes
+North Carolina,Wake Forest,70,Wake Forest,NCAA 1,ACC,yes
+New York,Syracuse,72,Syracuse,NCAA 1,ACC,yes
+Massachusetts,Boston College,73,Boston College,NCAA 1,ACC,yes
+Georgia,Georgia Tech,74,Georgia Tech,NCAA 1,ACC,yes
+Indiana,Notre Dame,75,Notre Dame,NCAA 1,ACC,yes
+Florida,Florida St,76,Florida St,NCAA 1,ACC,yes
+Kentucky,Louisville,77,Louisville,NCAA 1,ACC,yes
+California,San Diego St,78,San Diego St,NCAA 1,Mountain West,yes
+Utah,Utah St,79,Utah St,NCAA 1,Mountain West,yes
+Idaho,Boise St,80,Boise St,NCAA 1,Mountain West,yes
+Nevada,Nevada,81,Nevada,NCAA 1,Mountain West,yes
+New Jersey,New Mexico,82,New Mexico,NCAA 1,Mountain West,yes
+Nevada,UNLV,83,UNLV,NCAA 1,Mountain West,yes
+Colorado,Colorado St,84,Colorado St,NCAA 1,Mountain West,yes
+California,San Jose St,85,San Jose St,NCAA 1,Mountain West,yes
+California,Fresno St,86,Fresno St,NCAA 1,Mountain West,yes
+Colorado,Air Force,87,Air Force,NCAA 1,Mountain West,yes
+Wisconsin,Wyoming,88,Wyoming,NCAA 1,Mountain West,yes
+Texas,Houston,89,Houston,NCAA 1,American Athletic,yes
+Tennessee,Memphis,90,Memphis,NCAA 1,American Athletic,yes
+Ohio,Cincinnati,91,Cincinnati,NCAA 1,American Athletic,yes
+Florida,UCF,92,UCF,NCAA 1,American Athletic,yes
+Louisiana,Tulane,93,Tulane,NCAA 1,American Athletic,yes
+Kansas,Wichita St,94,Wichita St,NCAA 1,American Athletic,yes
+Pennsylvania,Temple,95,Temple,NCAA 1,American Athletic,yes
+North Carolina,East Carolina,96,East Carolina,NCAA 1,American Athletic,yes
+Texas,SMU,97,SMU,NCAA 1,American Athletic,yes
+Florida,South Florida,98,South Florida,NCAA 1,American Athletic,yes
+Oklahoma,Tulsa,99,Tulsa,NCAA 1,American Athletic,yes
+Washington,Gonzaga,100,Gonzaga,NCAA 1,West Coast,yes
+California,St Mary's CA,101,St Mary's CA,NCAA 1,West Coast,yes
+California,Santa Clara,102,Santa Clara,NCAA 1,West Coast,yes
+Utah,BYU,103,BYU,NCAA 1,West Coast,yes
+California,San Francisco,104,San Francisco,NCAA 1,West Coast,yes
+California,Loy Marymount,105,Loy Marymount,NCAA 1,West Coast,yes
+Oregon,Portland,106,Portland,NCAA 1,West Coast,yes
+California,Pacific,107,Pacific,NCAA 1,West Coast,yes
+California,San Diego,108,San Diego,NCAA 1,West Coast,yes
+California,Pepperdine,109,Pepperdine,NCAA 1,West Coast,yes
+Florida,FL Atlantic,110,FL Atlantic,NCAA 1,Conference USA,yes
+Texas,North Texas,111,North Texas,NCAA 1,Conference USA,yes
+Alabama,UAB,112,UAB,NCAA 1,Conference USA,yes
+Tennessee,MTSU,113,MTSU,NCAA 1,Conference USA,yes
+New York,Charlotte,114,Charlotte,NCAA 1,Conference USA,yes
+Kentucky,WKU,115,WKU,NCAA 1,Conference USA,yes
+Louisiana,Louisiana Tech,116,Louisiana Tech,NCAA 1,Conference USA,yes
+Texas,Rice,117,Rice,NCAA 1,Conference USA,yes
+Texas,UTEP,118,UTEP,NCAA 1,Conference USA,yes
+Florida,Florida Intl,119,Florida Intl,NCAA 1,Conference USA,yes
+Texas,UT San Antonio,120,UT San Antonio,NCAA 1,Conference USA,yes
+Vermont,VCU,121,VCU,NCAA 1,Atlantic 10,yes
+Ohio,Dayton,122,Dayton,NCAA 1,Atlantic 10,yes
+Missouri,St Louis,123,St Louis,NCAA 1,Atlantic 10,yes
+New York,Fordham,124,Fordham,NCAA 1,Atlantic 10,yes
+Virginia,George Mason,125,George Mason,NCAA 1,Atlantic 10,yes
+North Carolina,Davidson,126,Davidson,NCAA 1,Atlantic 10,yes
+Pennsylvania,Duquesne,127,Duquesne,NCAA 1,Atlantic 10,yes
+Virginia,Richmond,128,Richmond,NCAA 1,Atlantic 10,yes
+Pennsylvania,St Joseph's PA,129,St Joseph's PA,NCAA 1,Atlantic 10,yes
+New York,St Bonaventure,130,St Bonaventure,NCAA 1,Atlantic 10,yes
+Massachusetts,Massachusetts,131,Massachusetts,NCAA 1,Atlantic 10,yes
+Pennsylvania,La Salle,132,La Salle,NCAA 1,Atlantic 10,yes
+District of Columbia,G Washington,133,G Washington,NCAA 1,Atlantic 10,yes
+Illinois,Loyola-Chicago,134,Loyola-Chicago,NCAA 1,Atlantic 10,yes
+Rhode Island,Rhode Island,135,Rhode Island,NCAA 1,Atlantic 10,yes
+Illinois,Chicago St,136,Chicago St,NCAA 1,NCAA 1 Independent,yes
+Connecticut,Hartford,137,Hartford,NCAA 3,Commonwealth Coast,yes
+New York,Wagner,138,Wagner,NCAA 1,Northeast,yes
+Connecticut,Sacred Heart,139,Sacred Heart,NCAA 1,Northeast,yes
+Massachusetts,Stonehill,140,Stonehill,NCAA 1,Northeast,yes
+Pennsylvania,St Francis PA,141,St Francis PA,NCAA 1,Northeast,yes
+New York,St Francis NY,142,St Francis NY,, ,no
+Connecticut,Central Conn,143,Central Conn,NCAA 1,Northeast,yes
+New York,LIU Brooklyn,144,LIU Brooklyn,NCAA 1,Northeast,yes
+Massachusetts,Merrimack,145,Merrimack,NCAA 1,Northeast,yes
+New Jersey,F Dickinson,146,F Dickinson,NCAA 1,Northeast,yes
+Utah,Utah Valley,147,Utah Valley,NCAA 1,Western Athletic,yes
+Texas,Sam Houston St,148,Sam Houston St,NCAA 1,Western Athletic,yes
+Arizona,Grand Canyon,149,Grand Canyon,NCAA 1,Western Athletic,yes
+Utah,Southern Utah,150,Southern Utah,NCAA 1,Western Athletic,yes
+Washington,Seattle,151,Seattle,NCAA 1,Western Athletic,yes
+Texas,SF Austin,152,SF Austin,NCAA 1,Western Athletic,yes
+California,Cal Baptist,153,Cal Baptist,NCAA 1,Western Athletic,yes
+New Mexico,New Mexico St,154,New Mexico St,NCAA 1,Western Athletic,yes
+Texas,Tarleton St,155,Tarleton St,NCAA 1,Western Athletic,yes
+Utah,Utah Tech,156,Utah Tech,NCAA 1,Western Athletic,yes
+Texas,Abilene Chr,157,Abilene Chr,NCAA 1,Western Athletic,yes
+Texas,UT Arlington,158,UT Arlington,NCAA 1,Western Athletic,yes
+Texas,UTRGV,159,UTRGV,NCAA 1,Western Athletic,yes
+Iowa,Drake,160,Drake,NCAA 1,Missouri Valley,yes
+Illinois,Bradley,161,Bradley,NCAA 1,Missouri Valley,yes
+Illinois,S Illinois,162,S Illinois,NCAA 1,Missouri Valley,yes
+Tennessee,Belmont,163,Belmont,NCAA 1,Missouri Valley,yes
+Indiana,Indiana St,164,Indiana St,NCAA 1,Missouri Valley,yes
+Missouri,Missouri St,165,Missouri St,NCAA 1,Missouri Valley,yes
+Kentucky,Murray St,166,Murray St,NCAA 1,Missouri Valley,yes
+Iowa,Northern Iowa,167,Northern Iowa,NCAA 1,Missouri Valley,yes
+Illinois,Illinois St,168,Illinois St,NCAA 1,Missouri Valley,yes
+Illinois,IL Chicago,169,IL Chicago,NCAA 1,Missouri Valley,yes
+Indiana,Valparaiso,170,Valparaiso,NCAA 1,Missouri Valley,yes
+Indiana,Evansville,171,Evansville,NCAA 1,Missouri Valley,yes
+Louisiana,Louisiana,172,Louisiana,NCAA 1,Sun Belt,yes
+West Virginia,Marshall,173,Marshall,NCAA 1,Sun Belt,yes
+Mississippi,Southern Miss,174,Southern Miss,NCAA 1,Sun Belt,yes
+Virginia,James Madison,175,James Madison,NCAA 1,Sun Belt,yes
+Virginia,Old Dominion,176,Old Dominion,NCAA 1,Sun Belt,yes
+Alabama,South Alabama,177,South Alabama,NCAA 1,Sun Belt,yes
+Alabama,Troy,178,Troy,NCAA 1,Sun Belt,yes
+Texas,Texas St,179,Texas St,NCAA 1,Sun Belt,yes
+North Carolina,Appalachian St,180,Appalachian St,NCAA 1,Sun Belt,yes
+Georgia,Ga Southern,181,Ga Southern,NCAA 1,Sun Belt,yes
+South Carolina,Coastal Car,182,Coastal Car,NCAA 1,Sun Belt,yes
+Georgia,Georgia St,183,Georgia St,NCAA 1,Sun Belt,yes
+Arkansas,Arkansas St,184,Arkansas St,NCAA 1,Sun Belt,yes
+Kentucky,ULM,185,ULM,NCAA 1,Sun Belt,yes
+New Hampshire,Princeton,186,Princeton,NCAA 1,Ivy,yes
+Connecticut,Yale,187,Yale,NCAA 1,Ivy,yes
+Pennsylvania,Penn,188,Penn,NCAA 1,Ivy,yes
+New York,Cornell,189,Cornell,NCAA 1,Ivy,yes
+Rhode Island,Brown,190,Brown,NCAA 1,Ivy,yes
+Massachusetts,Harvard,191,Harvard,NCAA 1,Ivy,yes
+New Hampshire,Dartmouth,192,Dartmouth,NCAA 1,Ivy,yes
+New York,Columbia,193,Columbia,NCAA 1,Ivy,yes
+Louisiana,Grambling,194,Grambling,NCAA 1,SWAC,yes
+Mississippi,Alcorn St,195,Alcorn St,NCAA 1,SWAC,yes
+Mississippi,Jackson St,196,Jackson St,NCAA 1,SWAC,yes
+Louisiana,Southern Univ,197,Southern Univ,NCAA 1,SWAC,yes
+Texas,TX Southern,198,TX Southern,NCAA 1,SWAC,yes
+Texas,Prairie View,199,Prairie View,NCAA 1,SWAC,yes
+Alabama,Alabama A&M,200,Alabama A&M,NCAA 1,SWAC,yes
+Florida,Bethune-Cookman,201,Bethune-Cookman,NCAA 1,SWAC,yes
+Arkansas,Ark Pine Bluff,202,Ark Pine Bluff,NCAA 1,SWAC,yes
+Alabama,Alabama St,203,Alabama St,NCAA 1,SWAC,yes
+Florida,Florida A&M,204,Florida A&M,NCAA 1,SWAC,yes
+Mississippi,MS Valley St,205,MS Valley St,NCAA 1,SWAC,yes
+California,UC Santa Barbara,206,UC Santa Barbara,NCAA 1,Big West,yes
+California,UC Irvine,207,UC Irvine,NCAA 1,Big West,yes
+California,UC Riverside,208,UC Riverside,NCAA 1,Big West,yes
+California,CS Fullerton,209,CS Fullerton,NCAA 1,Big West,yes
+Hawaii,Hawaii,210,Hawaii,NCAA 1,Big West,yes
+California,UC Davis,211,UC Davis,NCAA 1,Big West,yes
+California,Long Beach St,212,Long Beach St,NCAA 1,Big West,yes
+California,CS Bakersfield,213,CS Bakersfield,NCAA 1,Big West,yes
+California,UC San Diego,214,UC San Diego,NCAA 1,Big West,yes
+California,Cal Poly,215,Cal Poly,NCAA 1,Big West,yes
+California,CS Northridge,216,CS Northridge,NCAA 1,Big West,yes
+Ohio,Kent,217,Kent,NCAA 1,MAC,yes
+Ohio,Toledo,218,Toledo,NCAA 1,MAC,yes
+Ohio,Akron,219,Akron,NCAA 1,MAC,yes
+Ohio,Ohio,220,Ohio,NCAA 1,MAC,yes
+Indiana,Ball St,221,Ball St,NCAA 1,MAC,yes
+New York,Buffalo,222,Buffalo,NCAA 1,MAC,yes
+Illinois,N Illinois,223,N Illinois,NCAA 1,MAC,yes
+Ohio,Miami OH,224,Miami OH,NCAA 1,MAC,yes
+Ohio,Bowling Green,225,Bowling Green,NCAA 1,MAC,yes
+Michigan,C Michigan,226,C Michigan,NCAA 1,MAC,yes
+Michigan,E Michigan,227,E Michigan,NCAA 1,MAC,yes
+Michigan,W Michigan,228,W Michigan,NCAA 1,MAC,yes
+South Carolina,Furman,229,Furman,NCAA 1,Southern,yes
+North Carolina,UNC Greensboro,230,UNC Greensboro,NCAA 1,Southern,yes
+Alabama,Samford,231,Samford,NCAA 1,Southern,yes
+Tennessee,Chattanooga,232,Chattanooga,NCAA 1,Southern,yes
+South Carolina,Wofford,233,Wofford,NCAA 1,Southern,yes
+North Carolina,W Carolina,234,W Carolina,NCAA 1,Southern,yes
+Georgia,Mercer,235,Mercer,NCAA 1,Southern,yes
+Tennessee,ETSU,236,ETSU,NCAA 1,Southern,yes
+Virginia,Liberty,239,Liberty,NCAA 1,Atlantic Sun,yes
+Georgia,Kennesaw,240,Kennesaw,NCAA 1,Atlantic Sun,yes
+Kentucky,E Kentucky,241,E Kentucky,NCAA 1,Atlantic Sun,yes
+Tennessee,Lipscomb,242,Lipscomb,NCAA 1,Atlantic Sun,yes
+Florida,FGCU,243,FGCU,NCAA 1,Atlantic Sun,yes
+Florida,Stetson,244,Stetson,NCAA 1,Atlantic Sun,yes
+New York,Queens NC,245,Queens NC,NCAA 1,Atlantic Sun,yes
+Kentucky,Bellarmine,246,Bellarmine,NCAA 1,Atlantic Sun,yes
+Florida,Jacksonville,247,Jacksonville,NCAA 1,Atlantic Sun,yes
+Alabama,Jacksonville St,248,Jacksonville St,NCAA 1,Atlantic Sun,yes
+Alabama,North Alabama,249,North Alabama,NCAA 1,Atlantic Sun,yes
+Florida,North Florida,250,North Florida,NCAA 1,Atlantic Sun,yes
+Tennessee,Austin Peay,251,Austin Peay,NCAA 1,Atlantic Sun,yes
+Arkansas,Cent Arkansas,252,Cent Arkansas,NCAA 1,Atlantic Sun,yes
+Texas,TAM C. Christi,253,TAM C. Christi,NCAA 1,Southland,yes
+Louisiana,Northwestern LA,254,Northwestern LA,NCAA 1,Southland,yes
+Louisiana,SE Louisiana,255,SE Louisiana,NCAA 1,Southland,yes
+Louisiana,Nicholls St,256,Nicholls St,NCAA 1,Southland,yes
+Louisiana,New Orleans,258,New Orleans,NCAA 1,Southland,yes
+Louisiana,McNeese St,259,McNeese St,NCAA 1,Southland,yes
+Texas,Incarnate Word,260,Incarnate Word,NCAA 1,Southland,yes
+Texas,Lamar,261,Lamar,NCAA 1,Southland,yes
+Texas,Houston Chr,262,Houston Chr,NCAA 1,Southland,yes
+Montana,Montana St,263,Montana St,NCAA 1,Big Sky,yes
+Washington,E Washington,264,E Washington,NCAA 1,Big Sky,yes
+Utah,Weber St,265,Weber St,NCAA 1,Big Sky,yes
+Montana,Montana,266,Montana,NCAA 1,Big Sky,yes
+Colorado,N Colorado,267,N Colorado,NCAA 1,Big Sky,yes
+California,CS Sacramento,268,CS Sacramento,NCAA 1,Big Sky,yes
+Arizona,Northern Arizona,269,Northern Arizona,NCAA 1,Big Sky,yes
+Oregon,Portland St,270,Portland St,NCAA 1,Big Sky,yes
+Idaho,Idaho,271,Idaho,NCAA 1,Big Sky,yes
+Idaho,Idaho St,272,Idaho St,NCAA 1,Big Sky,yes
+South Carolina,Col Charleston,273,Col Charleston,NCAA 1,Colonial,yes
+New York,Hofstra,274,Hofstra,NCAA 1,Colonial,yes
+North Carolina,UNC Wilmington,275,UNC Wilmington,NCAA 1,Colonial,yes
+Maryland,Towson,276,Towson,NCAA 1,Colonial,yes
+Pennsylvania,Drexel,277,Drexel,NCAA 1,Colonial,yes
+Delaware,Delaware,278,Delaware,NCAA 1,Colonial,yes
+Massachusetts,Northeastern,279,Northeastern,NCAA 1,Colonial,yes
+Virginia,William & Mary,280,William & Mary,NCAA 1,Colonial,yes
+North Carolina,NC A&T,281,NC A&T,NCAA 1,Colonial,yes
+New York,Stony Brook,282,Stony Brook,NCAA 1,Colonial,yes
+New Jersey,Monmouth NJ,283,Monmouth NJ,NCAA 1,Colonial,yes
+North Carolina,Elon,284,Elon,NCAA 1,Colonial,yes
+Vermont,Hampton,285,Hampton,NCAA 1,Colonial,yes
+Florida,Nova SE,286,Nova SE,NCAA 2,Sunshine State,yes
+Florida,Embry-Riddle FL,287,Embry-Riddle FL,NCAA 2,Sunshine State,yes
+Florida,Florida Tech,288,Florida Tech,NCAA 2,Sunshine State,yes
+Florida,Barry,289,Barry,NCAA 2,Sunshine State,yes
+Florida,Rollins,290,Rollins,NCAA 2,Sunshine State,yes
+Florida,Palm Beach Atl,291,Palm Beach Atl,NCAA 2,Sunshine State,yes
+Florida,Tampa,292,Tampa,NCAA 2,Sunshine State,yes
+Florida,Eckerd,293,Eckerd,NCAA 2,Sunshine State,yes
+Florida,Lynn,294,Lynn,NCAA 2,Sunshine State,yes
+Florida,St Leo,295,St Leo,NCAA 2,Sunshine State,yes
+Florida,FL Southern,296,FL Southern,NCAA 2,Sunshine State,yes
+Virginia,Randolph-Macon,297,Randolph-Macon,NCAA 3,Old Dominion,yes
+North Carolina,Guilford,298,Guilford,NCAA 3,Old Dominion,yes
+Virginia,Roanoke,300,Roanoke,NCAA 3,Old Dominion,yes
+Virginia,Washington & Lee,301,Washington & Lee,NCAA 3,Old Dominion,yes
+Virginia,VA Wesleyan,302,VA Wesleyan,NCAA 3,Old Dominion,yes
+Virginia,Bridgewater VA,303,Bridgewater VA,NCAA 3,Old Dominion,yes
+Virginia,Averett,304,Averett,NCAA 3,Old Dominion,yes
+Virginia,Ferrum,305,Ferrum,NCAA 3,Old Dominion,yes
+Vermont,Lynchburg,306,Lynchburg,NCAA 3,Old Dominion,yes
+Virginia,E Mennonite,307,E Mennonite,NCAA 3,Old Dominion,yes
+Virginia,Shenandoah,308,Shenandoah,NCAA 3,Old Dominion,yes
+Virginia,Randolph Col,309,Randolph Col,NCAA 3,Old Dominion,yes
+Idaho,Col of Idaho,310,Col of Idaho,NAIA,Cascade,yes
+Oklahoma,Corban,311,Corban,NAIA,Cascade,yes
+Oregon,Southern Oregon,312,Southern Oregon,NAIA,Cascade,yes
+Oklahoma,Eastern Oregon,313,Eastern Oregon,NAIA,Cascade,yes
+Oregon,Oregon Tech,314,Oregon Tech,NAIA,Cascade,yes
+Oregon,Warner Pacific,315,Warner Pacific,NAIA,Cascade,yes
+Idaho,Lewis-Clark ID,316,Lewis-Clark ID,NAIA,Cascade,yes
+Oregon,Bushnell,317,Bushnell,NAIA,Cascade,yes
+Oregon,Multnomah Bib,318,Multnomah Bib,,,no
+Washington,Northwest WA,319,Northwest WA,NAIA,Cascade,yes
+Washington,Walla Walla,320,Walla Walla,NAIA,Cascade,yes
+Washington,Evergreen St,321,Evergreen St,NAIA,Cascade,yes
+Connecticut,Iona,322,Iona,NCAA 1,Metro Atalantic,yes
+Connecticut,Quinnipiac,323,Quinnipiac,NCAA 1,Metro Atalantic,yes
+New York,Siena,324,Siena,NCAA 1,Metro Atalantic,yes
+New Jersey,Rider,325,Rider,NCAA 1,Metro Atalantic,yes
+New York,Niagara,326,Niagara,NCAA 1,Metro Atalantic,yes
+New Jersey,St Peter's,327,St Peter's,NCAA 1,Metro Atalantic,yes
+Connecticut,Fairfield,328,Fairfield,NCAA 1,Metro Atalantic,yes
+New York,Marist,329,Marist,NCAA 1,Metro Atalantic,yes
+Maryland,Mt St Mary's,330,Mt St Mary's,NCAA 1,Metro Atalantic,yes
+New York,Canisius,331,Canisius,NCAA 1,Metro Atalantic,yes
+New York,Manhattan,332,Manhattan,NCAA 1,Metro Atalantic,yes
+Virginia,Norfolk St,333,Norfolk St,NCAA 1,MEAC,yes
+District of Columbia,Howard,334,Howard,NCAA 1,MEAC,yes
+North Carolina,NC Central,335,NC Central,NCAA 1,MEAC,yes
+Maryland,MD E Shore,336,MD E Shore,NCAA 1,MEAC,yes
+Maryland,Morgan St,337,Morgan St,NCAA 1,MEAC,yes
+South Carolina,S Carolina St,339,S Carolina St,NCAA 1,MEAC,yes
+Delaware,Delaware St,340,Delaware St,NCAA 1,MEAC,yes
+Maryland,Coppin St,341,Coppin St,NCAA 1,MEAC,yes
+Oklahoma,Oral Roberts,342,Oral Roberts,NCAA 1,Summit,yes
+South Dakota,S Dakota St,343,S Dakota St,NCAA 1,Summit,yes
+North Dakota,N Dakota St,344,N Dakota St,NCAA 1,Summit,yes
+Michigan,St Thomas MN,345,St Thomas MN,NCAA 1,Summit,yes
+Illinois,W Illinois,346,W Illinois,NCAA 1,Summit,yes
+South Dakota,South Dakota,347,South Dakota,NCAA 1,Summit,yes
+North Carolina,North Dakota,348,North Dakota,NCAA 1,Summit,yes
+Colorado,Denver,349,Denver,NCAA 1,Summit,yes
+Missouri,Missouri KC,350,Missouri KC,NCAA 1,Summit,yes
+Nebraska,NE Omaha,351,NE Omaha,NCAA 1,Summit,yes
+North Carolina,UNC Asheville,352,UNC Asheville,NCAA 1,Big South,yes
+Virginia,Longwood,353,Longwood,NCAA 1,Big South,yes
+North Carolina,Gardner Webb,354,Gardner Webb,NCAA 1,Big South,yes
+South Carolina,Winthrop,355,Winthrop,NCAA 1,Big South,yes
+South Carolina,SC Upstate,356,SC Upstate,NCAA 1,Big South,yes
+New York,Campbell,357,Campbell,NCAA 1,Big South,yes
+North Carolina,High Point,358,High Point,NCAA 1,Big South,yes
+South Carolina,Charleston So,359,Charleston So,NCAA 1,Big South,yes
+South Carolina,Presbyterian,360,Presbyterian,NCAA 1,Big South,yes
+Virginia,Radford,361,Radford,NCAA 1,Big South,yes
+Kentucky,Morehead St,362,Morehead St,NCAA 1,Ohio Valley,yes
+Missouri,Lindenwood,363,Lindenwood,NCAA 1,Ohio Valley,yes
+Missouri,SE Missouri St,364,SE Missouri St,NCAA 1,Ohio Valley,yes
+Tennessee,TN Martin,365,TN Martin,NCAA 1,Ohio Valley,yes
+Tennessee,Tennessee Tech,366,Tennessee Tech,NCAA 1,Ohio Valley,yes
+Indiana,Southern Indiana,367,Southern Indiana,NCAA 1,Ohio Valley,yes
+Tennessee,Tennessee St,368,Tennessee St,NCAA 1,Ohio Valley,yes
+Illinois,E Illinois,370,E Illinois,NCAA 1,Ohio Valley,yes
+Illinois,SIUE,371,SIUE,NCAA 1,Ohio Valley,yes
+New York,Colgate,372,Colgate,NCAA 1,Patriot,yes
+Maryland,Navy,373,Navy,NCAA 1,Patriot,yes
+District of Columbia,American Univ,374,American Univ,NCAA 1,Patriot,yes
+Massachusetts,Boston Univ,375,Boston Univ,NCAA 1,Patriot,yes
+New York,Army,376,Army,NCAA 1,Patriot,yes
+Pennsylvania,Lehigh,377,Lehigh,NCAA 1,Patriot,yes
+Pennsylvania,Lafayette,378,Lafayette,NCAA 1,Patriot,yes
+Pennsylvania,Bucknell,379,Bucknell,NCAA 1,Patriot,yes
+Maryland,Loyola MD,380,Loyola MD,NCAA 1,Patriot,yes
+Massachusetts,Holy Cross,381,Holy Cross,NCAA 1,Patriot,yes
+Kentucky,N Kentucky,382,N Kentucky,NCAA 1,Horizon,yes
+North Dakota,Youngstown St,383,Youngstown St,NCAA 1,Horizon,yes
+Ohio,Wright St,384,Wright St,NCAA 1,Horizon,yes
+Ohio,Cleveland St,385,Cleveland St,NCAA 1,Horizon,yes
+Wisconsin,WI Milwaukee,386,WI Milwaukee,NCAA 1,Horizon,yes
+Indiana,PFW,387,PFW,NCAA 1,Horizon,yes
+Michigan,Detroit,388,Detroit,NCAA 1,Horizon,yes
+Michigan,Oakland,389,Oakland,NCAA 1,Horizon,yes
+Pennsylvania,Robert Morris,390,Robert Morris,NCAA 1,Horizon,yes
+Wisconsin,WI Green Bay,391,WI Green Bay,NCAA 1,Horizon,yes
+Indiana,IUPUI,392,IUPUI,NCAA 1,Horizon,yes
+Arkansas,Ark Little Rock,393,Ark Little Rock,NCAA 1,Ohio Valley,yes
+Vermont,Vermont,394,Vermont,NCAA 1,America East,yes
+Massachusetts,MA Lowell,395,MA Lowell,NCAA 1,America East,yes
+Rhode Island,Bryant,396,Bryant,NCAA 1,America East,yes
+Maryland,UMBC,397,UMBC,NCAA 1,America East,yes
+New Hampshire,New Hampshire,398,New Hampshire,NCAA 1,America East,yes
+New York,Binghamton,399,Binghamton,NCAA 1,America East,yes
+Maine,Maine,400,Maine,NCAA 1,America East,yes
+New York,SUNY Albany,401,SUNY Albany,NCAA 1,America East,yes
+New Jersey,NJIT,402,NJIT,NCAA 1,America East,yes
+Missouri,NW Missouri,403,NW Missouri,NCAA 2,Mid-America,yes
+Oklahoma,C Oklahoma,404,C Oklahoma,NCAA 2,Mid-America,yes
+Kansas,Emporia St,405,Emporia St,NCAA 2,Mid-America,yes
+Iowa,Fort Hays St,406,Fort Hays St,NCAA 2,Mid-America,yes
+Missouri,MO Southern,407,MO Southern,NCAA 2,Mid-America,yes
+Missouri,Lincoln MO,408,Lincoln MO,NCAA 2,Mid-America,yes
+Iowa,Washburn,409,Washburn,NCAA 2,Mid-America,yes
+Oklahoma,Rogers St,410,Rogers St,NCAA 2,Mid-America,yes
+Missouri,MO Western,411,MO Western,NCAA 2,Mid-America,yes
+Oklahoma,NE Oklahoma,412,NE Oklahoma,NCAA 2,Mid-America,yes
+Missouri,C Missouri,413,C Missouri,NCAA 2,Mid-America,yes
+Kansas,Pittsburg St,414,Pittsburg St,NCAA 2,Mid-America,yes
+Kansas,Newman,415,Newman,NCAA 2,Mid-America,yes
+Nebraska,NE Kearney,416,NE Kearney,NCAA 2,Mid-America,yes
+West Virginia,West Liberty,417,West Liberty,NCAA 2,Mountain East,yes
+West Virginia,Fairmont St,418,Fairmont St,NCAA 2,Mountain East,yes
+West Virginia,Charleston WV,419,Charleston WV,NCAA 2,Mountain East,yes
+West Virginia,WV State,420,WV State,NCAA 2,Mountain East,yes
+West Virginia,Davis & Elkins,421,Davis & Elkins,NCAA 2,Mountain East,yes
+Ohio,Notre Dame OH,422,Notre Dame OH,, ,no
+West Virginia,Glenville St,423,Glenville St,NCAA 2,Mountain East,yes
+Washington,Concord,424,Concord,NCAA 2,Mountain East,yes
+West Virginia,Ald-Broaddus,425,Ald-Broaddus,, ,no
+West Virginia,Wheeling,426,Wheeling,NCAA 2,Mountain East,yes
+Maryland,Frostburg St,427,Frostburg St,NCAA 2,Mountain East,yes
+West Virginia,WV Wesleyan,428,WV Wesleyan,NCAA 2,Mountain East,yes
+Oregon,Indiana PA,429,Indiana PA,NCAA 2,Penn St,yes
+Pennsylvania,Mercyhurst,430,Mercyhurst,NCAA 1,Penn St,yes
+Pennsylvania,E Stroudsburg,431,E Stroudsburg,NCAA 2,Penn St,yes
+Pennsylvania,Pitt-Johnstown,432,Pitt-Johnstown,NCAA 2,Penn St,yes
+Pennsylvania,West Chester,433,West Chester,NCAA 2,Penn St,yes
+Pennsylvania,Shippensburg,434,Shippensburg,NCAA 2,Penn St,yes
+Pennsylvania,California PA,435,California PA,NCAA 2,Penn St,yes
+Pennsylvania,Millersville,436,Millersville,NCAA 2,Penn St,yes
+Pennsylvania,Slippery Rock,437,Slippery Rock,NCAA 2,Penn St,yes
+Pennsylvania,Lock Haven,438,Lock Haven,NCAA 2,Penn St,yes
+Pennsylvania,Seton Hill,439,Seton Hill,NCAA 2,Penn St,yes
+Washington,Shepherd,440,Shepherd,NCAA 2,Penn St,yes
+Pennsylvania,Kutztown,441,Kutztown,NCAA 2,Penn St,yes
+Pennsylvania,Edinboro,442,Edinboro,NCAA 2,Penn St,yes
+Oregon,Gannon,443,Gannon,NCAA 2,Penn St,yes
+Oregon,Mansfield,444,Mansfield,NCAA 2,Penn St,yes
+Pennsylvania,Clarion,445,Clarion,NCAA 2,Penn St,yes
+Pennsylvania,Bloomsburg,446,Bloomsburg,NCAA 2,Penn St,yes
+South Dakota,Black Hills St,447,Black Hills St,NCAA 2,RMAC,yes
+Colorado,Ft Lewis,448,Ft Lewis,NCAA 2,RMAC,yes
+Colorado,Colorado Mines,449,Colorado Mines,NCAA 2,RMAC,yes
+Colorado,CO Mesa,450,CO Mesa,NCAA 2,RMAC,yes
+Colorado,Col Springs,451,Col Springs,NCAA 2,RMAC,yes
+Utah,Westminster UT,452,Westminster UT,NCAA 2,RMAC,yes
+Colorado,Metro St,453,Metro St,NCAA 2,RMAC,yes
+Colorado,Regis CO,454,Regis CO,NCAA 2,RMAC,yes
+New Jersey,NM Highlands,455,NM Highlands,NCAA 2,RMAC,yes
+Colorado,CSU-Pueblo,456,CSU-Pueblo,NCAA 2,RMAC,yes
+Colorado,Colorado Chr,458,Colorado Chr,NCAA 2,RMAC,yes
+Colorado,Adams St,459,Adams St,NCAA 2,RMAC,yes
+Colorado,Western St CO,460,Western St CO,NCAA 2,RMAC,yes
+Nebraska,Chadron St,461,Chadron St,NCAA 2,RMAC,yes
+California,CS San Bern.,462,CS San Bern.,NCAA 2,California,yes
+California,CS San Marcos,463,CS San Marcos,NCAA 2,California,yes
+California,CS Chico,464,CS Chico,NCAA 2,California,yes
+California,CSU East Bay,465,CSU East Bay,NCAA 2,California,yes
+California,S Francisco St,466,S Francisco St,NCAA 2,California,yes
+California,CS Poly Pomona,467,CS Poly Pomona,NCAA 2,California,yes
+California,Humboldt St,468,Humboldt St,NCAA 2,California,yes
+California,CS Dom. Hills,469,CS Dom. Hills,NCAA 2,California,yes
+California,Sonoma St,470,Sonoma St,, ,no
+California,Cal St-LA,471,Cal St-LA,NCAA 2,California,yes
+California,CS Monterey Bay,472,CS Monterey Bay,NCAA 2,California,yes
+California,CS Stanislaus,473,CS Stanislaus,NCAA 2,California,yes
+Tennessee,W Texas A&M,474,W Texas A&M,NCAA 2,Lone Star,yes
+Texas,Angelo St,475,Angelo St,NCAA 2,Lone Star,yes
+Tennessee,Lubbock Chr,476,Lubbock Chr,NCAA 2,Lone Star,yes
+Texas,TX A&M K'ville,477,TX A&M K'ville,NCAA 2,Lone Star,yes
+Texas,St Edward's,478,St Edward's,NCAA 2,Lone Star,yes
+Tennessee,Texas A&M Intl,480,Texas A&M Intl,NCAA 2,Lone Star,yes
+New Jersey,E New Mexico,481,E New Mexico,NCAA 2,Lone Star,yes
+Texas,St Mary's TX,482,St Mary's TX,NCAA 2,Lone Star,yes
+New Mexico,W New Mexico,483,W New Mexico,NCAA 2,Lone Star,yes
+Texas,Midwest TX St,484,Midwest TX St,NCAA 2,Lone Star,yes
+Arkansas,Arkansas-FS,485,Arkansas-FS,NCAA 2,Lone Star,yes
+Texas,Permian Basin,486,Permian Basin,NCAA 2,Lone Star,yes
+Texas,UT Tyler,487,UT Tyler,NCAA 2,Lone Star,yes
+Oklahoma,Oklahoma Chr,488,Oklahoma Chr,NCAA 2,Lone Star,yes
+Oklahoma,Cameron,489,Cameron,NCAA 2,Lone Star,yes
+Oklahoma,Southern Nazarene,490,Southern Nazarene,NCAA 2,Great American,yes
+Ohio,SE Oklahoma,491,SE Oklahoma,NCAA 2,Great American,yes
+Arkansas,S Arkansas,492,S Arkansas,NCAA 2,Great American,yes
+Oklahoma,East Central OK,493,East Central OK,NCAA 2,Great American,yes
+Arkansas,Henderson St,494,Henderson St,NCAA 2,Great American,yes
+Oklahoma,OK Baptist,495,OK Baptist,NCAA 2,Great American,yes
+Arkansas,Arkansas Tech,496,Arkansas Tech,NCAA 2,Great American,yes
+Oklahoma,SW Oklahoma,497,SW Oklahoma,NCAA 2,Great American,yes
+Oklahoma,NW Oklahoma St,498,NW Oklahoma St,NCAA 2,Great American,yes
+Arkansas,Ouachita,499,Ouachita,NCAA 2,Great American,yes
+Arkansas,Ark Monticello,500,Ark Monticello,NCAA 2,Great American,yes
+Arkansas,Harding,501,Harding,NCAA 2,Great American,yes
+California,Point Loma,502,Point Loma,NCAA 2,Pacific West,yes
+California,Azusa Pacific,503,Azusa Pacific,NCAA 2,Pacific West,yes
+California,Academy of Art,504,Academy of Art,,,no
+California,Biola,505,Biola,NCAA 2,Pacific West,yes
+Hawaii,Hawaii Hilo,506,Hawaii Hilo,NCAA 2,Pacific West,yes
+Hawaii,Chaminade,507,Chaminade,NCAA 2,Pacific West,yes
+California,Dominican CA,508,Dominican CA,NCAA 2,Pacific West,yes
+California,Fresno Pacific,509,Fresno Pacific,NCAA 2,Pacific West,yes
+Hawaii,Hawaii Pacific,510,Hawaii Pacific,NCAA 2,Pacific West,yes
+California,Holy Names,511,Holy Names,, ,no
+California,Concordia CA,512,Concordia CA,NCAA 2,Pacific West,yes
+South Dakota,Northern St SD,513,Northern St SD,NCAA 2,Northern Sun,yes
+Minnesota,Moorhead St,514,Moorhead St,NCAA 2,Northern Sun,yes
+Minnesota,MN Duluth,515,MN Duluth,NCAA 2,Northern Sun,yes
+South Dakota,Sioux Falls,516,Sioux Falls,NCAA 2,Northern Sun,yes
+Nebraska,Wayne St NE,517,Wayne St NE,NCAA 2,Northern Sun,yes
+Minnesota,MN Mankato,518,MN Mankato,NCAA 2,Northern Sun,yes
+Iowa,Upper Iowa,519,Upper Iowa,NCAA 2,Northern Sun,yes
+Minnesota,Bemidji St,520,Bemidji St,NCAA 2,Northern Sun,yes
+South Dakota,Augustana SD,521,Augustana SD,NCAA 2,Northern Sun,yes
+Minnesota,SW Minnesota,522,SW Minnesota,NCAA 2,Northern Sun,yes
+Minnesota,Winona St,523,Winona St,NCAA 2,Northern Sun,yes
+North Dakota,Minot St,524,Minot St,NCAA 2,Northern Sun,yes
+Minnesota,St Cloud,525,St Cloud,NCAA 2,Northern Sun,yes
+North Dakota,Mary ND,526,Mary ND,NCAA 2,Northern Sun,yes
+Minnesota,Concordia SP,527,Concordia SP,NCAA 2,Northern Sun,yes
+Minnesota,MN Crookston,528,MN Crookston,NCAA 2,Northern Sun,yes
+Virginia,Chris Newport,529,Chris Newport,NCAA 3,Coast-to-Coast,yes
+Virginia,Mary Washington,530,Mary Washington,NCAA 3,Coast-to-Coast,yes
+Maryland,Salisbury,531,Salisbury,NCAA 3,Coast-to-Coast,yes
+California,UC Santa Cruz,532,UC Santa Cruz,NCAA 3,Coast-to-Coast,yes
+North Carolina,Warren Wilson,533,Warren Wilson,NCAA 3,Coast-to-Coast,yes
+New York,Pratt Inst,534,Pratt Inst,NCAA 3,NCAA 3 Independent,yes
+Michigan,Finlandia,535,Finlandia,, ,no
+Indiana,Grace IN,536,Grace IN,NAIA,Crossroads,yes
+Indiana,IN Wesleyan,537,IN Wesleyan,NAIA,Crossroads,yes
+Indiana,Huntington,538,Huntington,NAIA,Crossroads,yes
+Indiana,Marian IN,539,Marian IN,NAIA,Crossroads,yes
+Indiana,Bethel IN,540,Bethel IN,NAIA,Crossroads,yes
+Indiana,St Francis IN,541,St Francis IN,NAIA,Crossroads,yes
+Ohio,Mt Vernon Naz,542,Mt Vernon Naz,NAIA,Crossroads,yes
+Indiana,Taylor IN,543,Taylor IN,NAIA,Crossroads,yes
+Michigan,Spring Arbor,544,Spring Arbor,NAIA,Crossroads,yes
+Indiana,Goshen,545,Goshen,NAIA,Crossroads,yes
+Tennessee,Lincoln Mem,546,Lincoln Mem,NCAA 2,South Atlantic,yes
+North Carolina,Catawba,547,Catawba,NCAA 2,South Atlantic,yes
+South Carolina,Newberry,548,Newberry,NCAA 2,South Atlantic,yes
+Tennessee,Tusculum,549,Tusculum,NCAA 2,South Atlantic,yes
+North Carolina,Wingate,550,Wingate,NCAA 2,South Atlantic,yes
+Tennessee,Carson-Newman,551,Carson-Newman,NCAA 2,South Atlantic,yes
+Virginia,UVA-Wise,552,UVA-Wise,NCAA 2,South Atlantic,yes
+North Carolina,Lenoir-Rhyne,553,Lenoir-Rhyne,NCAA 2,South Atlantic,yes
+South Carolina,Limestone,554,Limestone,,,no
+South Carolina,Coker,555,Coker,NCAA 2,South Atlantic,yes
+South Carolina,Anderson SC,556,Anderson SC,NCAA 2,South Atlantic,yes
+Virginia,Emory & Henry,557,Emory & Henry,NCAA 2,South Atlantic,yes
+North Carolina,Mars Hill,558,Mars Hill,NCAA 2,South Atlantic,yes
+Indiana,Indianapolis,559,Indianapolis,NCAA 2,Great Lakes Valley,yes
+Missouri,MO St Louis,560,MO St Louis,NCAA 2,Great Lakes Valley,yes
+Illinois,McKendree,561,McKendree,NCAA 2,Great Lakes Valley,yes
+Missouri,SW Baptist,562,SW Baptist,NCAA 2,Great Lakes Valley,yes
+Illinois,IL Springfield,563,IL Springfield,NCAA 2,Great Lakes Valley,yes
+Missouri,Wm Jewell,564,Wm Jewell,NCAA 2,Great Lakes Valley,yes
+Missouri,Rockhurst,565,Rockhurst,NCAA 2,Great Lakes Valley,yes
+Missouri,Truman St,566,Truman St,NCAA 2,Great Lakes Valley,yes
+Missouri,Maryville MO,567,Maryville MO,NCAA 2,Great Lakes Valley,yes
+Illinois,Quincy,568,Quincy,NCAA 2,Great Lakes Valley,yes
+Missouri,Missouri S&T,569,Missouri S&T,NCAA 2,Great Lakes Valley,yes
+Illinois,Lewis,570,Lewis,NCAA 2,Great Lakes Valley,yes
+Missouri,Drury,571,Drury,NCAA 2,Great Lakes Valley,yes
+Georgia,Augusta,572,Augusta,NCAA 2,Peach Belt,yes
+South Carolina,SC Aiken,573,SC Aiken,NCAA 2,Peach Belt,yes
+Georgia,North Georgia,574,North Georgia,NCAA 2,Peach Belt,yes
+South Carolina,Lander,575,Lander,NCAA 2,Peach Belt,yes
+Georgia,Columbus St,576,Columbus St,NCAA 2,Peach Belt,yes
+Georgia,Young Harris,577,Young Harris,NCAA 2,Peach Belt,yes
+District of Columbia,Flagler,578,Flagler,NCAA 2,Peach Belt,yes
+Georgia,Georgia SW,579,Georgia SW,NCAA 2,Peach Belt,yes
+Georgia,Georgia C&S,580,Georgia C&S,NCAA 2,Peach Belt,yes
+Georgia,Clayton St,581,Clayton St,NCAA 2,Peach Belt,yes
+Ohio,Mt Union,582,Mt Union,NCAA 3,Ohio,yes
+Ohio,John Carroll,583,John Carroll,NCAA 3,Ohio,yes
+Ohio,Heidelberg,584,Heidelberg,NCAA 3,Ohio,yes
+Ohio,Marietta,585,Marietta,NCAA 3,Ohio,yes
+Ohio,Baldwin-Wallace,586,Baldwin-Wallace,NCAA 3,Ohio,yes
+Ohio,Otterbein,587,Otterbein,NCAA 3,Ohio,yes
+Ohio,Capital,588,Capital,NCAA 3,Ohio,yes
+Ohio,Ohio Northern,589,Ohio Northern,NCAA 3,Ohio,yes
+Ohio,Wilmington OH,590,Wilmington OH,NCAA 3,Ohio,yes
+Ohio,Muskingum,591,Muskingum,NCAA 3,Ohio,yes
+Massachusetts,Bentley,592,Bentley,NCAA 2,Northeast-10,yes
+New Hampshire,St Anselm,593,St Anselm,NCAA 2,Northeast-10,yes
+Connecticut,New Haven,594,New Haven,NCAA 1,Northeast,yes
+New Hampshire,S New Hampshire,595,S New Hampshire,NCAA 2,Northeast-10,yes
+New York,Pace,596,Pace,NCAA 2,Northeast-10,yes
+New Hampshire,Franklin Pierce,597,Franklin Pierce,NCAA 2,Northeast-10,yes
+Connecticut,S Connecticut,598,S Connecticut,NCAA 2,Northeast-10,yes
+New York,Le Moyne,599,Le Moyne,NCAA 1,Northeast,yes
+Massachusetts,Assumption,600,Assumption,NCAA 2,Northeast-10,yes
+New York,Adelphi,601,Adelphi,NCAA 2,Northeast-10,yes
+Vermont,St Michael's,602,St Michael's,NCAA 2,Northeast-10,yes
+New York,St Rose,603,St Rose,, ,no
+Massachusetts,American Intl,604,American Intl,NCAA 2,Northeast-10,yes
+Michigan,Hillsdale,605,Hillsdale,NCAA 2,Great Midwest,yes
+Ohio,Walsh,606,Walsh,NCAA 2,Great Midwest,yes
+Ohio,Ashland,607,Ashland,NCAA 2,Great Midwest,yes
+Ohio,Cedarville,608,Cedarville,NCAA 2,Great Midwest,yes
+Ohio,Malone,609,Malone,NCAA 2,Great Midwest,yes
+Ohio,Findlay,610,Findlay,NCAA 2,Great Midwest,yes
+Ohio,Lake Erie,611,Lake Erie,NCAA 2,Great Midwest,yes
+Ohio,Tiffin,613,Tiffin,NCAA 2,Great Midwest,yes
+Ohio,OH Dominican,614,OH Dominican,NCAA 2,Great Midwest,yes
+Michigan,Northwood MI,615,Northwood MI,NCAA 2,Great Midwest,yes
+Tennessee,Trevecca Naz,616,Trevecca Naz,NCAA 2,Great Midwest,yes
+North Carolina,NC Pembroke,617,NC Pembroke,NCAA 2,Carolinas,yes
+Georgia,Emmanuel GA,618,Emmanuel GA,NCAA 2,Carolinas,yes
+North Carolina,Belmont Abbey,619,Belmont Abbey,NCAA 2,Carolinas,yes
+North Carolina,Barton,620,Barton,NCAA 2,Carolinas,yes
+North Carolina,Chowan,621,Chowan,NCAA 2,Carolinas,yes
+South Carolina,Francis Marion,622,Francis Marion,NCAA 2,Carolinas,yes
+South Carolina,Converse,623,Converse,NCAA 2,Carolinas,yes
+North Carolina,Mt Olive,624,Mt Olive,NCAA 2,Carolinas,yes
+North Carolina,Lees-McRae,625,Lees-McRae,NCAA 2,Carolinas,yes
+Tennessee,King,626,King,NCAA 2,Carolinas,yes
+South Carolina,North Greenville,627,North Greenville,NCAA 2,California,yes
+South Carolina,S Wesleyan,628,S Wesleyan,NCAA 2,Carolinas,yes
+South Carolina,Erskine,629,Erskine,NCAA 2,Carolinas,yes
+Michigan,Ferris St,630,Ferris St,NCAA 2,Great Lakes,yes
+Michigan,N Michigan,631,N Michigan,NCAA 2,Great Lakes,yes
+Wisconsin,WI Parkside,632,WI Parkside,NCAA 2,Great Lakes,yes
+Michigan,Grand Valley St,633,Grand Valley St,NCAA 2,Great Lakes,yes
+Michigan,Lake Superior,634,Lake Superior,NCAA 2,Great Lakes,yes
+Michigan,Saginaw Val,635,Saginaw Val,NCAA 2,Great Lakes,yes
+Michigan,Michigan Tech,636,Michigan Tech,NCAA 2,Great Lakes,yes
+Indiana,Purdue Northwest,637,Purdue Northwest,NCAA 2,Great Lakes,yes
+Michigan,Davenport,638,Davenport,NCAA 2,Great Lakes,yes
+Michigan,Wayne St MI,639,Wayne St MI,NCAA 2,Great Lakes,yes
+Alabama,AL Huntsville,640,AL Huntsville,NCAA 2,Gulf South,yes
+Alabama,West Alabama,641,West Alabama,NCAA 2,Gulf South,yes
+Georgia,West Georgia,642,West Georgia,NCAA 1,Atlantic Sun,yes
+Tennessee,Lee TN,643,Lee TN,NCAA 2,Gulf South,yes
+Georgia,Valdosta St,644,Valdosta St,NCAA 2,Gulf South,yes
+South Carolina,Union TN,645,Union TN,NCAA 2,Gulf South,yes
+Alabama,Auburn M'gomery,646,Auburn M'gomery,NCAA 2,Gulf South,yes
+Mississippi,Mississippi Col,647,Mississippi Col,NCAA 2,Gulf South,yes
+District of Columbia,West Florida,648,West Florida,NCAA 2,Gulf South,yes
+Alabama,Montevallo,649,Montevallo,NCAA 2,Gulf South,yes
+Mississippi,Delta St,650,Delta St,NCAA 2,Gulf South,yes
+Tennessee,Chr Brothers,651,Chr Brothers,NCAA 2,Gulf South,yes
+Georgia,Shorter,652,Shorter,NCAA 2,Gulf South,yes
+Virginia,Virginia Union,653,Virginia Union,NCAA 2,Central,yes
+North Carolina,W Salem St,654,W Salem St,NCAA 2,Central,yes
+South Carolina,Claflin,655,Claflin,NCAA 2,Central,yes
+North Carolina,Fayetteville St,656,Fayetteville St,NCAA 2,Central,yes
+Virginia,Virginia St,657,Virginia St,NCAA 2,Central,yes
+Oregon,Lincoln PA,658,Lincoln PA,NCAA 2,Central,yes
+New York,Shaw NC,659,Shaw NC,NCAA 2,Central,yes
+North Carolina,Eliz. City St,660,Eliz. City St,NCAA 2,Central,yes
+North Carolina,Livingstone,661,Livingstone,NCAA 2,Central,yes
+North Carolina,JC Smith,662,JC Smith,NCAA 2,Central,yes
+Maryland,Bowie St,663,Bowie St,NCAA 2,Central,yes
+North Carolina,St Augustine's,664,St Augustine's,, ,no
+New York,Thomas Aquinas,665,Thomas Aquinas,NCAA 2,East Coast,yes
+New York,Daemen,666,Daemen,NCAA 2,East Coast,yes
+District of Columbia,Dist Columbia,667,Dist Columbia,NCAA 2,East Coast,yes
+New York,Molloy,668,Molloy,NCAA 2,East Coast,yes
+New York,Roberts Wslyn,669,Roberts Wslyn,NCAA 2,East Coast,yes
+New York,Queens NY,670,Queens NY,NCAA 2,East Coast,yes
+New York,Staten Island,671,Staten Island,NCAA 2,East Coast,yes
+New York,Mercy,672,Mercy,NCAA 2,East Coast,yes
+New York,D'Youville,673,D'Youville,NCAA 2,East Coast,yes
+West Virginia,Salem WV,674,Salem WV,NCAA 2,NCAA 2 Independent,yes
+West Virginia,Bluefield St,675,Bluefield St,NCAA 2,NCAA 2 Independent,yes
+Puerto Rico,PR Bayamon,676,PR Bayamon,NCAA 2,NCAA 2 Independent,yes
+New York,Dominican NY,677,Dominican NY,NCAA 2,Central Atlantic,yes
+Oregon,T Jefferson,678,T Jefferson,NCAA 2,Central Atlantic,yes
+New Jersey,Caldwell,679,Caldwell,NCAA 2,Central Atlantic,yes
+Connecticut,Post,680,Post,NCAA 2,Central Atlantic,yes
+New Jersey,Bloomfield,681,Bloomfield,NCAA 2,Central Atlantic,yes
+Delaware,Wilmington DE,682,Wilmington DE,NCAA 2,Central Atlantic,yes
+New York,Alliance,683,Alliance,, ,no
+Pennsylvania,Chestnut Hill,684,Chestnut Hill,NCAA 2,Central Atlantic,yes
+New Jersey,Georgian Court,685,Georgian Court,NCAA 2,Central Atlantic,yes
+Connecticut,Bridgeport,686,Bridgeport,NCAA 2,Central Atlantic,yes
+Delaware,Goldey Beacom,687,Goldey Beacom,NCAA 2,Central Atlantic,yes
+Pennsylvania,Holy Family,688,Holy Family,NCAA 2,Central,yes
+New Jersey,Felician,689,Felician,NCAA 2,Central Atlantic,yes
+Alabama,Miles,690,Miles,NCAA 2,Southern IAC,yes
+South Carolina,Benedict,691,Benedict,NCAA 2,Southern IAC,yes
+Alabama,Tuskegee,692,Tuskegee,NCAA 2,Southern IAC,yes
+South Dakota,LeMoyne-Owen,694,LeMoyne-Owen,NCAA 2,Southern IAC,yes
+Georgia,Savannah St,695,Savannah St,NCAA 2,Southern IAC,yes
+Tennessee,Lane,696,Lane,NCAA 2,Southern IAC,yes
+Kentucky,Kentucky St,697,Kentucky St,NCAA 2,Southern IAC,yes
+Florida,Fort Valley St,698,Fort Valley St,NCAA 2,Southern IAC,yes
+Georgia,Albany GA,699,Albany GA,NCAA 2,Southern IAC,yes
+Georgia,Clark Atlanta,700,Clark Atlanta,NCAA 2,Southern IAC,yes
+Alabama,Spring Hill,701,Spring Hill,NCAA 2,Southern IAC,yes
+Florida,Edward Waters,702,Edward Waters,NCAA 2,Southern IAC,yes
+Georgia,Paine,703,Paine,NCAA 2,Southern IAC,yes
+Ohio,Central St OH,704,Central St OH,NCAA 2,Southern IAC,yes
+South Carolina,Allen,705,Allen,NCAA 2,Southern IAC,yes
+Washington,St Martin's,706,St Martin's,NCAA 2,Great Northwest,yes
+Montana,MT St-Billings,707,MT St-Billings,NCAA 2,Great Northwest,yes
+Washington,Seattle Pacific,708,Seattle Pacific,NCAA 2,Great Northwest,yes
+Idaho,NW Nazarene,709,NW Nazarene,NCAA 2,Great Northwest,yes
+Washington,W Washington,710,W Washington,NCAA 2,Great Midwest,yes
+Virginia,C Washington,711,C Washington,NCAA 2,Great Midwest,yes
+Oregon,W Oregon,712,W Oregon,NCAA 2,Great Northwest,yes
+Alaska,AK Anchorage,713,AK Anchorage,NCAA 2,Great Northwest,yes
+Alaska,AK Fairbanks,714,AK Fairbanks,NCAA 2,Great Northwest,yes
+British Columbia,Simon Fraser,715,Simon Fraser,NCAA 2,Great Northwest,yes
+Connecticut,St Joseph CT,716,St Joseph CT,NCAA 3,Great Northeast,yes
+Connecticut,Albertus Magnus,717,Albertus Magnus,NCAA 3,Great Northeast,yes
+Massachusetts,Emmanuel MA,718,Emmanuel MA,NCAA 3,Great Northeast,yes
+Rhode Island,J&W RI,719,J&W RI,NCAA 3,Great Northeast,yes
+Massachusetts,Lasell,720,Lasell,NCAA 3,Great Northeast,yes
+Maine,St Joseph's ME,721,St Joseph's ME,NCAA 3,Great Northeast,yes
+Massachusetts,Dean,722,Dean,NCAA 3,Great Northeast,yes
+Massachusetts,Regis MA,723,Regis MA,NCAA 3,Great Northeast,yes
+New Hampshire,Colby-Sawyer,724,Colby-Sawyer,NCAA 3,Great Northeast,yes
+Massachusetts,Anna Maria,725,Anna Maria,NCAA 3,Great Northeast,yes
+Vermont,Norwich,726,Norwich,NCAA 3,Great Northeast,yes
+Massachusetts,Elms,727,Elms,NCAA 3,Great Northeast,yes
+New Hampshire,Rivier,728,Rivier,NCAA 3,Great Northeast,yes
+Kentucky,KY Wesleyan,729,KY Wesleyan,NCAA 2,Great Midwest,yes
+Kentucky,Asbury,730,Asbury,NCAA 3,NCAA 3 Independent,yes
+South Carolina,Bob Jones,731,Bob Jones,, ,no
+Wisconsin,Maranatha Bap,732,Maranatha Bap,NCAA 3,NCAA 3 Independent,yes
+Illinois,Wheaton Il,733,Wheaton Il,NCAA 3,Illinois-Wisconsin,yes
+Illinois,North Park,734,North Park,NCAA 3,Illinois-Wisconsin,yes
+Illinois,Elmhurst,735,Elmhurst,NCAA 3,Illinois-Wisconsin,yes
+Illinois,N Central IL,736,N Central IL,NCAA 3,Illinois-Wisconsin,yes
+Wisconsin,Carthage,737,Carthage,NCAA 3,Illinois-Wisconsin,yes
+Illinois,IL Wesleyan,738,IL Wesleyan,NCAA 3,Illinois-Wisconsin,yes
+Illinois,Augustana IL,740,Augustana IL,NCAA 3,Illinois-Wisconsin,yes
+Wisconsin,Carroll WI,741,Carroll WI,NCAA 3,Illinois-Wisconsin,yes
+Pennsylvania,Swarthmore,742,Swarthmore,NCAA 3,Centennial,yes
+Pennsylvania,Muhlenberg,744,Muhlenberg,NCAA 3,Centennial,yes
+Pennsylvania,Gettysburg,745,Gettysburg,NCAA 3,Centennial,yes
+Pennsylvania,Ursinus,746,Ursinus,NCAA 3,Centennial,yes
+Pennsylvania,Frank & Marsh,747,Frank & Marsh,NCAA 3,Cascade,yes
+Pennsylvania,Haverford,748,Haverford,NCAA 3,Centennial,yes
+Pennsylvania,Dickinson,749,Dickinson,NCAA 3,Centennial,yes
+Maryland,McDaniel,750,McDaniel,NCAA 3,Centennial,yes
+Maryland,Washington MD,751,Washington MD,NCAA 3,Centennial,yes
+Maryland,Johns Hopkins,752,Johns Hopkins,NCAA 3,Centennial,yes
+New York,Oswego St,753,Oswego St,NCAA 3,SUNY,yes
+New York,Brockport St,754,Brockport St,NCAA 3,SUNY,yes
+New York,Cortland St,755,Cortland St,NCAA 3,SUNY,yes
+New York,SUNY Oneonta,756,SUNY Oneonta,NCAA 3,SUNY,yes
+New York,SUNY New Paltz,757,SUNY New Paltz,NCAA 3,SUNY,yes
+New York,Geneseo St,758,Geneseo St,NCAA 3,SUNY,yes
+New York,SUNY Potsdam,759,SUNY Potsdam,NCAA 3,SUNY,yes
+New York,Plattsburgh St,760,Plattsburgh St,NCAA 3,SUNY,yes
+New York,SUNY Fredonia,761,SUNY Fredonia,NCAA 3,SUNY,yes
+New York,Buffalo St,762,Buffalo St,NCAA 3,SUNY,yes
+Wisconsin,WI Oshkosh,763,WI Oshkosh,NCAA 3,Wisconsin,yes
+Wisconsin,WI Whitewater,764,WI Whitewater,NCAA 3,Wisconsin,yes
+Wisconsin,WI LaCrosse,765,WI LaCrosse,NCAA 3,Wisconsin,yes
+Wisconsin,WI Eau Claire,766,WI Eau Claire,NCAA 3,Wisconsin,yes
+Wisconsin,WI Platteville,767,WI Platteville,NCAA 3,Wisconsin,yes
+Wisconsin,WI River Falls,768,WI River Falls,NCAA 3,Wisconsin,yes
+Wisconsin,WI Stevens Pt,769,WI Stevens Pt,NCAA 3,Wisconsin,yes
+Wisconsin,WI Stout,770,WI Stout,NCAA 3,Wisconsin,yes
+New Hampshire,Keene St,771,Keene St,NCAA 3,Little East,yes
+Connecticut,W Connecticut,772,W Connecticut,NCAA 3,Little East,yes
+Connecticut,E Connecticut,773,E Connecticut,NCAA 3,Little East,yes
+Massachusetts,MA Boston,774,MA Boston,NCAA 3,Little East,yes
+Massachusetts,MA Dartmouth,775,MA Dartmouth,NCAA 3,Little East,yes
+Maine,S Maine,776,S Maine,NCAA 3,Little East,yes
+New Hampshire,Plymouth St,777,Plymouth St,NCAA 3,Little East,yes
+Rhode Island,RI College,778,RI College,NCAA 3,Little East,yes
+Vermont,Castleton,779,Castleton,NCAA 3,Little East,yes
+Ohio,Case Western,780,Case Western,NCAA 3,Univeristy,yes
+Missouri,Washington StL,781,Washington StL,NCAA 3,Univeristy,yes
+Georgia,Emory,782,Emory,NCAA 3,Univeristy,yes
+New York,Rochester NY,783,Rochester NY,NCAA 3,Univeristy,yes
+New York,NYU,784,NYU,NCAA 3,Univeristy,yes
+Pennsylvania,Carnegie Mellon,785,Carnegie Mellon,NCAA 3,Univeristy,yes
+Massachusetts,Brandeis,786,Brandeis,NCAA 3,Univeristy,yes
+Illinois,Chicago,787,Chicago,NCAA 3,Univeristy,yes
+Texas,M Hardin-Baylor,788,M Hardin-Baylor,NCAA 3,American SW,yes
+Texas,E Texas Bap,789,E Texas Bap,NCAA 3,American SW,yes
+Texas,UT Dallas,790,UT Dallas,NCAA 2,Lone Star,yes
+Texas,Hardin-Simmons,791,Hardin-Simmons,NCAA 3,American SW,yes
+Texas,Le Tourneau,792,Le Tourneau,NCAA 3,American SW,yes
+Texas,Concordia TX,793,Concordia TX,NCAA 3,American SW,yes
+Texas,Sul Ross,794,Sul Ross,NCAA 2,Lone Star,yes
+Texas,McMurry,795,McMurry,NCAA 3,American SW,yes
+Arkansas,Univ Ozarks,796,Univ Ozarks,NCAA 3,American SW,yes
+Texas,Howard Payne,797,Howard Payne,NCAA 3,American SW,yes
+Massachusetts,Williams,798,Williams,NCAA 3,NESCAC,yes
+Vermont,Middlebury,799,Middlebury,NCAA 3,NESCAC,yes
+Massachusetts,Tufts,800,Tufts,NCAA 3,NESCAC,yes
+New York,Hamilton,801,Hamilton,NCAA 3,NESCAC,yes
+Maine,Colby,802,Colby,NCAA 3,NESCAC,yes
+Connecticut,Wesleyan CT,803,Wesleyan CT,NCAA 3,NESCAC,yes
+Connecticut,Trinity CT,804,Trinity CT,NCAA 3,NESCAC,yes
+Massachusetts,Amherst,805,Amherst,NCAA 3,NESCAC,yes
+Connecticut,CT College,806,CT College,NCAA 3,NESCAC,yes
+Maine,Bowdoin,807,Bowdoin,NCAA 3,NESCAC,yes
+Maine,Bates,808,Bates,NCAA 3,NESCAC,yes
+Michigan,Calvin,809,Calvin,NCAA 3,Michigan,yes
+Indiana,Trine,810,Trine,NCAA 3,Michigan,yes
+Michigan,Hope,811,Hope,NCAA 3,Michigan,yes
+Michigan,Olivet MI,812,Olivet MI,NCAA 3,Michigan,yes
+Michigan,Albion,813,Albion,NCAA 3,Michigan,yes
+Michigan,Adrian,814,Adrian,NCAA 3,Michigan,yes
+Michigan,Alma,815,Alma,NCAA 3,Michigan,yes
+Michigan,Kalamazoo,816,Kalamazoo,NCAA 3,Michigan,yes
+Minnesota,Carleton MN,817,Carleton MN,NCAA 3,Minnesota,yes
+Minnesota,St John's MN,818,St John's MN,,,no
+Minnesota,St Mary's MN,819,St Mary's MN,NCAA 3,Minnesota,yes
+Minnesota,St Olaf,820,St Olaf,NCAA 3,Minnesota,yes
+Minnesota,Hamline,821,Hamline,NCAA 3,Minnesota,yes
+Minnesota,Macalester,822,Macalester,NCAA 3,Minnesota,yes
+Minnesota,Bethel MN,823,Bethel MN,NCAA 3,Minnesota,yes
+Minnesota,Gust Adolphus,824,Gust Adolphus,NCAA 3,Minnesota,yes
+Minnesota,Augsburg,825,Augsburg,NCAA 3,Minnesota,yes
+Minnesota,Concordia Mhd,826,Concordia Mhd,NCAA 3,Minnesota,yes
+Minnesota,St Scholastica,827,St Scholastica,NCAA 3,Minnesota,yes
+Texas,St Thomas TX,828,St Thomas TX,NCAA 3,Southern Collegiate,yes
+Texas,Trinity TX,829,Trinity TX,NCAA 3,Southern Collegiate,yes
+Louisiana,Centenary,830,Centenary,NCAA 3,Southern Collegiate,yes
+Texas,Schreiner,831,Schreiner,NCAA 3,Southern Collegiate,yes
+Colorado,Colorado Col,832,Colorado Col,NCAA 3,Southern Collegiate,yes
+Texas,TX Lutheran,833,TX Lutheran,NCAA 3,Southern Collegiate,yes
+Texas,SW Univ TX,834,SW Univ TX,NCAA 3,Southern Collegiate,yes
+Texas,Dallas Univ,835,Dallas Univ,NCAA 3,Southern Collegiate,yes
+Texas,Austin Col,836,Austin Col,NCAA 3,Southern Collegiate,yes
+Massachusetts,Worcester Tech,837,Worcester Tech,NCAA 3,New England,yes
+Massachusetts,Babson,838,Babson,NCAA 3,New England,yes
+Massachusetts,Emerson,839,Emerson,NCAA 3,New England,yes
+Massachusetts,Clark MA,840,Clark MA,NCAA 3,New England,yes
+Massachusetts,Wheaton MA,841,Wheaton MA,NCAA 3,New England,yes
+Massachusetts,Springfield,842,Springfield,NCAA 3,New England,yes
+Massachusetts,MIT,843,MIT,NCAA 3,New England,yes
+Connecticut,Coast Guard,844,Coast Guard,NCAA 3,New England,yes
+Massachusetts,Nichols,845,Nichols,NCAA 3,Commonwealth Coast,yes
+Massachusetts,W New England,846,W New England,NCAA 3,Commonwealth Coast,yes
+Massachusetts,Endicott,847,Endicott,NCAA 3,Commonwealth Coast,yes
+Massachusetts,Suffolk,848,Suffolk,NCAA 3,Commonwealth Coast,yes
+Massachusetts,Wentworth Tech,849,Wentworth Tech,NCAA 3,Commonwealth Coast,yes
+Rhode Island,Roger Williams,850,Roger Williams,NCAA 3,Commonwealth Coast,yes
+Rhode Island,Salve Regina,851,Salve Regina,NCAA 3,Commonwealth Coast,yes
+Massachusetts,Gordon,852,Gordon,NCAA 3,Commonwealth Coast,yes
+Massachusetts,Curry,853,Curry,NCAA 3,Commonwealth Coast,yes
+Maine,U New England,854,U New England,NCAA 3,Commonwealth Coast,yes
+Ohio,Wooster,855,Wooster,NCAA 3,North Coast Atlantic,yes
+Ohio,Ohio Wesleyan,857,Ohio Wesleyan,NCAA 3,North Coast Atlantic,yes
+Indiana,DePauw,858,DePauw,NCAA 3,North Coast Atlantic,yes
+Ohio,Denison,859,Denison,NCAA 3,North Coast Atlantic,yes
+Ohio,Wittenberg,860,Wittenberg,NCAA 3,North Coast Atlantic,yes
+Ohio,Oberlin,861,Oberlin,NCAA 3,North Coast Atlantic,yes
+Ohio,Hiram,862,Hiram,NCAA 3,North Coast Atlantic,yes
+Ohio,Kenyon,863,Kenyon,NCAA 3,North Coast Atlantic,yes
+Georgia,Berry,864,Berry,NCAA 3,Southern Athletic,yes
+Tennessee,Sewanee,865,Sewanee,NCAA 3,Southern Athletic,yes
+Tennessee,Rhodes,866,Rhodes,NCAA 3,Southern Athletic,yes
+Alabama,Birmingham So,867,Birmingham So,, ,no
+Georgia,Oglethorpe,868,Oglethorpe,NCAA 3,Southern Athletic,yes
+Kentucky,Centre,869,Centre,NCAA 3,Southern Athletic,yes
+Arkansas,Hendrix,870,Hendrix,NCAA 3,Southern Athletic,yes
+Mississippi,Millsaps,871,Millsaps,NCAA 3,Southern Athletic,yes
+Iowa,Dubuque,872,Dubuque,NCAA 3,American Rivers,yes
+Iowa,Central IA,873,Central IA,NCAA 3,American Rivers,yes
+Iowa,Coe,874,Coe,NCAA 3,American Rivers,yes
+Nebraska,NE Wesleyan,875,NE Wesleyan,NCAA 3,American Rivers,yes
+Iowa,Loras,876,Loras,NCAA 3,American Rivers,yes
+Iowa,Wartburg,877,Wartburg,NCAA 3,American Rivers,yes
+Iowa,Simpson IA,878,Simpson IA,NCAA 3,American Rivers,yes
+Iowa,Buena Vista,879,Buena Vista,NCAA 3,American Rivers,yes
+Iowa,Luther IA,880,Luther IA,NCAA 3,American Rivers,yes
+Illinois,Illinois Col,881,Illinois Col,NCAA 3,Midwest,yes
+Wisconsin,Ripon,882,Ripon,NCAA 3,Midwest,yes
+Iowa,Cornell IA,883,Cornell IA,NCAA 3,Midwest,yes
+Illinois,Lake Forest,884,Lake Forest,NCAA 3,Midwest,yes
+Illinois,Monmouth IL,885,Monmouth IL,NCAA 3,Midwest,yes
+West Virginia,Lawrence,886,Lawrence,NCAA 3,Midwest,yes
+Iowa,Grinnell,887,Grinnell,NCAA 3,Midwest,yes
+Illinois,Knox,888,Knox,NCAA 3,Midwest,yes
+Wisconsin,Beloit,889,Beloit,NCAA 3,Midwest,yes
+Arizona,Arizona Chr,890,Arizona Chr,NAIA,Golden State,yes
+Arizona,Ottawa AZ,891,Ottawa AZ,NAIA,Golden State,yes
+California,The Master's,892,The Master's,NAIA,Golden State,yes
+California,Hope Intl,893,Hope Intl,NAIA,Golden State,yes
+California,Wm Jessup,894,Wm Jessup,NCAA 2,Pacific West,yes
+California,Westmont,895,Westmont,NCAA 2,Pacific West,yes
+California,Menlo,896,Menlo,NCAA 2,Pacific West,yes
+California,Vanguard,897,Vanguard,NCAA 2,Pacific West,yes
+California,San Diego Chr,898,San Diego Chr,,,no
+California,Life Pacific,899,Life Pacific,NAIA,Golden State,yes
+Indiana,Indiana Tech,900,Indiana Tech,NAIA,Wolverine-Hoosier,yes
+Michigan,Madonna,901,Madonna,NAIA,Wolverine-Hoosier,yes
+Michigan,Cornerstone,902,Cornerstone,NAIA,Wolverine-Hoosier,yes
+Ohio,Lourdes,903,Lourdes,NAIA,Wolverine-Hoosier,yes
+Michigan,Rochester MI,904,Rochester MI,NAIA,Wolverine-Hoosier,yes
+Michigan,Aquinas,905,Aquinas,NAIA,Wolverine-Hoosier,yes
+Michigan,Lawrence Tech,906,Lawrence Tech,NAIA,Wolverine-Hoosier,yes
+Ohio,Northwestern OH,907,Northwestern OH,NAIA,Wolverine-Hoosier,yes
+Michigan,Concordia MI,908,Concordia MI,,,no
+Michigan,Siena Hts,909,Siena Hts,NAIA,Wolverine-Hoosier,yes
+Michigan,MI Dearborn,910,MI Dearborn,NAIA,Wolverine-Hoosier,yes
+California,Claremont M.S.,911,Claremont M.S.,NCAA 3,Southern Cal,yes
+California,Pomona-Pitzer,912,Pomona-Pitzer,NCAA 3,Southern Cal,yes
+California,Redlands,913,Redlands,NCAA 3,Southern Cal,yes
+California,Cal Lutheran,914,Cal Lutheran,NCAA 3,Southern Cal,yes
+California,Chapman,915,Chapman,NCAA 3,Southern Cal,yes
+California,Occidental,916,Occidental,NCAA 3,Southern Cal,yes
+California,Whittier,917,Whittier,NCAA 3,Southern Cal,yes
+California,Caltech,918,Caltech,NCAA 3,Southern Cal,yes
+California,La Verne,919,La Verne,NCAA 3,Southern Cal,yes
+Kentucky,Georgetown KY,920,Georgetown KY,NAIA,Mid-South,yes
+Tennessee,Freed-Hardeman,921,Freed-Hardeman,NAIA,Mid-South,yes
+Kentucky,Thomas More,922,Thomas More,NCAA 2,Great Midwest,yes
+Ohio,Shawnee St,923,Shawnee St,NAIA,Mid-South,yes
+Tennessee,TN Southern,924,TN Southern,NAIA,Mid-South,yes
+Kentucky,Pikeville,925,Pikeville,NAIA,Mid-South,yes
+Kentucky,Cumberlands KY,926,Cumberlands KY,NAIA,Mid-South,yes
+Tennessee,Cumberland TN,927,Cumberland TN,NAIA,Mid-South,yes
+Tennessee,Bethel TN,928,Bethel TN,NAIA,Mid-South,yes
+Kentucky,Campbellsville,929,Campbellsville,NAIA,Mid-South,yes
+Kentucky,Lindsey Wilson,930,Lindsey Wilson,NAIA,Mid-South,yes
+Ohio,Wilberforce,931,Wilberforce,NAIA,Mid-South,yes
+District of Columbia,Catholic,932,Catholic,NCAA 3,Landmark,yes
+Pennsylvania,Scranton,933,Scranton,NCAA 3,Landmark,yes
+Pennsylvania,Susquehanna,934,Susquehanna,NCAA 3,Landmark,yes
+Pennsylvania,Juniata,935,Juniata,NCAA 3,Landmark,yes
+New Jersey,Drew,936,Drew,NCAA 3,Landmark,yes
+Ohio,Elizabethtown,937,Elizabethtown,NCAA 3,Landmark,yes
+Pennsylvania,Moravian,938,Moravian,NCAA 3,Landmark,yes
+Maryland,Goucher,939,Goucher,NCAA 3,Landmark,yes
+Iowa,William Penn,940,William Penn,NAIA,Heart of America,yes
+Nebraska,Peru St,941,Peru St,NAIA,Heart of America,yes
+Missouri,Evangel,942,Evangel,NAIA,Heart of America,yes
+Kansas,Baker KS,943,Baker KS,NAIA,Heart of America,yes
+Kansas,Mid Am Nazarene,944,Mid Am Nazarene,NAIA,Heart of America,yes
+Missouri,Cent Methodist,945,Cent Methodist,NAIA,Heart of America,yes
+Iowa,Graceland,946,Graceland,NAIA,Heart of America,yes
+Kansas,Benedictine KS,947,Benedictine KS,NAIA,Heart of America,yes
+Iowa,Clarke,948,Clarke,NAIA,Heart of America,yes
+Missouri,Missouri Val,949,Missouri Val,NAIA,Heart of America,yes
+Iowa,Grand View,950,Grand View,NAIA,Heart of America,yes
+Missouri,Culver-Stockton,951,Culver-Stockton,NAIA,Heart of America,yes
+Iowa,Mt Mercy,952,Mt Mercy,NAIA,Heart of America,yes
+Missouri,Park,953,Park,NAIA,Heart of America,yes
+Wisconsin,St Norbert,954,St Norbert,NCAA 3,Northern Atlantic,yes
+Wisconsin,WI Lutheran,955,WI Lutheran,NCAA 3,Northern Atlantic,yes
+Illinois,Concordia IL,956,Concordia IL,NCAA 3,Northern Atlantic,yes
+Wisconsin,Marian WI,957,Marian WI,NCAA 3,Northern Atlantic,yes
+Illinois,Benedictine IL,958,Benedictine IL,NCAA 3,Northern Atlantic,yes
+Illinois,Rockford,959,Rockford,NCAA 3,Northern Atlantic,yes
+Illinois,IL Tech,960,IL Tech,NCAA 3,Northern Atlantic,yes
+Wisconsin,Concordia WI,961,Concordia WI,NCAA 3,Northern Atlantic,yes
+Illinois,Aurora,962,Aurora,NCAA 3,Northern Atlantic,yes
+Wisconsin,Milwaukee Eng,963,Milwaukee Eng,NCAA 3,Northern Atlantic,yes
+Wisconsin,Edgewood,964,Edgewood,NCAA 3,Northern Atlantic,yes
+Wisconsin,Lakeland,965,Lakeland,NCAA 3,Northern Atlantic,yes
+Illinois,Dominican IL,966,Dominican IL,NCAA 3,Northern Atlantic,yes
+North Dakota,Jamestown,967,Jamestown,NCAA 2,Northern Sun,yes
+Iowa,Morningside,968,Morningside,NAIA,Great Plains,yes
+Iowa,Dordt,969,Dordt,NAIA,Great Plains,yes
+Nebraska,Concordia NE,970,Concordia NE,NAIA,Great Plains,yes
+Iowa,Northwestern IA,971,Northwestern IA,NAIA,Great Plains,yes
+South Dakota,Mt Marty,972,Mt Marty,NAIA,Great Plains,yes
+Iowa,Briar Cliff,973,Briar Cliff,NAIA,Great Plains,yes
+South Dakota,Dakota Wesleyan,974,Dakota Wesleyan,NAIA,Great Plains,yes
+Nebraska,Hastings,976,Hastings,NAIA,Great Plains,yes
+Nebraska,Doane,977,Doane,NAIA,Great Plains,yes
+Nebraska,Midland NE,978,Midland NE,NAIA,Great Plains,yes
+Washington,Whitman,979,Whitman,NCAA 3,Northwest,yes
+Washington,Whitworth,980,Whitworth,NCAA 3,Northwest,yes
+Washington,Puget Sound,981,Puget Sound,NCAA 3,Northwest,yes
+Washington,Pac Lutheran,982,Pac Lutheran,NCAA 3,Northwest,yes
+Oregon,Linfield,983,Linfield,NCAA 3,Northwest,yes
+Oregon,Pacific OR,984,Pacific OR,NCAA 3,Northwest,yes
+Oregon,George Fox,985,George Fox,NCAA 3,Northwest,yes
+Oregon,Lewis & Clark,986,Lewis & Clark,NCAA 3,Northwest,yes
+Oregon,Willamette,987,Willamette,NCAA 3,Northwest,yes
+Mississippi,Tougaloo,988,Tougaloo,NAIA,Gulf Coast,yes
+Louisiana,Dillard,989,Dillard,NAIA,Gulf Coast,yes
+Arkansas,Philander Smith,990,Philander Smith,NAIA,Gulf Coast,yes
+Texas,Wiley,991,Wiley,NAIA,Gulf Coast,yes
+Mississippi,Rust,992,Rust,NAIA,Gulf Coast,yes
+Tennessee,Fisk,993,Fisk,NAIA,Gulf Coast,yes
+Alabama,Oakwood,994,Oakwood,NAIA,Gulf Coast,yes
+Louisiana,Southern N.O.,995,Southern N.O.,NAIA,Gulf Coast,yes
+New Jersey,Rowan,996,Rowan,NCAA 3,New Jersey,yes
+New Jersey,R Stockton,997,R Stockton,NCAA 3,New Jersey,yes
+New Jersey,Montclair St,998,Montclair St,NCAA 3,New Jersey,yes
+New Jersey,Kean,999,Kean,NCAA 3,New Jersey,yes
+New Jersey,NJ City,1000,NJ City,NCAA 3,New Jersey,yes
+New Jersey,College of NJ,1001,College of NJ,NCAA 3,New Jersey,yes
+New Jersey,Rutgers-Newark,1002,Rutgers-Newark,NCAA 3,New Jersey,yes
+New Jersey,Ramapo,1003,Ramapo,NCAA 3,New Jersey,yes
+New Jersey,Wm Paterson,1004,Wm Paterson,NCAA 3,New Jersey,yes
+New Jersey,Rutgers-Camden,1005,Rutgers-Camden,NCAA 3,New Jersey,yes
+Montana,MT Tech,1006,MT Tech,NAIA,Frontier,yes
+Montana,MT St Northern,1007,MT St Northern,NAIA,Frontier,yes
+Montana,Carroll MT,1008,Carroll MT,NAIA,Frontier,yes
+Montana,Rocky Mtn,1009,Rocky Mtn,NAIA,Frontier,yes
+Montana,MT Western,1011,MT Western,NAIA,Frontier,yes
+Montana,Providence GF,1012,Providence GF,NAIA,Frontier,yes
+North Carolina,NC Wesleyan,1013,NC Wesleyan,NCAA 3,USA South,yes
+North Carolina,Peace,1014,Peace,NCAA 3,USA South,yes
+Virginia,Mary Baldwin,1015,Mary Baldwin,NCAA 3,USA South,yes
+Virginia,S Virginia,1016,S Virginia,NCAA 3,USA South,yes
+North Carolina,Pfeiffer,1017,Pfeiffer,NCAA 3,USA South,yes
+North Carolina,Greensboro,1018,Greensboro,NCAA 3,USA South,yes
+North Carolina,Brevard,1019,Brevard,NCAA 3,USA South,yes
+North Carolina,Methodist,1020,Methodist,NCAA 3,USA South,yes
+Minnesota,Bethany Luth,1021,Bethany Luth,NCAA 3,Upper Midwest,yes
+Wisconsin,WI Superior,1022,WI Superior,NCAA 3,Upper Midwest,yes
+Minnesota,Northwestern MN,1023,Northwestern MN,NCAA 3,Upper Midwest,yes
+Minnesota,Crown MN,1024,Crown MN,NCAA 3,Upper Midwest,yes
+Minnesota,N Central MN,1025,N Central MN,NCAA 3,Upper Midwest,yes
+Minnesota,MN Morris,1026,MN Morris,NCAA 3,Upper Midwest,yes
+Wisconsin,Northland,1027,Northland,,,no
+Minnesota,Martin Luther,1028,Martin Luther,NCAA 3,Upper Midwest,yes
+Tennessee,Maryville TN,1029,Maryville TN,NCAA 3,Conference of the South,yes
+Georgia,LaGrange,1030,LaGrange,NCAA 3,Conference of the South,yes
+Georgia,Piedmont,1031,Piedmont,NCAA 3,Conference of the South,yes
+Mississippi,Belhaven MS,1032,Belhaven MS,NCAA 3,Conference of the South,yes
+Kentucky,Berea,1033,Berea,NCAA 3,Conference of the South,yes
+Georgia,Covenant,1034,Covenant,NCAA 3,Conference of the South,yes
+Alabama,Huntingdon,1035,Huntingdon,NCAA 3,Conference of the South,yes
+New York,Utica,1036,Utica,NCAA 3,Empire 8,yes
+New York,Nazareth,1037,Nazareth,NCAA 3,Empire 8,yes
+New York,St John Fisher,1038,St John Fisher,NCAA 3,Empire 8,yes
+New York,Alfred,1039,Alfred,NCAA 3,Empire 8,yes
+New York,Medaille,1040,Medaille,,,no
+New York,Hartwick,1041,Hartwick,NCAA 3,Empire 8,yes
+New York,Keuka,1042,Keuka,NCAA 3,Empire 8,yes
+New York,Elmira,1043,Elmira,NCAA 3,Empire 8,yes
+New York,Houghton,1044,Houghton,NCAA 3,Empire 8,yes
+New York,Russell Sage,1045,Russell Sage,NCAA 3,Empire 8,yes
+Oklahoma,OK Wesleyan,1046,OK Wesleyan,NAIA,Kansas,yes
+Kansas,Southwestern KS,1047,Southwestern KS,NAIA,Kansas,yes
+Kansas,KS Wesleyan,1048,KS Wesleyan,NAIA,Kansas,yes
+Kansas,Bethel KS,1049,Bethel KS,NAIA,Kansas,yes
+Kansas,Bethany KS,1050,Bethany KS,NAIA,Kansas,yes
+Kansas,Ottawa KS,1051,Ottawa KS,NAIA,Kansas,yes
+Nebraska,York NE,1052,York NE,NAIA,Kansas,yes
+Kansas,McPherson,1053,McPherson,NAIA,Kansas,yes
+Kansas,Sterling,1054,Sterling,NAIA,Kansas,yes
+Missouri,Avila,1055,Avila,NAIA,Kansas,yes
+Kansas,St Mary KS,1056,St Mary KS,NAIA,Kansas,yes
+Kansas,Tabor,1057,Tabor,NAIA,Kansas,yes
+Kansas,Friends,1058,Friends,NAIA,Kansas,yes
+Oklahoma,Langston,1059,Langston,NAIA,Sooner,yes
+Texas,Wayland,1060,Wayland,NAIA,Sooner,yes
+Oklahoma,Oklahoma S&A,1062,Oklahoma S&A,NAIA,Sooner,yes
+Oklahoma,OK City,1063,OK City,NAIA,Sooner,yes
+Texas,UNT Dallas,1064,UNT Dallas,NAIA,Sooner,yes
+Texas,TX Wesleyan,1065,TX Wesleyan,NAIA,Sooner,yes
+Oklahoma,Mid-Am Chr,1066,Mid-Am Chr,NAIA,Sooner,yes
+Arkansas,John Brown,1067,John Brown,NAIA,Sooner,yes
+Oklahoma,SW Christian,1068,SW Christian,NAIA,Sooner,yes
+Kansas,Central Chr,1069,Central Chr,NAIA,Sooner,yes
+Oklahoma,Panhandle St,1070,Panhandle St,NAIA,Sooner,yes
+Pennsylvania,Alvernia,1071,Alvernia,NCAA 3,Middle Atlantic,yes
+Pennsylvania,Widener,1072,Widener,NCAA 3,Middle Atlantic,yes
+Pennsylvania,DeSales,1073,DeSales,NCAA 3,Middle Atlantic,yes
+Pennsylvania,Eastern Univ,1074,Eastern Univ,NCAA 3,Middle Atlantic,yes
+Maryland,Hood,1075,Hood,NCAA 3,Middle Atlantic,yes
+Pennsylvania,York PA,1076,York PA,NCAA 3,Middle Atlantic,yes
+Pennsylvania,Arcadia,1077,Arcadia,NCAA 3,Middle Atlantic,yes
+Pennsylvania,Lycoming,1078,Lycoming,NCAA 3,Middle Atlantic,yes
+New Jersey,Stevens,1079,Stevens,NCAA 3,Middle Atlantic,yes
+Maryland,Stevenson,1080,Stevenson,NCAA 3,Middle Atlantic,yes
+Pennsylvania,Wilkes,1081,Wilkes,NCAA 3,Middle Atlantic,yes
+Pennsylvania,Albright,1082,Albright,NCAA 3,Middle Atlantic,yes
+Pennsylvania,Lebanon Val,1083,Lebanon Val,NCAA 3,Middle Atlantic,yes
+Pennsylvania,Messiah,1084,Messiah,NCAA 3,Middle Atlantic,yes
+Pennsylvania,Misericordia,1085,Misericordia,NCAA 3,Middle Atlantic,yes
+Pennsylvania,Delaware Val,1086,Delaware Val,NCAA 3,Middle Atlantic,yes
+Pennsylvania,King's PA,1087,King's PA,NCAA 3,Middle Atlantic,yes
+New Jersey,FDU Madison,1088,FDU Madison,NCAA 3,Middle Atlantic,yes
+New York,Ithaca,1089,Ithaca,NCAA 3,Liberty League,yes
+New York,Rensselaer,1090,Rensselaer,NCAA 3,Liberty League,yes
+New York,Hobart & Smith,1091,Hobart & Smith,NCAA 3,Liberty League,yes
+New York,St Lawrence,1092,St Lawrence,NCAA 3,Liberty League,yes
+New York,Vassar,1093,Vassar,NCAA 3,Liberty League,yes
+New York,Skidmore,1094,Skidmore,NCAA 3,Liberty League,yes
+New York,Clarkson,1095,Clarkson,NCAA 3,Liberty League,yes
+New York,Rochester Tech,1096,Rochester Tech,NCAA 3,Liberty League,yes
+New York,Union NY,1097,Union NY,NCAA 3,Liberty League,yes
+New York,Bard,1098,Bard,NCAA 3,Liberty League,yes
+Alabama,Faulkner,1099,Faulkner,NAIA,Southern States,yes
+Louisiana,Loyola NO,1100,Loyola NO,NAIA,Southern States,yes
+Georgia,Life,1101,Life,NAIA,Southern States,yes
+Alabama,Mobile,1102,Mobile,NAIA,Southern States,yes
+Alabama,Stillman,1103,Stillman,NAIA,Southern States,yes
+Mississippi,Blue Mtn,1104,Blue Mtn,NAIA,Southern States,yes
+Georgia,Dalton St,1105,Dalton St,,,no
+Alabama,Talladega,1106,Talladega,NAIA,Southern States,yes
+Georgia,Mid Georgia,1107,Mid Georgia,NCAA 2,Southern States,yes
+Mississippi,Wm Carey,1108,Wm Carey,NAIA,Southern States,yes
+Georgia,Brewton-Parker,1109,Brewton-Parker,NAIA,Southern States,yes
+Pennsylvania,La Roche,1110,La Roche,NCAA 3,Allegheny Mountain,yes
+Pennsylvania,PSU-Altoona,1111,PSU-Altoona,NCAA 3,Allegheny Mountain,yes
+Pennsylvania,PSU-Behrend,1112,PSU-Behrend,NCAA 3,Allegheny Mountain,yes
+Pennsylvania,Pitt-Greensburg,1113,Pitt-Greensburg,NCAA 3,Allegheny Mountain,yes
+New York,Hilbert,1114,Hilbert,NCAA 3,Allegheny Mountain,yes
+Pennsylvania,Pitt-Bradford,1115,Pitt-Bradford,NCAA 3,Allegheny Mountain,yes
+New York,Alfred St,1116,Alfred St,NCAA 3,Allegheny Mountain,yes
+Pennsylvania,Mt Aloysius,1117,Mt Aloysius,NCAA 3,Allegheny Mountain,yes
+Pennsylvania,Lancaster Bib,1118,Lancaster Bib,NCAA 3,United East,yes
+Pennsylvania,PSU-Harrisburg,1119,PSU-Harrisburg,NCAA 3,United East,yes
+Pennsylvania,PSU-Abington,1120,PSU-Abington,NCAA 3,United East,yes
+Maryland,St Mary's MD,1121,St Mary's MD,NCAA 3,United East,yes
+New York,Wells,1122,Wells,, ,no
+New York,Morrisville St,1123,Morrisville St,NCAA 3,United East,yes
+Pennsylvania,Penn Col Tech,1124,Penn Col Tech,NCAA 3,United East,yes
+Pennsylvania,PSU-Berks,1125,PSU-Berks,NCAA 3,United East,yes
+District of Columbia,Gallaudet,1126,Gallaudet,NCAA 3,United East,yes
+Pennsylvania,Neumann,1127,Neumann,NCAA 3,Atlantic East,yes
+Virginia,Marymount VA,1128,Marymount VA,NCAA 3,Atlantic East,yes
+Pennsylvania,Gwynedd-Mercy,1129,Gwynedd-Mercy,NCAA 3,Atlantic East,yes
+Pennsylvania,Cabrini,1130,Cabrini,, ,no
+Pennsylvania,Immaculata,1131,Immaculata,NCAA 3,Atlantic East,yes
+Pennsylvania,Marywood,1132,Marywood,NCAA 3,Atlantic East,yes
+New Jersey,Centenary NJ,1133,Centenary NJ,NCAA 3,Atlantic East,yes
+New York,Farmingdale,1134,Farmingdale,NCAA 3,Skyline,yes
+New York,Yeshiva,1135,Yeshiva,NCAA 3,Skyline,yes
+New York,Manhattanville,1136,Manhattanville,NCAA 3,Skyline,yes
+New York,Merchant Marine,1137,Merchant Marine,NCAA 3,Skyline,yes
+New York,St Joseph's LI,1138,St Joseph's LI,NCAA 3,Skyline,yes
+New York,SUNY Maritime,1139,SUNY Maritime,,,no
+New York,Mt St Vincent,1140,Mt St Vincent,NCAA 3,Skyline,yes
+New York,Mt St Mary NY,1141,Mt St Mary NY,NCAA 3,Skyline,yes
+New York,Sarah Lawrence,1142,Sarah Lawrence,NCAA 3,Skyline,yes
+New York,Purchase,1143,Purchase,NCAA 3,Skyline,yes
+New York,Old Westbury,1144,Old Westbury,NCAA 3,Skyline,yes
+New York,St Joseph's NY,1145,St Joseph's NY,NCAA 3,Skyline,yes
+Louisiana,Xavier LA,1146,Xavier LA,NAIA,Red River,yes
+Louisiana,LSU Shreveport,1147,LSU Shreveport,NAIA,Red River,yes
+Texas,TX A&M Texarkana,1148,TX A&M Texarkana,NAIA,Red River,yes
+Louisiana,LSU-Alexandria,1149,LSU-Alexandria,NAIA,Red River,yes
+Texas,Paul Quinn,1150,Paul Quinn,NAIA,Red River,yes
+Louisiana,Louisiana Chr,1151,Louisiana Chr,NAIA,Red River,yes
+Texas,Our Lady Lake,1152,Our Lady Lake,NAIA,Red River,yes
+New Mexico,Univ of Southwest,1153,Univ of Southwest,NAIA,Red River,yes
+Texas,Jarvis Chr,1154,Jarvis Chr,NAIA,Red River,yes
+Texas,Huston-Tillot,1155,Huston-Tillot,NAIA,Red River,yes
+Texas,Texas Col,1156,Texas Col,NAIA,Red River,yes
+Connecticut,Mitchell,1157,Mitchell,NCAA 3,New England Collegiate,yes
+Massachusetts,E Nazarene,1158,E Nazarene,, ,no
+New Hampshire,N England Col,1159,N England Col,NCAA 3,New England Collegiate,yes
+Massachusetts,Lesley,1160,Lesley,NCAA 3,New England Collegiate,yes
+California,St Katherine,1161,St Katherine,, ,no
+California,UC Merced,1162,UC Merced,NCAA 2,California,yes
+California,Westcliff,1163,Westcliff,NAIA,California Pacific,yes
+California,Cal Maritime,1164,Cal Maritime,NAIA,California Pacific,yes
+California,Simpson CA,1165,Simpson CA,NAIA,California Pacific,yes
+Arizona,Benedictine AZ,1166,Benedictine AZ,NAIA,California Pacific,yes
+Arizona,Embry-Riddle AZ,1167,Embry-Riddle AZ,NAIA,California Pacific,yes
+California,La Sierra,1168,La Sierra,NAIA,California Pacific,yes
+Arizona,Park-Gilbert,1169,Park-Gilbert,NAIA,California Pacific,yes
+California,Pacific Union,1170,Pacific Union,NAIA,California Pacific,yes
+California,Antelope Val,1171,Antelope Val,, ,no
+Pennsylvania,Wash & Jeff,1172,Wash & Jeff,NCAA 3,Presidents,yes
+Pennsylvania,Allegheny,1173,Allegheny,NCAA 3,Presidents,yes
+Pennsylvania,Geneva,1174,Geneva,NCAA 3,Presidents,yes
+Pennsylvania,Chatham,1175,Chatham,NCAA 3,Presidents,yes
+Pennsylvania,Westminster PA,1176,Westminster PA,NCAA 3,Presidents,yes
+Pennsylvania,Thiel,1177,Thiel,NCAA 3,Presidents,yes
+Pennsylvania,St Vincent,1178,St Vincent,NCAA 3,Presidents,yes
+Pennsylvania,Grove City,1179,Grove City,NCAA 3,Presidents,yes
+Pennsylvania,Waynesburg,1180,Waynesburg,NCAA 3,Presidents,yes
+Ohio,Franciscan OH,1181,Franciscan OH,NCAA 3,Presidents,yes
+West Virginia,Bethany WV,1182,Bethany WV,NCAA 3,Presidents,yes
+Florida,St Thomas FL,1183,St Thomas FL,NAIA,The Sun,yes
+Florida,Southeastern FL,1184,Southeastern FL,NAIA,The Sun,yes
+Georgia,Thomas GA,1185,Thomas GA,NAIA,The Sun,yes
+Florida,Keiser,1186,Keiser,NAIA,The Sun,yes
+Florida,Warner,1187,Warner,NAIA,The Sun,yes
+Florida,Ave Maria,1188,Ave Maria,NAIA,The Sun,yes
+Florida,Webber,1189,Webber,NAIA,The Sun,yes
+Florida,FL Memorial,1190,FL Memorial,NAIA,The Sun,yes
+Georgia,Coastal GA,1191,Coastal GA,NAIA,The Sun,yes
+New York,Baruch,1192,Baruch,NCAA 3,City Univ of NY,yes
+New York,Lehman,1193,Lehman,NCAA 3,City Univ of NY,yes
+New York,City Col NY,1194,City Col NY,NCAA 3,City Univ of NY,yes
+New York,York NY,1195,York NY,NCAA 3,City Univ of NY,yes
+New York,Hunter,1196,Hunter,NCAA 3,City Univ of NY,yes
+New York,John Jay,1197,John Jay,NCAA 3,City Univ of NY,yes
+New York,Brooklyn Col,1198,Brooklyn Col,NCAA 3,City Univ of NY,yes
+New York,Medgar Evers,1199,Medgar Evers,NCAA 3,City Univ of NY,yes
+Florida,Florida Col,1200,Florida Col,,,no
+Iowa,Iowa Wesleyan,1201,Iowa Wesleyan,,,no
+Maryland,Washington Advt,1202,Washington Advt,NAIA,Continental,yes
+Arkansas,Ark Baptist,1203,Ark Baptist,NAIA,Continental,yes
+South Carolina,Voorhees,1204,Voorhees,NAIA,Continental,yes
+New Mexico,N New Mexico,1205,N New Mexico,NAIA,Continental,yes
+Florida,Florida National,1206,Florida National,NAIA,Continental,yes
+Kansas,Haskell,1207,Haskell,NAIA,Continental,yes
+Arkansas,Crowley's Ridge,1208,Crowley's Ridge,NAIA,Continental,yes
+Virgin Islands,Virgin Islands,1209,Virgin Islands,NAIA,Continental,yes
+Massachusetts,Fisher,1210,Fisher,NAIA,Continental,yes
+Texas,North American,1211,North American,NAIA,Continental,yes
+South Carolina,Morris SC,1213,Morris SC,NAIA,Continental,yes
+Oklahoma,Bacone,1214,Bacone,, ,no
+Missouri,Fontbonne,1215,Fontbonne,, ,no
+Missouri,Webster,1216,Webster,NCAA 3,St Louis,yes
+Illinois,Principia,1217,Principia,NCAA 3,St Louis,yes
+Illinois,Eureka,1218,Eureka,NCAA 3,St Louis,yes
+Missouri,Blackburn,1219,Blackburn,NCAA 3,St Louis,yes
+Mississippi,MS Women,1220,MS Women,NCAA 3,St Louis,yes
+Kentucky,Spalding,1221,Spalding,NCAA 3,St Louis,yes
+Illinois,Greenville,1222,Greenville,NCAA 3,St Louis,yes
+Missouri,Westminster MO,1223,Westminster MO,NCAA 3,St Louis,yes
+Illinois,Olivet Naz,1224,Olivet Naz,NAIA,Chicagoland,yes
+Illinois,St Xavier IL,1225,St Xavier IL,NAIA,Chicagoland,yes
+Indiana,IN S Bend,1226,IN S Bend,NAIA,Chicagoland,yes
+Illinois,Roosevelt,1227,Roosevelt,NCAA 2,Great Lakes,yes
+Illinois,St Francis IL,1228,St Francis IL,NAIA,Chicagoland,yes
+Indiana,Indiana NW,1229,Indiana NW,NAIA,Chicagoland,yes
+Indiana,Holy Cross IN,1230,Holy Cross IN,NAIA,Chicagoland,yes
+Illinois,Trinity Intl,1231,Trinity Intl,, ,no
+Illinois,Governors St,1232,Governors St,NAIA,Chicagoland,yes
+Indiana,Calumet-St Jos,1233,Calumet-St Jos,NAIA,Chicagoland,yes
+Illinois,Trinity Chr,1234,Trinity Chr,NAIA,Chicagoland,yes
+Iowa,St Ambrose,1235,St Ambrose,NAIA,Chicagoland,yes
+Illinois,Judson IL,1236,Judson IL,NAIA,Chicagoland,yes
+Wisconsin,Card Stritch,1237,Card Stritch,,,no
+Pennsylvania,Wilson,1238,Wilson,NCAA 3,Colonial States,yes
+Pennsylvania,Cairn,1239,Cairn,NCAA 3,Colonial States,yes
+Pennsylvania,Rosemont,1240,Rosemont,,,no
+Pennsylvania,Keystone,1241,Keystone,NCAA 3,Colonial States,yes
+Pennsylvania,Bryn Athyn,1242,Bryn Athyn,,,no
+New Jersey,St Elizabeth,1243,St Elizabeth,NCAA 3,Colonial States,yes
+Pennsylvania,Summit,1244,Summit,, ,no
+Pennsylvania,Valley Forge,1245,Valley Forge,NCAA 3,Colonial States,yes
+Ohio,Rio Grande,1246,Rio Grande,NAIA,River States,yes
+Indiana,IU Kokomo,1247,IU Kokomo,NAIA,River States,yes
+Indiana,IN Southeast,1248,IN Southeast,NAIA,River States,yes
+Pennsylvania,Point Park,1249,Point Park,NCAA 2,Mountain East,yes
+Indiana,Indiana-East,1250,Indiana-East,NAIA,River States,yes
+West Virginia,WV Tech,1251,WV Tech,NAIA,River States,yes
+Kentucky,Midway,1252,Midway,NAIA,River States,yes
+Kentucky,Alice Lloyd,1253,Alice Lloyd,NAIA,River States,yes
+Kentucky,Brescia,1254,Brescia,NAIA,River States,yes
+Ohio,Ohio Chr,1255,Ohio Chr,NAIA,River States,yes
+Indiana,Oakland City,1256,Oakland City,NAIA,River States,yes
+Indiana,St Mary-Woods,1257,St Mary-Woods,NAIA,River States,yes
+Pennsylvania,Carlow,1258,Carlow,NCAA 3,Allegheny Mountain,yes
+Maine,ME Farmington,1259,ME Farmington,NCAA 3,North Atlantic,yes
+New York,SUNY Delhi,1260,SUNY Delhi,NCAA 3,North Atlantic,yes
+Maine,Husson,1262,Husson,NCAA 3,North Atlantic,yes
+New York,SUNY Cobleskill,1263,SUNY Cobleskill,NCAA 3,North Atlantic,yes
+New York,Cazenovia,1264,Cazenovia,,,no
+Maine,ME Presque Isle,1265,ME Presque Isle,NCAA 3,North Atlantic,yes
+Vermont,NVU-Johnson,1266,NVU-Johnson,NCAA 3,North Atlantic,yes
+New York,SUNY Canton,1267,SUNY Canton,NCAA 3,North Atlantic,yes
+Maine,ME Maritime,1268,ME Maritime,NCAA 3,North Atlantic,yes
+Vermont,NVU-Lyndon,1269,NVU-Lyndon,NCAA 3,North Atlantic,yes
+Maine,Thomas ME,1270,Thomas ME,NCAA 3,North Atlantic,yes
+Massachusetts,Worcester St,1271,Worcester St,NCAA 3,Massachusetts,yes
+Massachusetts,Bridgewater MA,1272,Bridgewater MA,NCAA 3,Massachusetts,yes
+Massachusetts,Westfield St,1273,Westfield St,NCAA 3,Massachusetts,yes
+Massachusetts,Salem MA,1274,Salem MA,NCAA 3,Massachusetts,yes
+Massachusetts,Fitchburg St,1275,Fitchburg St,NCAA 3,Massachusetts,yes
+Massachusetts,MA Col Lib Arts,1276,MA Col Lib Arts,NCAA 3,NCAA 3 Independent,yes
+Massachusetts,Framingham St,1277,Framingham St,NCAA 3,Massachusetts,yes
+Indiana,Hanover,1278,Hanover,NCAA 3,Heartland,yes
+Indiana,Anderson IN,1279,Anderson IN,NCAA 3,Heartland,yes
+Indiana,Rose-Hulman,1280,Rose-Hulman,NCAA 3,Heartland,yes
+Kentucky,Transylvania,1281,Transylvania,NCAA 3,Heartland,yes
+Indiana,Manchester,1282,Manchester,NCAA 3,Heartland,yes
+Indiana,Franklin,1283,Franklin,NCAA 3,Heartland,yes
+Ohio,Mt St Joseph,1284,Mt St Joseph,NCAA 3,Heartland,yes
+Indiana,Earlham,1285,Earlham,NCAA 3,Heartland,yes
+Ohio,Bluffton,1286,Bluffton,NCAA 3,Heartland,yes
+Ohio,Defiance,1287,Defiance,NAIA,Heartland,yes
+Florida,Ft Lauderdale,1288,Ft Lauderdale,,,no
+Missouri,Col Ozarks,1289,Col Ozarks,NAIA,NAIA Independent,yes
+Illinois,East-West,1290,East-West,,,no
+Kentucky,Union KY,1291,Union KY,NAIA,Appalachian,yes
+South Carolina,Columbia Intl,1292,Columbia Intl,NAIA,Appalachian,yes
+North Carolina,Montreat,1293,Montreat,NAIA,Appalachian,yes
+Georgia,Reinhardt,1294,Reinhardt,NAIA,Appalachian,yes
+Tennessee,Bryan,1295,Bryan,NAIA,Appalachian,yes
+Georgia,Point,1296,Point,NAIA,Appalachian,yes
+Tennessee,TN Wesleyan,1297,TN Wesleyan,NAIA,Appalachian,yes
+Georgia,Truett-McConnell,1298,Truett-McConnell,NAIA,Appalachian,yes
+Tennessee,Milligan,1299,Milligan,NAIA,Appalachian,yes
+Virginia,Bluefield Univ,1300,Bluefield Univ,NAIA,Appalachian,yes
+Tennessee,Johnson TN,1301,Johnson TN,NAIA,Appalachian,yes
+Kentucky,Kentucky Chr,1302,Kentucky Chr,NAIA,Appalachian,yes
+North Carolina,St Andrew's,1303,St Andrew's,,,no
+Missouri,Columbia MO,1304,Columbia MO,NAIA,American MW,yes
+Arkansas,Central Bap,1305,Central Bap,NAIA,American MW,yes
+Missouri,MO Baptist,1306,MO Baptist,NAIA,American MW,yes
+Missouri,W Woods,1307,W Woods,NAIA,American MW,yes
+Arkansas,Williams Bap,1308,Williams Bap,NAIA,American MW,yes
+Missouri,Harris-Stowe,1309,Harris-Stowe,NAIA,American MW,yes
+Arkansas,Lyon,1310,Lyon,NCAA 3,St Louis,yes
+Missouri,Hannibal-Lagr,1311,Hannibal-Lagr,NAIA,American MW,yes
+North Dakota,Mayville St,1313,Mayville St,NAIA,North Star,yes
+North Dakota,Dickinson St ND,1314,Dickinson St ND,NAIA,North Star,yes
+North Dakota,Valley City St,1315,Valley City St,NAIA,North Star,yes
+Nebraska,Bellevue,1316,Bellevue,NAIA,North Star,yes
+South Dakota,Dakota St,1317,Dakota St,NAIA,North Star,yes
+Iowa,Waldorf,1318,Waldorf,NAIA,North Star,yes
+South Dakota,Presentation,1319,Presentation,,,no
+Wisconsin,Viterbo,1320,Viterbo,NAIA,North Star,yes
+California,Lincoln CA,1321,Lincoln CA,,,no
+Puerto Rico,PR Rio Piedras,1322,PR Rio Piedras,NCAA 2,,yes
+New Mexico,Navajo Tech,1323,Navajo Tech,,,no
+Pennsylvania,Cheyney St,1324,Cheyney St,,,no
+Louisiana,John Melvin,1325,John Melvin, , ,no
+Bahamas,Univ Bahamas,1326,Univ Bahamas, , ,no
+Ohio,OH Lancaster,1327,OH Lancaster, , ,no
+California,Cal Miramar,1328,Cal Miramar, , ,no
+North Carolina,Carolina Univ,1331,Carolina Univ,NAIA,,yes
+Michigan,Great Lakes Chr,1333,Great Lakes Chr,,,no
+Kentucky,Camp U-Harrodsburg,1334,Camp U-Harrodsburg,, ,no
+California,Bethesda,1335,Bethesda,,,no
+Arkansas,Ecclesia,1336,Ecclesia,,,no
+Iowa,Manhattan Chr,1337,Manhattan Chr,,,no
+Georgia,Toccoa Falls,1338,Toccoa Falls,,,no
+Michigan,Grace Chr,1339,Grace Chr,,,no
+Florida,Trinity Bap,1340,Trinity Bap,,,no
+Texas,Dallas Chr,1341,Dallas Chr,,,no
+Kansas,Kansas Chr,1342,Kansas Chr,,,no
+Arkansas,Champion Bap,1343,Champion Bap,,,no
+Florida,Johnson FL,1344,Johnson FL,,,no
+Kentucky,Boyce,1346,Boyce, , ,no
+Virginia,Regent,1347,Regent,NCAA 3,Coast-to-Coast,yes
+Georgia,Carver Bib,1348,Carver Bib, , ,no
+Oklahoma,Randall,1350,Randall,,,no
+Florida,Pensacola Chr,1351,Pensacola Chr,,,no
+North Carolina,Carolina Chr,1352,Carolina Chr,,,no
+Tennessee,Welch,1354,Welch,,,no
+Mississippi,Southeastern Bap,1355,Southeastern Bap,,,no
+Florida,Trinity FL,1356,Trinity FL,,,no
+Missouri,C Chr Bible,1357,C Chr Bible,,,no
+Missouri,Ozark Chr,1358,Ozark Chr,,,no
+California,W Coast Bap,1359,W Coast Bap, , ,no
+North Dakota,Turtle Mtn CC,1360,Turtle Mtn CC, , ,no
+Minnesota,Oak Hills Chr,1361,Oak Hills Chr,,,no
+Iowa,Faith Bap,1362,Faith Bap,,,no
+Kentucky,Simmons KY,1363,Simmons KY,,,no
+Iowa,Emmaus Bib,1364,Emmaus Bib,,,no
+Oklahoma,Portland Bible,1365,Portland Bible, , ,no
+South Dakota,Sisseton Wahpeton,1367,Sisseton Wahpeton, , ,no
+Missouri,Calvary Bib,1368,Calvary Bib,,,no
+Nebraska,Union NE,1369,Union NE,,,no
+Illinois,Moody Bib,1370,Moody Bib, , ,no
+West Virginia,Appalachian Bib,1371,Appalachian Bib,, ,no
+Missouri,Spurgeon,1372,Spurgeon, , ,no
+Pennsylvania,Stevens Tech PA,1373,Stevens Tech PA,,,no
+Pennsylvania,Lehigh Carbon,1374,Lehigh Carbon,,,no
+Texas,Arlington Bap,1375,Arlington Bap,,,no
+Texas,SW Adventist,1376,SW Adventist,,,no
+Virginia,VA-Lynchburg,1377,VA-Lynchburg,,,no
+Kansas,Barclay,1378,Barclay,,,no
+Ontario,Lambton,1379,Lambton,,,no
+Alberta,King's AB,1380,King's AB,,,no
+North Carolina,Mid-Atlantic Chr,1381,Mid-Atlantic Chr,,,no
+Alberta,Univ Lethbridge,1382,Univ Lethbridge,,,no
+South Carolina,Clinton JC,1383,Clinton JC,,,no
+Alberta,S Alberta Tech,1384,S Alberta Tech,,,no
+British Columbia,Douglas,1385,Douglas,,,no
+British Columbia,Columbia Bib,1386,Columbia Bib,,,no
+Pennsylvania,PSU-Gtr Allegheny,1387,PSU-Gtr Allegheny,,,no
+Pennsylvania,PSU-New Kens,1388,PSU-New Kens,,,no
+Ohio,Mia-Middletown,1389,Mia-Middletown,,,no
+Manitoba,Providence MB,1390,Providence MB,,,no
+Ohio,Cin Clermont,1391,Cin Clermont,,,no
+Virginia,Virginia Tech,1392,Virginia Tech,NCAA 1,ACC,yes
+North Carolina,J&W NC,1393,J&W NC,NCAA 3,Coast-to-Coast,yes
+Pennsylvania,PSU-Scranton,1394,PSU-Scranton,,,no
+New York,Vaughn,1395,Vaughn, , ,no
+Pennsylvania,PSU-Fayette,1396,PSU-Fayette,,,no
+Pennsylvania,PSU-Shenango,1397,PSU-Shenango,,,no
+Ohio,Miami-Hamilton,1398,Miami-Hamilton,,,no
+New York,Paul Smith's,1399,Paul Smith's,,,no
+Pennsylvania,PSU-DuBois,1400,PSU-DuBois,,,no
+North Dakota,Trinity Bib,1401,Trinity Bib,,,no
+Alberta,Augustana AB,1402,Augustana AB,,,no
+Pennsylvania,PSU York,1403,PSU York,,,no
+Maine,ME Ft Kent,1405,ME Ft Kent,,,no
+Pennsylvania,PSU-Hazleton,1406,PSU-Hazleton,,,no
+New York,King's NY,1407,King's NY, , ,no
+Minnesota,FLBC,1408,FLBC,,,no
+New York,Bry & Strat-Buffalo,1409,Bry & Strat-Buffalo,,,no
+Ohio,Kent-Tusc,1410,Kent-Tusc,, ,no
+Florida,Atlantis,1411,Atlantis, , ,no
+New York,Bry & Strat-Syracuse,1412,Bry & Strat-Syracuse,,,no
+Pennsylvania,PSU Wilkes-Barre,1413,PSU Wilkes-Barre,,,no
+New York,Berkeley NYC,1414,Berkeley NYC,,,no
+New York,Villa Maria,1415,Villa Maria,,,no
+New Hampshire,NH Tech,1416,NH Tech,,,no
+Pennsylvania,PSU-Brandywine,1417,PSU-Brandywine,NCAA 3,United East,yes
+Pennsylvania,PSU-Mont Alto,1418,PSU-Mont Alto,,,no
+Pennsylvania,Bry & Strat-Albany,1419,Bry & Strat-Albany,,,no
+Maine,C Maine Tech,1420,C Maine Tech,,,no
+New Hampshire,Great Bay CC,1421,Great Bay CC, , ,no
+New York,Bry & Strat-Greece,1422,Bry & Strat-Greece,,,no
+Pennsylvania,PSU-Beaver,1423,PSU-Beaver,,,no
+Maine,ME Augusta,1424,ME Augusta,,,no
+Vermont,Vermont Tech,1425,Vermont Tech,,,no
+Pennsylvania,Central Penn,1426,Central Penn,,,no
+Pennsylvania,PSU-Lehigh Val,1427,PSU-Lehigh Val,,,no
+New York,Culinary Inst,1428,Culinary Inst, , ,no
+Alberta,Word of Life,1429,Word of Life, , ,no
+Tennessee,Crown TN,1430,Crown TN, , ,no
+Tennessee,Patrick Henry,1431,Patrick Henry,, ,no
+New York,Albany Pharmacy,1432,Albany Pharmacy,, ,no
+New York,Five Towns,1433,Five Towns,,,no
+Pennsylvania,Williamson Tr,1434,Williamson Tr, , ,no
+Virginia,Christendom,1435,Christendom,,,no
+New York,SUNY-ESF,1436,SUNY-ESF, , ,no
+Michigan,Andrews,1437,Andrews,,,no
+Pennsylvania,Bucks Co CC,1438,Bucks Co CC,,,no
+Pennsylvania,Manor,1439,Manor,,,no
+Illinois,Millikin,1440,Millikin,NCAA 3,Illinois-Wisconsin,yes
+Maine,S Maine Tech,1441,S Maine Tech,,,no
+Illinois,SE Illinois,1442,SE Illinois,,,no
+Virginia,Mountain Gateway,1443,Mountain Gateway,,,no
+Ohio,Clark St,1444,Clark St,,,no
+British Columbia,Okanagan Col,1445,Okanagan Col,,,no
+North Dakota,NHSC,1446,NHSC, , ,no
+British Columbia,Capilano,1447,Capilano,,,no
+Maryland,Frederick CC,1448,Frederick CC,,,no
+Manitoba,St-Boniface,1449,St-Boniface,,,no
+British Columbia,Langara,1450,Langara,,,no
+British Columbia,Thompson Riv,1451,Thompson Riv,,,no
+British Columbia,Brit Columbia,1452,Brit Columbia,,,no
+Alberta,St Mary's AB,1453,St Mary's AB,,,no
+Alberta,Keyano,1454,Keyano,,,no
+Ontario,Windsor,1455,Windsor,,,no
+Minnesota,Red Lake Nation,1456,Red Lake Nation, , ,no
+Manitoba,Canadian Menn,1457,Canadian Menn,,,no
+Michigan,Gogebic CC,1458,Gogebic CC,,,no
+Puerto Rico,PR Mayaguez,1459,PR Mayaguez,NCAA 2,NCAA 2 Independent,yes
+Ohio,Ursuline,1460,Ursuline,NCAA 2,Great Midwest,yes
+Texas,Texas Woman's,1461,Texas Woman's,NCAA 2,Lone Star,yes
+Georgia,Agnes Scott,1462,Agnes Scott,NCAA 3,Conference of the South,yes
+Wisconsin,Alverno,1463,Alverno,,,no
+Pennsylvania,Bryn Mawr,1464,Bryn Mawr,NCAA 3,Centennial,yes
+Pennsylvania,Cedar Crest,1465,Cedar Crest,NCAA 3,Colonial States,yes
+Virginia,Hollins,1466,Hollins,NCAA 3,Old Dominion,yes
+Wisconsin,Mt Mary,1467,Mt Mary,NAIA,Coast-to-Coast,yes
+Massachusetts,Mt Holyoke,1468,Mt Holyoke,NCAA 3,New England,yes
+Massachusetts,Wellesley,1469,Wellesley,NCAA 3,New England,yes
+North Carolina,Meredith,1470,Meredith,NCAA 3,USA South,yes
+Minnesota,St Catherine,1471,St Catherine,NCAA 3,Minnesota,yes
+Minnesota,St Benedict,1472,St Benedict,NCAA 3,Minnesota,yes
+Massachusetts,Smith,1473,Smith,NCAA 3,New England,yes
+North Carolina,Salem NC,1474,Salem NC,NCAA 3,USA South,yes
+Georgia,Wesleyan GA,1475,Wesleyan GA,NCAA 3,Conference of the South,yes
+Georgia,Brenau,1476,Brenau,NAIA,Appalachian,yes
+South Carolina,Columbia SC,1477,Columbia SC,NAIA,Appalachian,yes
+Missouri,Cottey,1478,Cottey,NAIA,American MW,yes
+Missouri,Stephens,1479,Stephens,NAIA,American MW,yes
+Nebraska,St Mary NE,1480,St Mary NE,NAIA,Great Plains,yes
+Pennsylvania,CC Allegheny-B,1481,CC Allegheny-B,,,no
+Virginia,Apprentice,1484,Apprentice,,,no
+Maryland,Notre Dame MD,1485,Notre Dame MD,NCAA 3,Colonial States,yes
+Indiana,St Mary's IN,1486,St Mary's IN,NCAA 3,Michigan,yes
+Texas,Collin Co,1487,Collin Co,,,no
+District of Columbia,Trinity DC,1488,Trinity DC,NCAA 3,NCAA 3 Independent,yes
+Texas,Tyler JC,1489,Tyler JC,,,no
+Saskatchewan,Briercrest,1490,Briercrest,,,no
+Texas,Temple Col,1491,Temple Col,,,no
+New Jersey,Raritan Val,1492,Raritan Val,,,no
+Puerto Rico,Interamerican PR,1493,Interamerican PR,,,no
+Puerto Rico,Sacred Heart PR,1494,Sacred Heart PR,,,no
+Missouri,N Central MO,1495,N Central MO,,,no
+Puerto Rico,Pontifical Cath PR,1496,Pontifical Cath PR,,,no
+British Columbia,Vancouver Island,1497,Vancouver Island,,,no
+Alberta,Lakeland AB,1498,Lakeland AB,,,no
+Texas,Panola,1499,Panola,,,no
+Texas,Angelina,1500,Angelina,,,no
+Texas,Blinn,1501,Blinn,,,no
+Louisiana,LSU-Eunice,1502,LSU-Eunice,,,no
+Texas,SW Chr TX,1503,SW Chr TX,,,no
+Puerto Rico,Caribbean,1504,Caribbean,,,no
+Puerto Rico,PR Ponce,1505,PR Ponce,,,no
+Puerto Rico,PR Arecibo,1506,PR Arecibo,,,no
+Puerto Rico,Bayamon Central,1507,Bayamon Central,,,no
+Puerto Rico,Ana G Mendez,1508,Ana G Mendez,,,no
+Puerto Rico,American PR,1509,American PR,,,no
+Puerto Rico,PR Humacao,1510,PR Humacao,,,no
+Puerto Rico,PR Carolina,1511,PR Carolina,,,no
+South Carolina,SC Beaufort,1512,SC Beaufort,NCAA 2,Peach Belt,yes
+Michigan,Cleary,1513,Cleary,NAIA,NAIA Independent,yes
+Florida,New College FL,1514,New College FL,NAIA,,yes
+Michigan,Kuyper,1515,Kuyper,,,no
+Arizona,Justice,1516,Justice,,,no
+Texas,CBS-Houston,1517,CBS-Houston,,,no
+Pennsylvania,Harcum Col,1519,Harcum Col,,,no
+Canada,Toronto Met,1520,Toronto Met,,,no
+Alberta,Ambrose,1521,Ambrose,,,no
+South Carolina,SC Leadership,1522,SC Leadership,,,no
+Canada,NB-St John,1523,NB-St John,,,no
+Ontario,Redeemer,1524,Redeemer,,,no
+Ontario,St Clair,1525,St Clair,,,no
+Alberta,Concordia AB,1526,Concordia AB,,,no
+Texas,Western Gulf,1527,Western Gulf,,,no
+Maryland,CCBC Essex,1528,CCBC Essex,,,no
+Missouri,Mission,1529,Mission,NAIA,NAIA Independent,yes
+South Carolina,Spartanburg Meth,1531,Spartanburg Meth,NAIA,NAIA Independent,yes
+Texas,Texas A&M-SA,1532,Texas A&M-SA,NAIA,Red River,yes
+Indiana,IUPUC,1533,IUPUC,,,no
+Florida,Beacon,1534,Beacon,,,no
+Texas,Nelson TX,1535,Nelson TX,NAIA,Sooner,yes
+Arizona,Nelson AIC,1536,Nelson AIC,,,no
+Georgia,Abe Baldwin,1537,Abe Baldwin,NAIA,,yes
+Texas,East Texas A&M,1538,East Texas A&M,NCAA 1,Southland,yes
+Missouri,UHSP,1539,UHSP,NAIA,American MW,yes
+New York,SUNY Poly,1541,SUNY Poly,NCAA 3,North Atlantic,yes
+Ohio,B&S OH NJCAA,1542,B&S OH NJCAA,,,no
+Michigan,Lake Michigan,1543,Lake Michigan,,,no
+Colorado,Lamar CC,1544,Lamar CC,,,no
+Ohio,Hocking,1545,Hocking,,,no
+Alberta,Lethbridge Col,1546,Lethbridge Col,,,no
+California,Nobel,1547,Nobel,,,no
+California,Stanton,1548,Stanton,NAIA,,yes
+California,Cal Tribal,1549,Cal Tribal,,,no
+Puerto Rico,Catholic PR,1550,Catholic PR,,,no
+Ohio,Bry & Strat-OH,1552,Bry & Strat-OH,,,no
+Chihuahua,Chihuahua,1553,Chihuahua,,,no
+Pennsylvania,PSU-c,1554,PSU-c,, ,no
+Georgia,GA Gwinnett,1555,GA Gwinnett,NAIA,NAIA Independent,yes
+Indiana,IU Columbus,1556,IU Columbus,NAIA,NAIA Independent,yes
+Kansas,Hesston,1557,Hesston,NAIA,NAIA Independent,yes
+Florida,Trinity Jax,1558,Trinity Jax,,,no
+Pennsylvania,PSU-Schuylkill,1559,PSU-Schuylkill,,,no
+North Dakota,Bismarck St,1560,Bismarck St,NAIA,,yes
+South Dakota,SD Mines,1561,SD Mines,NCAA 2,RMAC,yes
+Texas,Cisco JC,1563,Cisco JC,,,no
+Maryland,Holyoke CC,1564,Holyoke CC,,,no
+Illinois,Col of Dupage,1565,Col of Dupage,,,no

@@ -39,7 +39,7 @@ test('uploads a team metadata CSV and reports only the teams that failed with a 
   const file = new File([
     'state,short_name,team_id,long_name,division,conference,ranked\n'
     + 'Alaska,North Alaska,1003,University of North Alaska,NCAA 2,GNAC,yes\n',
-  ], 'teams.csv', { type: 'text/csv' })
+  ], 'WomensCollegeBasketBALL.csv', { type: 'text/csv' })
   await user.upload(screen.getByLabelText('Choose Team Data CSV'), file)
   await user.click(screen.getByRole('button', { name: 'Upload Team Data' }))
 
@@ -67,13 +67,29 @@ test('shows server header errors when the team file format is incorrect', async 
   })
   render(<AddTeams />)
 
-  const file = new File(['state,short_name\nAlaska,Anchorage'], 'bad.csv', {
+  const file = new File(['state,short_name\nAlaska,Anchorage'], 'WomensCollegeBasketBALL.csv', {
     type: 'text/csv',
   })
   await user.upload(screen.getByLabelText('Choose Team Data CSV'), file)
   await user.click(screen.getByRole('button', { name: 'Upload Team Data' }))
 
   expect(await screen.findByText(/Missing required headers: ranked/)).toBeInTheDocument()
+})
+
+test('rejects a filename that does not identify the selected dataset', async () => {
+  const user = userEvent.setup()
+  render(<AddTeams />)
+
+  const file = new File(['state,short_name'], 'MensCollegeFootball.csv', {
+    type: 'text/csv',
+  })
+  await user.upload(screen.getByLabelText('Choose Team Data CSV'), file)
+  await user.click(screen.getByRole('button', { name: 'Upload Team Data' }))
+
+  expect(await screen.findByText(
+    'Filename must identify the selected dataset: womens, college, basketball.',
+  )).toBeInTheDocument()
+  expect(api.post).not.toHaveBeenCalled()
 })
 
 test('adds one team with all CSV fields through the manual form', async () => {
